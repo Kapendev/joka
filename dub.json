@@ -1,0 +1,9 @@
+{
+	"authors": [
+		"Alexandros F. G. Kapretsos"
+	],
+	"copyright": "Copyright © 2024, Alexandros F. G. Kapretsos",
+	"description": "A simple nogc utility library for the D programming language.",
+	"license": "MIT",
+	"name": "joka"
+}
