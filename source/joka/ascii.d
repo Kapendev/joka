@@ -273,6 +273,28 @@ IStr pathDir(IStr path) {
     }
 }
 
+IStr pathFormat(IStr path) {
+    static char[1024][4] buffers = void;
+    static byte bufferIndex = 0;
+
+    if (path.length == 0) {
+        return ".";
+    }
+
+    bufferIndex = (bufferIndex + 1) % buffers.length;
+
+    auto result = buffers[bufferIndex][];
+    foreach (i, c; path) {
+        if (c == otherPathSep) {
+            result[i] = pathSep;
+        } else {
+            result[i] = c;
+        }
+    }
+    result = result[0 .. path.length];
+    return result;
+}
+
 IStr pathConcat(IStr[] args...) {
     static char[1024][4] buffers = void;
     static byte bufferIndex = 0;
@@ -708,6 +730,8 @@ unittest {
     assert(str.advance(str.length + 1) == "");
     assert(pathConcat("one", "two").pathDir() == "one");
     assert(pathConcat("one").pathDir() == ".");
+    assert(pathFormat("one/two") == pathConcat("one", "two"));
+    assert(pathFormat("one\\two") == pathConcat("one", "two"));
 
     str = buffer[];
     str.copy("one, two ,three,");
