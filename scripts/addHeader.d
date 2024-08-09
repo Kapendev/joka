@@ -4,24 +4,29 @@
 
 import std;
 
-enum sourceDir = buildPath(".", "source");
 enum headerSep = "// ---";
 
 enum header = "// ---
 // Copyright 2024 Alexandros F. G. Kapretsos
 // SPDX-License-Identifier: MIT
-// Version: v0.0.3
-// Project: https://github.com/Kapendev/joka
 // Email: alexandroskapretsos@gmail.com
+// Project: https://github.com/Kapendev/joka
+// Version: v0.0.3
 // ---";
 
-int main() {
-    if (!sourceDir.exists) {
-        writeln("Path `%s` does not exist.".format(sourceDir));
+int main(string[] args) {
+    if (args.length == 1) {
+        writeln("Provide a directory containing D files.");
+        return 0;
+    }
+
+    auto targetDir = args[1];
+    if (!targetDir.exists) {
+        writeln("Path `%s` does not exist.".format(targetDir));
         return 1;
     }
 
-    foreach (file; dirEntries(sourceDir, SpanMode.breadth).parallel) {
+    foreach (file; dirEntries(targetDir, SpanMode.breadth).parallel) {
         if (file.name.endsWith(".d")) {
             auto text = readText(file.name);
             if (text.startsWith(headerSep)) {
