@@ -9,10 +9,12 @@ It provides data structures and functions that work without garbage collection, 
 ## Attributes and BetterC Support
 
 This project offers support for some attributes (`@safe`, `@nogc`, `nothrow`) and aims for good compatibility with BetterC.
+If you encounter errors with BetterC, try using the `-i` flag.
 
 ## Web Support
 
-Since this project does not rely on the D standard library, it can be used with Emscripten to compile and export to the web.
+This project can be compiled to WebAssembly as it doesn't use the D standard library.
+However, since it relies on the C standard library, you will need something like Emscripten to make it work.
 
 ## Note
 

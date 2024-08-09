@@ -45,7 +45,7 @@ struct List(T) {
         }
     }
 
-    T[] opSlice(Sz dimension)(Sz i, Sz j) {
+    T[] opSlice(Sz dim)(Sz i, Sz j) {
         return items[i .. j];
     }
 
@@ -82,7 +82,7 @@ struct List(T) {
         return items == cast(T[]) rhs;
     }
 
-    Sz opDollar(Sz dimension)() {
+    Sz opDollar(Sz dim)() {
         return items.length;
     }
 
@@ -393,10 +393,10 @@ struct Grid(T) {
         mixin("tiles[colCount * row + col] " ~ op ~ "= rhs;");
     }
 
-    Sz opDollar(Sz dimension)() {
-        static if (dimension == 0) {
+    Sz opDollar(Sz dim)() {
+        static if (dim == 0) {
             return rowCount;
-        } else static if (dimension == 1) {
+        } else static if (dim == 1) {
             return colCount;
         } else {
             assert(0, "WTF!");

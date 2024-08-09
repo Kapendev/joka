@@ -15,36 +15,30 @@ enum header = "// ---
 // Email: alexandroskapretsos@gmail.com
 // ---";
 
-/// Check if path exists and print an error message if needed.
-bool check(const(char)[] path, bool isLoud = true) {
-    if (!exists(path)) {
-        if (isLoud) writeln("Path `", path, "` does not exist.");
-        return true;
-    }
-    return false;
-}
-
 int main() {
-    if (sourceDir.check) return 1;
+    if (!sourceDir.exists) {
+        writeln("Path `%s` does not exist.".format(sourceDir));
+        return 1;
+    }
 
-    foreach (item; dirEntries(sourceDir, SpanMode.breadth).parallel) {
-        if (item.name.length > 2 && item.name[$ - 2 .. $] == ".d") {
-            auto content = readText(item.name);
-            if (content.length > headerSep.length && content[0 .. headerSep.length] == headerSep) {
-                foreach (i, c; content) {
+    foreach (file; dirEntries(sourceDir, SpanMode.breadth).parallel) {
+        if (file.name.endsWith(".d")) {
+            auto text = readText(file.name);
+            if (text.startsWith(headerSep)) {
+                foreach (i, c; text) {
                     if (i <= headerSep.length) continue;
-                    if (i == content.length - 1) {
-                        writeln("File `%s` does not have a second header separator.".format(item.name));
-                        writeln("An header separator looks like this: `// ---`");
+                    if (i == text.length - headerSep.length) {
+                        writeln("File `%s` does not have a second header separator.".format(file.name));
+                        writeln("A header separator looks like this: `%s`".format(headerSep));
                         break;
                     }
-                    if (content.length > i + headerSep.length && content[i .. i + headerSep.length] == headerSep) {
-                        std.file.write(item.name, header ~ content[i + headerSep.length .. $]);
+                    if (text[i .. i + headerSep.length] == headerSep) {
+                        std.file.write(file.name, header ~ text[i + headerSep.length .. $]);
                         break;
                     }
                 }
             } else {
-                std.file.write(item.name, header ~ "\n\n" ~ content);
+                std.file.write(file.name, header ~ "\n\n" ~ text);
             }
         }
     }

@@ -571,7 +571,7 @@ Result!ICStr toCStr(IStr str) {
     }
 }
 
-// TODO: Check if the args count is the same with the `{}` count and also add extra stuff.
+// TODO: Add way to add options in the format string.
 IStr format(A...)(IStr formatStr, A args) {
     static char[1024][8] buffers = void;
     static byte bufferIndex = 0;
@@ -610,7 +610,7 @@ IStr format(A...)(IStr formatStr, A args) {
     return result;
 }
 
-// TODO: Check if the args count is the same with the `{}` count and also add extra stuff.
+// TODO: Add way to add options in the format string.
 void formatl(A...)(ref LStr text, IStr formatStr, A args) {
     text.clear();
 
@@ -833,5 +833,6 @@ unittest {
     assert(toCStr("Hello").unwrapOr().length == "Hello".length);
     assert(toCStr("Hello").unwrapOr().cStrToStr() == "Hello");
 
-    // TODO: Write tests for `format` when it is done.
+    // TODO: Write more tests for `format` when it is done.
+    assert(format("Hello {}!", "world") == "Hello world!");
 }
