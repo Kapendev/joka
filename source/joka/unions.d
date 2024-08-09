@@ -1,6 +1,10 @@
+// ---
 // Copyright 2024 Alexandros F. G. Kapretsos
 // SPDX-License-Identifier: MIT
+// Version: v0.0.3
+// Project: https://github.com/Kapendev/joka
 // Email: alexandroskapretsos@gmail.com
+// ---
 
 /// The `unions` module provides data structures and functions for working with unions.
 module joka.unions;

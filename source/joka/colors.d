@@ -1,6 +1,10 @@
+// ---
 // Copyright 2024 Alexandros F. G. Kapretsos
 // SPDX-License-Identifier: MIT
+// Version: v0.0.3
+// Project: https://github.com/Kapendev/joka
 // Email: alexandroskapretsos@gmail.com
+// ---
 
 /// The `colors` module provides color-related data structures and functions.
 module joka.colors;

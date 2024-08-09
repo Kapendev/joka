@@ -1,6 +1,10 @@
+// ---
 // Copyright 2024 Alexandros F. G. Kapretsos
 // SPDX-License-Identifier: MIT
+// Version: v0.0.3
+// Project: https://github.com/Kapendev/joka
 // Email: alexandroskapretsos@gmail.com
+// ---
 
 /// The `faults` module provides data structures and codes for error handling.
 module joka.faults;

@@ -1,6 +1,10 @@
+// ---
 // Copyright 2024 Alexandros F. G. Kapretsos
 // SPDX-License-Identifier: MIT
+// Version: v0.0.3
+// Project: https://github.com/Kapendev/joka
 // Email: alexandroskapretsos@gmail.com
+// ---
 
 /// The `io` module provides input and output functions such as file reading.
 module joka.io;
