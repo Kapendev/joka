@@ -6,6 +6,15 @@ It provides data structures and functions that work without garbage collection, 
 > [!WARNING]  
 > This is alpha software. Use it only if you are very cool.
 
+## Data Structures
+
+* [x] Dynamic Array (`List`)
+* [x] Sparse Array (`FlagList`)
+* [x] Flattened 2D Array (`Grid`)
+* [x] Tagged Union (`Variant`)
+* [ ] Hash Table
+* [ ] Arena Allocator
+
 ## Attributes and BetterC Support
 
 This project offers support for some attributes (`@safe`, `@nogc`, `nothrow`) and aims for good compatibility with BetterC.

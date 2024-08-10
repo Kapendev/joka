@@ -11,7 +11,7 @@ module joka.stdc;
 
 @nogc nothrow extern(C):
 
-// types.l
+// types
 
 version (WebAssembly) {
     alias CLong = int;
@@ -21,7 +21,43 @@ version (WebAssembly) {
     alias CULong = ulong;
 }
 
+// string.h
+
+int memcmp(const(void)* lhs, const(void)* rhs, size_t count);
+void* memset(void* dest, int ch, size_t count);
+void* memcpy(void* dest, const(void)* src, size_t count);
+
 // math.h
+
+float fabsf(float x);
+double fabs(double x);
+
+float fmodf(float x, float y);
+double fmod(double x, double y);
+
+float expf(float x);
+double exp(double x);
+
+float exp2f(float x);
+double exp2(double x);
+
+float expm1f(float x);
+double expm1(double x);
+
+float logf(float x);
+double log(double x);
+
+float log10f(float x);
+double log10(double x);
+
+float log2f(float x);
+double log2(double x);
+
+float log1pf(float x);
+double log1p(double x);
+
+float powf(float base, float exponent);
+double pow(double base, double exponent);
 
 float sqrtf(float x);
 double sqrt(double x);
@@ -32,11 +68,30 @@ double sin(double x);
 float cosf(float x);
 double cos(double x);
 
+float tanf(float x);
+double tan(double x);
+
+float asinf(float x);
+double asin(double x);
+
+float acosf(float x);
+double acos(double x);
+
+float atanf(float x);
+double atan(double x);
+
+float atan2f(float y, float x);
+double atan2(double y, double x);
+
 // stdlib.h
 
 void* malloc(size_t size);
 void* realloc(void* ptr, size_t size);
 void free(void* ptr);
+void abort();
+void exit(int code);
+char* getenv(const(char)* name);
+int system(const(char)* command);
 
 // stdio.h
 

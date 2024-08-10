@@ -43,7 +43,9 @@ struct Variant(A...) {
     static foreach (i, T; A) {
         @trusted
         this(T value) {
-            this.value = *(cast(VariantValue!A*) &value);
+            auto temp = VariantValue!A();
+            *(cast(T*) &temp) = value;
+            this.value = temp;
             this.kind = i;
         }
     }
@@ -51,7 +53,9 @@ struct Variant(A...) {
     static foreach (i, T; A) {
         @trusted
         void opAssign(T rhs) {
-            value = *(cast(VariantValue!A*) &rhs);
+            auto temp = VariantValue!A();
+            *(cast(T*) &temp) = rhs;
+            value = temp;
             kind = i;
         }
     }
