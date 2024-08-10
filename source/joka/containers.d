@@ -70,7 +70,7 @@ struct List(T) {
 
     @trusted
     void opIndexOpAssign(IStr op)(const(T) rhs, Sz i) {
-        mixin("items[i] " ~ op ~ "= cast(T) rhs;");
+        mixin("items[i]", op, "= cast(T) rhs;");
     }
 
     bool opEquals(List!T rhs) {
@@ -216,7 +216,7 @@ struct FlagList(T) {
         if (!has(i)) {
             assert(0, "ID `[{}]` does not exist.".format(i));
         }
-        mixin("data[i] ", op, "= cast(T) rhs;");
+        mixin("data[i]", op, "= cast(T) rhs;");
     }
 
     Sz capacity() {
@@ -390,7 +390,7 @@ struct Grid(T) {
         if (!has(row, col)) {
             assert(0, "Tile `[{}, {}]` does not exist.".format(row, col));
         }
-        mixin("tiles[colCount * row + col] " ~ op ~ "= rhs;");
+        mixin("tiles[colCount * row + col]", op, "= rhs;");
     }
 
     Sz opDollar(Sz dim)() {
@@ -485,6 +485,8 @@ unittest {
     assert(text[0 .. $] == text.items[0 .. $]);
     assert(text[0] == 'H');
     text[0] = 'h';
+    text[0] += 1;
+    text[0] -= 1;
     assert(text[0] == 'h');
     text.append("!!");
     assert(text == "hello world!!!");
@@ -530,6 +532,9 @@ unittest {
     assert(numbers[0] == 1);
     assert(numbers[1] == 2);
     assert(numbers[2] == 3);
+    numbers[0] = 1;
+    numbers[0] += 1;
+    numbers[0] -= 1;
     assert(numbers.has(0) == true);
     assert(numbers.has(1) == true);
     assert(numbers.has(2) == true);
@@ -590,6 +595,9 @@ unittest {
     assert(numbers.colCount == 8);
     assert(numbers[0, 0] == 0);
     assert(numbers[7, 7] == 0);
+    numbers[0, 0] = 0;
+    numbers[0, 0] += 1;
+    numbers[0, 0] -= 1;
     assert(numbers.has(7, 8) == false);
     assert(numbers.has(8, 7) == false);
     assert(numbers.has(8, 8) == false);

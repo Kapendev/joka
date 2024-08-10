@@ -453,7 +453,7 @@ IStr cStrToStr(ICStr value) {
 IStr enumToStr(T)(T value) {
     switch (value) {
         static foreach (member; __traits(allMembers, T)) {
-            mixin("case T." ~ member ~ ": return member;");
+            mixin("case T.", member, ": return member;");
         }
         default: assert(0, "WTF!");
     }
@@ -476,7 +476,7 @@ IStr toStr(T)(T value, ToStrOptions options = ToStrOptions()) {
         return cStrToStr(value);
     } else static if (isEnumType!T) {
         return enumToStr(value);
-    } else static if (__traits(hasMember, T, "toStr")) {
+    } else static if (hasMember!(T, "toStr")) {
         return value.toStr();
     } else {
         static assert(0, funcImplementationErrorMessage!(T, "toStr"));
@@ -573,7 +573,7 @@ Result!double toDouble(char c) {
 Result!T toEnum(T)(IStr str) {
     switch (str) {
         static foreach (member; __traits(allMembers, T)) {
-            mixin("case " ~ member.stringof ~ ": return Result!T(T." ~ member ~ ");");
+            mixin("case ", member.stringof, ": return Result!T(T.", member, ");");
         }
         default: return Result!T(Fault.invalid);
     }
