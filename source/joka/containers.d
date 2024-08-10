@@ -10,8 +10,8 @@
 module joka.containers;
 
 import joka.ascii;
-import joka.stdc;
 import joka.types;
+import stdc = joka.stdc;
 
 @safe @nogc nothrow:
 
@@ -101,7 +101,7 @@ struct List(T) {
             Sz newLength = length + 1;
             if (newLength > capacity) {
                 capacity = findListCapacity(newLength);
-                items = (cast(T*) realloc(items.ptr, capacity * T.sizeof))[0 .. newLength];
+                items = (cast(T*) stdc.realloc(items.ptr, capacity * T.sizeof))[0 .. newLength];
             } else {
                 items = items.ptr[0 .. newLength];
             }
@@ -129,7 +129,7 @@ struct List(T) {
         auto targetCapacity = findListCapacity(capacity);
         if (targetCapacity > this.capacity) {
             this.capacity = targetCapacity;
-            items = (cast(T*) realloc(items.ptr, this.capacity * T.sizeof))[0 .. length];
+            items = (cast(T*) stdc.realloc(items.ptr, this.capacity * T.sizeof))[0 .. length];
         }
     }
 
@@ -157,7 +157,7 @@ struct List(T) {
 
     @trusted
     void free() {
-        .free(items.ptr);
+        stdc.free(items.ptr);
         items = [];
         capacity = 0;
     }

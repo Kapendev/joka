@@ -10,9 +10,9 @@
 module joka.math;
 
 import joka.ascii;
-import joka.stdc;
 import joka.traits;
 import joka.types;
+import stdc = joka.stdc;
 
 @safe @nogc nothrow:
 
@@ -35,11 +35,11 @@ struct IVec2 {
     int x;
     int y;
 
-    @safe @nogc nothrow:
-
     enum length = 2;
     enum zero = IVec2(0, 0);
     enum one = IVec2(1, 1);
+
+    @safe @nogc nothrow:
 
     pragma(inline, true)
     this(int x, int y) {
@@ -657,6 +657,106 @@ T sign(T)(T x) {
     return x < 0 ? -1 : 1;
 }
 
+@trusted
+float fmod(float x, float y) {
+    return stdc.fmodf(x, y);
+}
+
+@trusted
+double fmod(double x, double y) {
+    return stdc.fmod(x, y);
+}
+
+@trusted
+float exp(float x) {
+    return stdc.expf(x);
+}
+
+@trusted
+double exp(double x) {
+    return stdc.exp(x);
+}
+
+@trusted
+float exp2(float x) {
+    return stdc.exp2f(x);
+}
+
+@trusted
+double exp2(double x) {
+    return stdc.exp2(x);
+}
+
+@trusted
+float expm1(float x) {
+    return stdc.expm1f(x);
+}
+
+@trusted
+double expm1(double x) {
+    return stdc.expm1(x);
+}
+
+@trusted
+float log(float x) {
+    return stdc.logf(x);
+}
+
+@trusted
+double log(double x) {
+    return stdc.log(x);
+}
+
+@trusted
+float log10(float x) {
+    return stdc.log10f(x);
+}
+
+@trusted
+double log10(double x) {
+    return stdc.log10(x);
+}
+
+@trusted
+float log2(float x) {
+    return stdc.log2f(x);
+}
+
+@trusted
+double log2(double x) {
+    return stdc.log2(x);
+}
+
+@trusted
+float log1p(float x) {
+    return stdc.log1pf(x);
+}
+
+@trusted
+double log1p(double x) {
+    return stdc.log1p(x);
+}
+
+@trusted
+float pow(float base, float exponent) {
+    return stdc.powf(base, exponent);
+}
+
+@trusted
+double pow(double base, double exponent) {
+    return stdc.pow(base, exponent);
+}
+
+@trusted
+float atan2(float y, float x) {
+    return stdc.atan2f(y, x);
+}
+
+@trusted
+double atan2(double y, double x) {
+    return stdc.atan2(y, x);
+}
+
 T abs(T)(T x) {
     return x < 0 ? -x : x;
 }
@@ -767,12 +867,12 @@ Rect round(Rect rect) {
 
 @trusted
 float sqrt(float x) {
-    return sqrtf(x);
+    return stdc.sqrtf(x);
 }
 
 @trusted
 double sqrt(double x) {
-    return .sqrt(x);
+    return stdc.sqrt(x);
 }
 
 Vec2 sqrt(Vec2 vec) {
@@ -793,12 +893,12 @@ Rect sqrt(Rect rect) {
 
 @trusted
 float sin(float x) {
-    return sinf(x);
+    return stdc.sinf(x);
 }
 
 @trusted
 double sin(double x) {
-    return .sin(x);
+    return stdc.sin(x);
 }
 
 Vec2 sin(Vec2 vec) {
@@ -819,12 +919,12 @@ Rect sin(Rect rect) {
 
 @trusted
 float cos(float x) {
-    return cosf(x);
+    return stdc.cosf(x);
 }
 
 @trusted
 double cos(double x) {
-    return .cos(x);
+    return stdc.cos(x);
 }
 
 Vec2 cos(Vec2 vec) {
@@ -841,6 +941,110 @@ Vec4 cos(Vec4 vec) {
 
 Rect cos(Rect rect) {
     return Rect(rect.position.cos, rect.size.cos);
+}
+
+@trusted
+float tan(float x) {
+    return stdc.tanf(x);
+}
+
+@trusted
+double tan(double x) {
+    return stdc.tan(x);
+}
+
+Vec2 tan(Vec2 vec) {
+    return Vec2(vec.x.tan, vec.y.tan);
+}
+
+Vec3 tan(Vec3 vec) {
+    return Vec3(vec.x.tan, vec.y.tan, vec.z.tan);
+}
+
+Vec4 tan(Vec4 vec) {
+    return Vec4(vec.x.tan, vec.y.tan, vec.z.tan, vec.w.tan);
+}
+
+Rect tan(Rect rect) {
+    return Rect(rect.position.tan, rect.size.tan);
+}
+
+@trusted
+float asin(float x) {
+    return stdc.asinf(x);
+}
+
+@trusted
+double asin(double x) {
+    return stdc.asin(x);
+}
+
+Vec2 asin(Vec2 vec) {
+    return Vec2(vec.x.asin, vec.y.asin);
+}
+
+Vec3 asin(Vec3 vec) {
+    return Vec3(vec.x.asin, vec.y.asin, vec.z.asin);
+}
+
+Vec4 asin(Vec4 vec) {
+    return Vec4(vec.x.asin, vec.y.asin, vec.z.asin, vec.w.asin);
+}
+
+Rect asin(Rect rect) {
+    return Rect(rect.position.asin, rect.size.asin);
+}
+
+@trusted
+float acos(float x) {
+    return stdc.acosf(x);
+}
+
+@trusted
+double acos(double x) {
+    return stdc.acos(x);
+}
+
+Vec2 acos(Vec2 vec) {
+    return Vec2(vec.x.acos, vec.y.acos);
+}
+
+Vec3 acos(Vec3 vec) {
+    return Vec3(vec.x.acos, vec.y.acos, vec.z.acos);
+}
+
+Vec4 acos(Vec4 vec) {
+    return Vec4(vec.x.acos, vec.y.acos, vec.z.acos, vec.w.acos);
+}
+
+Rect acos(Rect rect) {
+    return Rect(rect.position.acos, rect.size.acos);
+}
+
+@trusted
+float atan(float x) {
+    return stdc.atanf(x);
+}
+
+@trusted
+double atan(double x) {
+    return stdc.atan(x);
+}
+
+Vec2 atan(Vec2 vec) {
+    return Vec2(vec.x.atan, vec.y.atan);
+}
+
+Vec3 atan(Vec3 vec) {
+    return Vec3(vec.x.atan, vec.y.atan, vec.z.atan);
+}
+
+Vec4 atan(Vec4 vec) {
+    return Vec4(vec.x.atan, vec.y.atan, vec.z.atan, vec.w.atan);
+}
+
+Rect atan(Rect rect) {
+    return Rect(rect.position.atan, rect.size.atan);
 }
 
 T clamp(T)(T x, T a, T b) {
@@ -960,6 +1164,10 @@ Vec4 moveTo(Vec4 from, Vec4 to, Vec4 delta) {
 }
 
 float moveToWithSlowdown(float from, float to, float delta, float slowdown) {
+    if (slowdown <= 0.0f) {
+        return moveTo(from, to, delta);
+    }
+
     auto target = ((from * (slowdown - 1.0f)) + to) / slowdown;
     auto offset = target - from;
     if (abs(offset) > abs(delta)) return from + offset * delta;
@@ -967,6 +1175,10 @@ float moveToWithSlowdown(float from, float to, float delta, float slowdown) {
 }
 
 double moveToWithSlowdown(double from, double to, double delta, double slowdown) {
+    if (slowdown <= 0.0) {
+        return moveTo(from, to, delta);
+    }
+
     auto target = ((from * (slowdown - 1.0)) + to) / slowdown;
     auto offset = target - from;
     if (abs(offset) > abs(delta)) return from + offset * delta;

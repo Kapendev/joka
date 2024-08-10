@@ -10,9 +10,9 @@
 module joka.io;
 
 import joka.ascii;
-import joka.stdc;
 import joka.traits;
 import joka.types;
+import stdc = joka.stdc;
 
 public import joka.containers;
 public import joka.faults;
@@ -21,12 +21,12 @@ public import joka.faults;
 
 @trusted
 void printf(A...)(IStr text, A args) {
-    .fputs(format("{}\0", format(text, args)).ptr, .stdout);
+    stdc.fputs(format("{}\0", format(text, args)).ptr, .stdout);
 }
 
 @trusted
 void printfln(A...)(IStr text, A args) {
-    .fputs(format("{}\n\0", format(text, args)).ptr, .stdout);
+    stdc.fputs(format("{}\n\0", format(text, args)).ptr, .stdout);
 }
 
 void print(A...)(A args) {
@@ -44,28 +44,28 @@ void println(A...)(A args) {
 
 @trusted
 Fault readTextIntoBuffer(IStr path, ref LStr text) {
-    auto file = fopen(toCStr(path).unwrapOr(), "rb");
+    auto file = stdc.fopen(toCStr(path).unwrapOr(), "rb");
     if (file == null) {
         return Fault.cantOpen;
     }
-    if (fseek(file, 0, SEEK_END) != 0) {
-        fclose(file);
+    if (stdc.fseek(file, 0, stdc.SEEK_END) != 0) {
+        stdc.fclose(file);
         return Fault.cantRead;
     }
 
-    auto fileSize = ftell(file);
+    auto fileSize = stdc.ftell(file);
     if (fileSize == -1) {
-        fclose(file);
+        stdc.fclose(file);
         return Fault.cantRead;
     }
-    if (fseek(file, 0, SEEK_SET) != 0) {
-        fclose(file);
+    if (stdc.fseek(file, 0, stdc.SEEK_SET) != 0) {
+        stdc.fclose(file);
         return Fault.cantRead;
     }
 
     text.resize(fileSize);
-    fread(text.items.ptr, fileSize, 1, file);
-    if (fclose(file) != 0) {
+    stdc.fread(text.items.ptr, fileSize, 1, file);
+    if (stdc.fclose(file) != 0) {
         return Fault.cantClose;
     }
     return Fault.none;
@@ -78,12 +78,12 @@ Result!LStr readText(IStr path) {
 
 @trusted
 Fault writeText(IStr path, IStr text) {
-    auto file = fopen(toCStr(path).unwrapOr(), "w");
+    auto file = stdc.fopen(toCStr(path).unwrapOr(), "w");
     if (file == null) {
         return Fault.cantOpen;
     }
-    fwrite(text.ptr, char.sizeof, text.length, file);
-    if (fclose(file) != 0) {
+    stdc.fwrite(text.ptr, char.sizeof, text.length, file);
+    if (stdc.fclose(file) != 0) {
         return Fault.cantClose;
     }
     return Fault.none;
