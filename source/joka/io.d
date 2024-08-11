@@ -21,12 +21,12 @@ public import joka.faults;
 
 @trusted
 void printf(A...)(IStr text, A args) {
-    stdc.fputs(format("{}\0", format(text, args)).ptr, .stdout);
+    stdc.fputs(format("{}\0", format(text, args)).ptr, stdc.stdout);
 }
 
 @trusted
 void printfln(A...)(IStr text, A args) {
-    stdc.fputs(format("{}\n\0", format(text, args)).ptr, .stdout);
+    stdc.fputs(format("{}\n\0", format(text, args)).ptr, stdc.stdout);
 }
 
 void print(A...)(A args) {
