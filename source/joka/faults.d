@@ -82,6 +82,16 @@ struct Result(T) {
     }
 }
 
+Fault toFault(bool value) {
+    return value ? Fault.some : Fault.none;
+}
+
+// Function test.
+unittest {
+    assert(toFault(false) == Fault.none);
+    assert(toFault(true) == Fault.some);
+}
+
 // Result test.
 unittest {
     assert(Result!int().isNone == true);

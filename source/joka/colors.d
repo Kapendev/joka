@@ -31,7 +31,7 @@ enum gray2   = toRgb(0x606060);
 enum gray3   = toRgb(0x9f9f9f);
 enum gray4   = toRgb(0xdfdfdf);
 
-alias gray = gray1;
+alias gray = gray2;
 
 struct Color {
     ubyte r;
