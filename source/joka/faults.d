@@ -82,14 +82,16 @@ struct Result(T) {
     }
 }
 
-Fault toFault(bool value) {
-    return value ? Fault.some : Fault.none;
+Fault toFault(bool value, Fault dflt = Fault.some) {
+    return value ? dflt : Fault.none;
 }
 
 // Function test.
 unittest {
     assert(toFault(false) == Fault.none);
     assert(toFault(true) == Fault.some);
+    assert(toFault(false, Fault.invalid) == Fault.none);
+    assert(toFault(true, Fault.invalid) == Fault.invalid);
 }
 
 // Result test.

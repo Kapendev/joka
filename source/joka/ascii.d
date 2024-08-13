@@ -12,7 +12,6 @@ module joka.ascii;
 import joka.containers;
 import joka.traits;
 import joka.types;
-
 public import joka.faults;
 
 @safe @nogc nothrow:

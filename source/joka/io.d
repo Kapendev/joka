@@ -13,7 +13,6 @@ import joka.ascii;
 import joka.traits;
 import joka.types;
 import stdc = joka.stdc;
-
 public import joka.containers;
 public import joka.faults;
 

@@ -36,6 +36,7 @@ union VariantValue(A...) {
 struct Variant(A...) {
     VariantValue!A value;
     VariantKind kind;
+
     alias value this;
 
     @safe @nogc nothrow:
