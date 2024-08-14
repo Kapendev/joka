@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.3
+// Version: v0.0.4
 // ---
 
 /// The `ascii` module provides functions designed to assist with ascii strings.
@@ -439,7 +439,7 @@ IStr doubleToStr(double value, ulong precision = 2) {
     }
     // Remove extra zeros at the end if needed.
     if (precision < rightDigitCount) {
-        result = result[0 .. $ - rightDigitCount + precision];
+        result = result[0 .. cast(Sz) ($ - rightDigitCount + precision)];
     }
     return result[i .. $];
 }
