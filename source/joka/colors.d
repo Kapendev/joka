@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.4
+// Version: v0.0.5
 // ---
 
 /// The `colors` module provides color-related data structures and functions.

@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.4
+// Version: v0.0.5
 // ---
 
 /// The `ascii` module provides functions designed to assist with ascii strings.
@@ -34,50 +34,27 @@ struct ToStrOptions {
     ubyte doublePrecision = 2;
 }
 
+/// Checks if the given character is a digit (0-9).
 bool isDigit(char c) {
     return c >= '0' && c <= '9';
 }
 
-bool isDigit(IStr str) {
-    foreach (c; str) {
-        if (!isDigit(c)) return false;
-    }
-    return true;
-}
-
+/// Checks if the given character is an uppercase letter (A-Z).
 bool isUpper(char c) {
     return c >= 'A' && c <= 'Z';
 }
 
-bool isUpper(IStr str) {
-    foreach (c; str) {
-        if (!isUpper(c)) return false;
-    }
-    return true;
-}
-
+/// Checks if the given character is a lowercase letter (a-z).
 bool isLower(char c) {
     return c >= 'a' && c <= 'z';
 }
 
-bool isLower(IStr str) {
-    foreach (c; str) {
-        if (!isLower(c)) return false;
-    }
-    return true;
-}
-
+/// Checks if the given character is an alphabetic letter (A-Z or a-z).
 bool isAlpha(char c) {
     return isLower(c) || isUpper(c);
 }
 
-bool isAlpha(IStr str) {
-    foreach (c; str) {
-        if (!isAlpha(c)) return false;
-    }
-    return true;
-}
-
+/// Checks if the given character is a whitespace character (space, tab, ...).
 bool isSpace(char c) {
     foreach (sc; spaceChars) {
         if (c == sc) return true;
@@ -85,37 +62,36 @@ bool isSpace(char c) {
     return false;
 }
 
-bool isSpace(IStr str) {
-    foreach (c; str) {
-        if (!isSpace(c)) return false;
-    }
-    return true;
-}
-
+/// Checks if the given string represents a C-style string.
 bool isCStr(IStr str) {
     return str.length != 0 && str[$ - 1] == '\0';
 }
 
+/// Converts the given character to uppercase if it is a lowercase letter.
 char toUpper(char c) {
     return isLower(c) ? cast(char) (c - 32) : c;
 }
 
+/// Converts all lowercase letters in the given string to uppercase.
 void toUpper(Str str) {
     foreach (ref c; str) {
         c = toUpper(c);
     }
 }
 
+/// Converts the given character to lowercase if it is an uppercase letter.
 char toLower(char c) {
     return isUpper(c) ? cast(char) (c + 32) : c;
 }
 
+/// Converts all uppercase letters in the given string to lowercase.
 void toLower(Str str) {
     foreach (ref c; str) {
         c = toLower(c);
     }
 }
 
+/// Returns the length of the given C-style string.
 @trusted
 Sz length(ICStr str) {
     Sz result = 0;
@@ -125,14 +101,17 @@ Sz length(ICStr str) {
     return result;
 }
 
+/// Checks if the two given strings are equal.
 bool equals(IStr str, IStr other) {
     return str == other;
 }
 
+/// Checks if the given string is equal to the specified character.
 bool equals(IStr str, char other) {
     return equals(str, charToStr(other));
 }
 
+/// Checks if the two given strings are equal, ignoring case.
 bool equalsNoCase(IStr str, IStr other) {
     if (str.length != other.length) return false;
     foreach (i; 0 .. str.length) {
@@ -141,28 +120,34 @@ bool equalsNoCase(IStr str, IStr other) {
     return true;
 }
 
+/// Checks if the given string is equal to the specified character, ignoring case.
 bool equalsNoCase(IStr str, char other) {
     return equalsNoCase(str, charToStr(other));
 }
 
+/// Checks if the given string starts with the specified substring.
 bool startsWith(IStr str, IStr start) {
     if (str.length < start.length) return false;
     return str[0 .. start.length] == start;
 }
 
+/// Checks if the given string starts with the specified character.
 bool startsWith(IStr str, char start) {
     return startsWith(str, charToStr(start));
 }
 
+/// Checks if the given string ends with the specified substring.
 bool endsWith(IStr str, IStr end) {
     if (str.length < end.length) return false;
     return str[$ - end.length .. $] == end;
 }
 
+/// Checks if the given string ends with the specified character.
 bool endsWith(IStr str, char end) {
     return endsWith(str, charToStr(end));
 }
 
+/// Counts the number of occurrences of the specified substring in the given string.
 int count(IStr str, IStr item) {
     int result = 0;
     if (str.length < item.length || item.length == 0) return result;
@@ -175,10 +160,12 @@ int count(IStr str, IStr item) {
     return result;
 }
 
+/// Counts the number of occurrences of the specified character in the given string.
 int count(IStr str, char item) {
     return count(str, charToStr(item));
 }
 
+/// Finds the starting index of the first occurrence of the specified substring in the given string, or returns -1 if not found.
 int findStart(IStr str, IStr item) {
     if (str.length < item.length || item.length == 0) return -1;
     foreach (i; 0 .. str.length - item.length + 1) {
@@ -187,10 +174,12 @@ int findStart(IStr str, IStr item) {
     return -1;
 }
 
+/// Finds the starting index of the first occurrence of the specified character in the given string, or returns -1 if not found.
 int findStart(IStr str, char item) {
     return findStart(str, charToStr(item));
 }
 
+/// Finds the ending index of the first occurrence of the specified substring in the given string, or returns -1 if not found.
 int findEnd(IStr str, IStr item) {
     if (str.length < item.length || item.length == 0) return -1;
     foreach_reverse (i; 0 .. str.length - item.length + 1) {
@@ -199,10 +188,12 @@ int findEnd(IStr str, IStr item) {
     return -1;
 }
 
+/// Finds the ending index of the first occurrence of the specified character in the given string, or returns -1 if not found.
 int findEnd(IStr str, char item) {
     return findEnd(str, charToStr(item));
 }
 
+/// Removes whitespace characters from the beginning of the given string.
 IStr trimStart(IStr str) {
     IStr result = str;
     while (result.length > 0) {
@@ -212,6 +203,7 @@ IStr trimStart(IStr str) {
     return result;
 }
 
+/// Removes whitespace characters from the end of the given string.
 IStr trimEnd(IStr str) {
     IStr result = str;
     while (result.length > 0) {
@@ -221,10 +213,12 @@ IStr trimEnd(IStr str) {
     return result;
 }
 
+/// Removes whitespace characters from both the beginning and end of the given string.
 IStr trim(IStr str) {
     return str.trimStart().trimEnd();
 }
 
+/// Removes the specified prefix from the beginning of the given string if it exists.
 IStr removePrefix(IStr str, IStr prefix) {
     if (str.startsWith(prefix)) {
         return str[prefix.length .. $];
@@ -233,6 +227,7 @@ IStr removePrefix(IStr str, IStr prefix) {
     }
 }
 
+/// Removes the specified suffix from the end of the given string if it exists.
 IStr removeSuffix(IStr str, IStr suffix) {
     if (str.endsWith(suffix)) {
         return str[0 .. $ - suffix.length];
@@ -241,6 +236,7 @@ IStr removeSuffix(IStr str, IStr suffix) {
     }
 }
 
+/// Advances the given string by the specified number of characters.
 IStr advance(IStr str, Sz amount) {
     if (str.length < amount) {
         return str[$ .. $];
@@ -249,6 +245,7 @@ IStr advance(IStr str, Sz amount) {
     }
 }
 
+/// Copies characters from the source string to the destination string starting at the specified index.
 void copyChars(Str str, IStr source, Sz startIndex = 0) {
     if (str.length < source.length) {
         assert(0, "Destination string `{}` must be at least as long as the source string `{}`.".format(str, source));
@@ -258,11 +255,13 @@ void copyChars(Str str, IStr source, Sz startIndex = 0) {
     }
 }
 
+/// Copies characters from the source string to the destination string starting at the specified index and adjusts the length of the destination string.
 void copy(ref Str str, IStr source, Sz startIndex = 0) {
     copyChars(str, source, startIndex);
     str = str[0 .. startIndex + source.length];
 }
 
+/// Extracts and returns the directory part of the given path, or "." if there is no directory.
 IStr pathDir(IStr path) {
     auto end = findEnd(path, pathSep);
     if (end == -1) {
@@ -272,6 +271,7 @@ IStr pathDir(IStr path) {
     }
 }
 
+/// Formats the given path to a standard form, normalizing separators.
 IStr pathFormat(IStr path) {
     static char[1024][4] buffers = void;
     static byte bufferIndex = 0;
@@ -294,6 +294,7 @@ IStr pathFormat(IStr path) {
     return result;
 }
 
+/// Concatenates the given paths, ensuring proper path separators between them.
 IStr pathConcat(IStr[] args...) {
     static char[1024][4] buffers = void;
     static byte bufferIndex = 0;
@@ -318,38 +319,43 @@ IStr pathConcat(IStr[] args...) {
     return result;
 }
 
-IStr skipValue(ref inout(char)[] str, IStr separator) {
-    if (str.length < separator.length || separator.length == 0) {
+/// Skips over the next occurrence of the specified separator in the given string, returning the substring before the separator and updating the input string to start after the separator.
+IStr skipValue(ref inout(char)[] str, IStr sep) {
+    if (str.length < sep.length || sep.length == 0) {
         str = str[$ .. $];
         return "";
     }
-    foreach (i; 0 .. str.length - separator.length) {
-        if (str[i .. i + separator.length] == separator) {
+    foreach (i; 0 .. str.length - sep.length) {
+        if (str[i .. i + sep.length] == sep) {
             auto line = str[0 .. i];
-            str = str[i + separator.length .. $];
+            str = str[i + sep.length .. $];
             return line;
         }
     }
     auto line = str[0 .. $];
-    if (str[$ - separator.length .. $] == separator) {
+    if (str[$ - sep.length .. $] == sep) {
         line = str[0 .. $ - 1];
     }
     str = str[$ .. $];
     return line;
 }
 
-IStr skipValue(ref inout(char)[] str, char separator) {
-    return skipValue(str, charToStr(separator));
+/// Skips over the next occurrence of the specified separator in the given string, returning the substring before the separator and updating the input string to start after the separator.
+IStr skipValue(ref inout(char)[] str, char sep) {
+    return skipValue(str, charToStr(sep));
 }
 
+/// Skips over the next line in the given string, returning the substring before the line break and updating the input string to start after the line break.
 IStr skipLine(ref inout(char)[] str) {
     return skipValue(str, '\n');
 }
 
+/// Converts the given boolean value to its string representation.
 IStr boolToStr(bool value) {
     return value ? "true" : "false";
 }
 
+/// Converts the given character to its string representation.
 IStr charToStr(char value) {
     static char[1] buffer = void;
 
@@ -359,6 +365,7 @@ IStr charToStr(char value) {
     return result;
 }
 
+/// Converts the given unsigned long value to its string representation.
 IStr unsignedToStr(ulong value) {
     static char[64] buffer = void;
 
@@ -377,6 +384,7 @@ IStr unsignedToStr(ulong value) {
     return result;
 }
 
+/// Converts the given signed long value to its string representation.
 IStr signedToStr(long value) {
     static char[64] buffer = void;
 
@@ -392,7 +400,9 @@ IStr signedToStr(long value) {
     return result;
 }
 
+/// Converts the given double value to its string representation with the specified precision.
 IStr doubleToStr(double value, ulong precision = 2) {
+    import joka.io;
     static char[64] buffer = void;
 
     if (precision == 0) {
@@ -421,6 +431,9 @@ IStr doubleToStr(double value, ulong precision = 2) {
     auto i = result.length; 
     // Check two cases: 0.NN, N.NN
     if (cast(long) value == 0) {
+        if (value < 0.0) {
+            cleanNumberStr = cleanNumberStr[1 .. $];
+        }
         i -= cleanNumberStr.length;
         result.copyChars(cleanNumberStr, i);
         foreach (j; 0 .. rightDigitCount - cleanNumberStr.length) {
@@ -429,6 +442,10 @@ IStr doubleToStr(double value, ulong precision = 2) {
         }
         i -= 2;
         result.copyChars("0.", i);
+        if (value < 0.0) {
+            i -= 1;
+            result[i] = '-';
+        }
     } else {
         i -= rightDigitCount;
         result.copyChars(cleanNumberStr[$ - rightDigitCount .. $], i);
@@ -444,11 +461,13 @@ IStr doubleToStr(double value, ulong precision = 2) {
     return result[i .. $];
 }
 
+/// Converts the given C-style string to a string.
 @trusted
 IStr cStrToStr(ICStr value) {
     return value[0 .. value.length];
 }
 
+/// Converts the given enum value to its string representation.
 IStr enumToStr(T)(T value) {
     switch (value) {
         static foreach (member; __traits(allMembers, T)) {
@@ -458,6 +477,7 @@ IStr enumToStr(T)(T value) {
     }
 }
 
+/// Converts the given value to its string representation using the specified options.
 IStr toStr(T)(T value, ToStrOptions options = ToStrOptions()) {
     static if (isCharType!T) {
         return charToStr(value);
@@ -672,13 +692,15 @@ unittest {
     char[128] buffer = void;
     Str str;
 
-    assert(isDigit("0123456789?") == false);
-    assert(isDigit("0123456789") == true);
-    assert(isUpper("hello") == false);
-    assert(isUpper("HELLO") == true);
-    assert(isLower("HELLO") == false);
-    assert(isLower("hello") == true);
-    assert(isSpace(" \t\r\n ") == true);
+    assert(isDigit('?') == false);
+    assert(isDigit('0') == true);
+    assert(isDigit('9') == true);
+    assert(isUpper('h') == false);
+    assert(isUpper('H') == true);
+    assert(isLower('H') == false);
+    assert(isLower('h') == true);
+    assert(isSpace('?') == false);
+    assert(isSpace('\r') == true);
     assert(isCStr("hello") == false);
     assert(isCStr("hello\0") == true);
 
@@ -764,6 +786,10 @@ unittest {
     assert(doubleToStr(69.0, 1) == "69.0");
     assert(doubleToStr(69.0, 2) == "69.00");
     assert(doubleToStr(69.0, 3) == "69.000");
+    assert(doubleToStr(-0.69, 0) == "0");
+    assert(doubleToStr(-0.69, 1) == "-0.6");
+    assert(doubleToStr(-0.69, 2) == "-0.69");
+    assert(doubleToStr(-0.69, 3) == "-0.690");
 
     assert(cStrToStr("Hello\0") == "Hello");
 
