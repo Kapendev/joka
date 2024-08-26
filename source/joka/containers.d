@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.5
+// Version: v0.0.6
 // ---
 
 /// The `containers` module provides various data structures that allocate on the heap.
@@ -39,7 +39,13 @@ struct List(T) {
         }
     }
 
-    this(FlagList!T list) {
+    this(SparseList!T list) {
+        foreach (item; list.items) {
+            append(item);
+        }
+    }
+
+    this(GenerationalList!T list) {
         foreach (item; list.items) {
             append(item);
         }
@@ -163,7 +169,7 @@ struct List(T) {
     }
 }
 
-struct FlagList(T) {
+struct SparseList(T) {
     List!T data;
     List!bool flags;
     Sz hotIndex;
@@ -184,21 +190,9 @@ struct FlagList(T) {
         }
     }
 
-    this(FlagList!T list) {
-        data.resize(list.data.length);
-        flags.resize(list.flags.length);
-        foreach (i; 0 .. flags.length) {
-            data[i] = list.data[i];
-            flags[i] = list.flags[i];
-        }
-        hotIndex = list.hotIndex;
-        openIndex = list.openIndex;
-        length = list.length;
-    }
-
     ref T opIndex(Sz i) {
         if (!has(i)) {
-            assert(0, "ID `[{}]` does not exist.".format(i));
+            assert(0, "Index `{}` does not exist.".format(i));
         }
         return data[i];
     }
@@ -206,7 +200,7 @@ struct FlagList(T) {
     @trusted
     void opIndexAssign(const(T) rhs, Sz i) {
         if (!has(i)) {
-            assert(0, "ID `[{}]` does not exist.".format(i));
+            assert(0, "Index `{}` does not exist.".format(i));
         }
         data[i] = cast(T) rhs;
     }
@@ -214,7 +208,7 @@ struct FlagList(T) {
     @trusted
     void opIndexOpAssign(IStr op)(const(T) rhs, Sz i) {
         if (!has(i)) {
-            assert(0, "ID `[{}]` does not exist.".format(i));
+            assert(0, "Index `{}` does not exist.".format(i));
         }
         mixin("data[i]", op, "= cast(T) rhs;");
     }
@@ -228,8 +222,8 @@ struct FlagList(T) {
         return data.ptr;
     }
 
-    bool has(Sz id) {
-        return id < flags.length && flags[id];
+    bool has(Sz i) {
+        return i < flags.length && flags[i];
     }
 
     @trusted
@@ -266,7 +260,7 @@ struct FlagList(T) {
 
     void remove(Sz i) {
         if (!has(i)) {
-            assert(0, "ID `[{}]` does not exist.".format(i));
+            assert(0, "Index `{}` does not exist.".format(i));
         }
         flags[i] = false;
         hotIndex = i;
@@ -354,6 +348,151 @@ struct FlagList(T) {
             id += 1;
         }
         return Range(data.items, flags.items, id);
+    }
+}
+
+struct GenerationalIndex {
+    Sz value;
+    Sz generation;
+
+    @safe @nogc nothrow:
+
+    this(Sz value, Sz generation = 0) {
+        this.value = value;
+        this.generation = generation;
+    }
+}
+
+struct GenerationalList(T) {
+    SparseList!T data;
+    List!Sz generations;
+
+    @safe @nogc nothrow:
+
+    ref T opIndex(GenerationalIndex i) {
+        if (!has(i)) {
+            assert(0, "Index `{}` with generation `{}` does not exist.".format(i.value, i.generation));
+        }
+        return data[i.value];
+    }
+
+    @trusted
+    void opIndexAssign(const(T) rhs, GenerationalIndex i) {
+        if (!has(i)) {
+            assert(0, "Index `{}` with generation `{}` does not exist.".format(i.value, i.generation));
+        }
+        data[i.value] = cast(T) rhs;
+    }
+
+    @trusted
+    void opIndexOpAssign(IStr op)(const(T) rhs, GenerationalIndex i) {
+        if (!has(i)) {
+            assert(0, "Index `{}` with generation `{}` does not exist.".format(i.value, i.generation));
+        }
+        mixin("data[i.value]", op, "= cast(T) rhs;");
+    }
+
+    Sz length() {
+        return data.length;
+    }
+
+    Sz capacity() {
+        return data.capacity;
+    }
+
+    @trusted
+    T* ptr() {
+        return data.ptr;
+    }
+
+    bool has(GenerationalIndex i) {
+        return data.has(i.value) && generations[i.value] == i.generation;
+    }
+
+    GenerationalIndex append(const(T) arg) {
+        data.append(arg);
+        generations.resize(data.data.length);
+        return GenerationalIndex(data.hotIndex, generations[data.hotIndex]);
+    }
+
+    void remove(GenerationalIndex i) {
+        if (!has(i)) {
+            assert(0, "Index `{}` with generation `{}` does not exist.".format(i.value, i.generation));
+        }
+        data.remove(i.value);
+        generations[data.hotIndex] += 1;
+    }
+
+    void fill(const(T) value) {
+        data.fill(value);
+    }
+
+    void clear() {
+        data.clear();
+        generations.clear();
+    }
+
+    void free() {
+        data.free();
+        generations.free();
+    }
+
+    auto ids() {
+        struct Range {
+            Sz[] generations;
+            bool[] flags;
+            Sz id;
+
+            bool empty() {
+                return id == flags.length;
+            }
+            
+            GenerationalIndex front() {
+                return GenerationalIndex(id, generations[id]);
+            }
+            
+            void popFront() {
+                id += 1;
+                while (id != flags.length && !flags[id]) {
+                    id += 1;
+                }
+            }
+        }
+
+        Sz id = 0;
+        while (id < data.flags.length && !data.flags[id]) {
+            id += 1;
+        }
+        return Range(generations.items, data.flags.items, id);
+    }
+
+    auto items() {
+        struct Range {
+            T[] data;
+            bool[] flags;
+            Sz id;
+
+            bool empty() {
+                return id == flags.length;
+            }
+            
+            ref T front() {
+                return data[id];
+            }
+            
+            void popFront() {
+                id += 1;
+                while (id != flags.length && !flags[id]) {
+                    id += 1;
+                }
+            }
+        }
+
+        Sz id = 0;
+        while (id < data.flags.length && !data.flags[id]) {
+            id += 1;
+        }
+        return Range(data.data.items, data.flags.items, id);
     }
 }
 
@@ -512,18 +651,18 @@ unittest {
     text.free();
 }
 
-// FlagList test.
+// SparseList test.
 unittest {
-    FlagList!int numbers;
+    SparseList!int numbers;
 
-    numbers = FlagList!int();
+    numbers = SparseList!int();
     assert(numbers.length == 0);
     assert(numbers.capacity == 0);
     assert(numbers.ptr == null);
     assert(numbers.hotIndex == 0);
     assert(numbers.openIndex == 0);
 
-    numbers = FlagList!int(1, 2, 3);
+    numbers = SparseList!int(1, 2, 3);
     assert(numbers.length == 3);
     assert(numbers.capacity == defaultListCapacity);
     assert(numbers.ptr != null);
@@ -574,6 +713,74 @@ unittest {
     assert(numbers.ptr == null);
     assert(numbers.hotIndex == 0);
     assert(numbers.openIndex == 0);
+}
+
+// GenerationalList test
+unittest {
+    GenerationalList!int numbers;
+    GenerationalIndex index;
+
+    numbers = GenerationalList!int();
+    assert(numbers.length == 0);
+    assert(numbers.capacity == 0);
+    assert(numbers.ptr == null);
+
+    index = numbers.append(1);
+    assert(numbers.length == 1);
+    assert(numbers.capacity == defaultListCapacity);
+    assert(numbers.ptr != null);
+    assert(index.value == 0);
+    assert(index.generation == 0);
+    assert(numbers[index] == 1);
+
+    index = numbers.append(2);
+    assert(numbers.length == 2);
+    assert(numbers.capacity == defaultListCapacity);
+    assert(numbers.ptr != null);
+    assert(index.value == 1);
+    assert(index.generation == 0);
+    assert(numbers[index] == 2);
+
+    index = numbers.append(3);
+    assert(numbers.length == 3);
+    assert(numbers.capacity == defaultListCapacity);
+    assert(numbers.ptr != null);
+    assert(index.value == 2);
+    assert(index.generation == 0);
+    assert(numbers[index] == 3);
+
+    numbers[GenerationalIndex(0, 0)] = 1;
+    numbers[GenerationalIndex(0, 0)] += 1;
+    numbers[GenerationalIndex(0, 0)] -= 1;
+    assert(numbers.has(GenerationalIndex(1, 0)) == true);
+    assert(numbers.has(GenerationalIndex(2, 0)) == true);
+    assert(numbers.has(GenerationalIndex(3, 0)) == false);
+    numbers.remove(GenerationalIndex(1, 0));
+    assert(numbers.has(GenerationalIndex(0, 0)) == true);
+    assert(numbers.has(GenerationalIndex(1, 0)) == false);
+    assert(numbers.has(GenerationalIndex(2, 0)) == true);
+    assert(numbers.has(GenerationalIndex(3, 0)) == false);
+    numbers.append(1);
+    assert(numbers.has(GenerationalIndex(0, 0)) == true);
+    assert(numbers.has(GenerationalIndex(1, 1)) == true);
+    assert(numbers.has(GenerationalIndex(2, 0)) == true);
+    assert(numbers.has(GenerationalIndex(3, 0)) == false);
+    numbers.append(4);
+    assert(numbers.has(GenerationalIndex(0, 0)) == true);
+    assert(numbers.has(GenerationalIndex(1, 1)) == true);
+    assert(numbers.has(GenerationalIndex(2, 0)) == true);
+    assert(numbers.has(GenerationalIndex(3, 0)) == true);
+    numbers.clear();
+    numbers.append(1);
+    assert(numbers.has(GenerationalIndex(0, 0)) == true);
+    assert(numbers.has(GenerationalIndex(1, 0)) == false);
+    assert(numbers.has(GenerationalIndex(1, 1)) == false);
+    assert(numbers.has(GenerationalIndex(2, 0)) == false);
+    assert(numbers.has(GenerationalIndex(3, 0)) == false);
+    numbers.free();
+    assert(numbers.length == 0);
+    assert(numbers.capacity == 0);
+    assert(numbers.ptr == null);
 }
 
 // Grid test
