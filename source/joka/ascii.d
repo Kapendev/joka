@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.6
+// Version: v0.0.7
 // ---
 
 /// The `ascii` module provides functions designed to assist with ascii strings.
@@ -797,90 +797,90 @@ unittest {
     assert(enumToStr(TestEnum.two) == "two");
 
     assert(toBool("F").isSome == false);
-    assert(toBool("F").unwrapOr() == false);
+    assert(toBool("F").getOr() == false);
     assert(toBool("T").isSome == false);
-    assert(toBool("T").unwrapOr() == false);
+    assert(toBool("T").getOr() == false);
     assert(toBool("false").isSome == true);
-    assert(toBool("false").unwrapOr() == false);
+    assert(toBool("false").getOr() == false);
     assert(toBool("true").isSome == true);
-    assert(toBool("true").unwrapOr() == true);
+    assert(toBool("true").getOr() == true);
 
     assert(toUnsigned("1_069").isSome == false);
-    assert(toUnsigned("1_069").unwrapOr() == 0);
+    assert(toUnsigned("1_069").getOr() == 0);
     assert(toUnsigned("+1069").isSome == true);
-    assert(toUnsigned("+1069").unwrapOr() == 1069);
+    assert(toUnsigned("+1069").getOr() == 1069);
     assert(toUnsigned("1069").isSome == true);
-    assert(toUnsigned("1069").unwrapOr() == 1069);
+    assert(toUnsigned("1069").getOr() == 1069);
     assert(toUnsigned('+').isSome == false);
-    assert(toUnsigned('+').unwrapOr() == 0);
+    assert(toUnsigned('+').getOr() == 0);
     assert(toUnsigned('0').isSome == true);
-    assert(toUnsigned('0').unwrapOr() == 0);
+    assert(toUnsigned('0').getOr() == 0);
     assert(toUnsigned('9').isSome == true);
-    assert(toUnsigned('9').unwrapOr() == 9);
+    assert(toUnsigned('9').getOr() == 9);
 
     assert(toSigned("1_069").isSome == false);
-    assert(toSigned("1_069").unwrapOr() == 0);
+    assert(toSigned("1_069").getOr() == 0);
     assert(toSigned("-1069").isSome == true);
-    assert(toSigned("-1069").unwrapOr() == -1069);
+    assert(toSigned("-1069").getOr() == -1069);
     assert(toSigned("+1069").isSome == true);
-    assert(toSigned("+1069").unwrapOr() == 1069);
+    assert(toSigned("+1069").getOr() == 1069);
     assert(toSigned("1069").isSome == true);
-    assert(toSigned("1069").unwrapOr() == 1069);
+    assert(toSigned("1069").getOr() == 1069);
     assert(toSigned('+').isSome == false);
-    assert(toSigned('+').unwrapOr() == 0);
+    assert(toSigned('+').getOr() == 0);
     assert(toSigned('0').isSome == true);
-    assert(toSigned('0').unwrapOr() == 0);
+    assert(toSigned('0').getOr() == 0);
     assert(toSigned('9').isSome == true);
-    assert(toSigned('9').unwrapOr() == 9);
+    assert(toSigned('9').getOr() == 9);
 
     assert(toDouble("1_069").isSome == false);
-    assert(toDouble("1_069").unwrapOr() == 0);
+    assert(toDouble("1_069").getOr() == 0);
     assert(toDouble(".1069").isSome == false);
-    assert(toDouble(".1069").unwrapOr() == 0);
+    assert(toDouble(".1069").getOr() == 0);
     assert(toDouble("1069.").isSome == false);
-    assert(toDouble("1069.").unwrapOr() == 0);
+    assert(toDouble("1069.").getOr() == 0);
     assert(toDouble(".").isSome == false);
-    assert(toDouble(".").unwrapOr() == 0);
+    assert(toDouble(".").getOr() == 0);
     assert(toDouble("-1069.-69").isSome == false);
-    assert(toDouble("-1069.-69").unwrapOr() == 0);
+    assert(toDouble("-1069.-69").getOr() == 0);
     assert(toDouble("-1069.+69").isSome == false);
-    assert(toDouble("-1069.+69").unwrapOr() == 0);
+    assert(toDouble("-1069.+69").getOr() == 0);
     assert(toDouble("-1069").isSome == true);
-    assert(toDouble("-1069").unwrapOr() == -1069);
+    assert(toDouble("-1069").getOr() == -1069);
     assert(toDouble("+1069").isSome == true);
-    assert(toDouble("+1069").unwrapOr() == 1069);
+    assert(toDouble("+1069").getOr() == 1069);
     assert(toDouble("1069").isSome == true);
-    assert(toDouble("1069").unwrapOr() == 1069);
+    assert(toDouble("1069").getOr() == 1069);
     assert(toDouble("1069.0").isSome == true);
-    assert(toDouble("1069.0").unwrapOr() == 1069);
+    assert(toDouble("1069.0").getOr() == 1069);
     assert(toDouble("-1069.0095").isSome == true);
-    assert(toDouble("-1069.0095").unwrapOr() == -1069.0095);
+    assert(toDouble("-1069.0095").getOr() == -1069.0095);
     assert(toDouble("+1069.0095").isSome == true);
-    assert(toDouble("+1069.0095").unwrapOr() == 1069.0095);
+    assert(toDouble("+1069.0095").getOr() == 1069.0095);
     assert(toDouble("1069.0095").isSome == true);
-    assert(toDouble("1069.0095").unwrapOr() == 1069.0095);
+    assert(toDouble("1069.0095").getOr() == 1069.0095);
     assert(toDouble("-0.0095").isSome == true);
-    assert(toDouble("-0.0095").unwrapOr() == -0.0095);
+    assert(toDouble("-0.0095").getOr() == -0.0095);
     assert(toDouble("+0.0095").isSome == true);
-    assert(toDouble("+0.0095").unwrapOr() == 0.0095);
+    assert(toDouble("+0.0095").getOr() == 0.0095);
     assert(toDouble("0.0095").isSome == true);
-    assert(toDouble("0.0095").unwrapOr() == 0.0095);
+    assert(toDouble("0.0095").getOr() == 0.0095);
     assert(toDouble('+').isSome == false);
-    assert(toDouble('+').unwrapOr() == 0);
+    assert(toDouble('+').getOr() == 0);
     assert(toDouble('0').isSome == true);
-    assert(toDouble('0').unwrapOr() == 0);
+    assert(toDouble('0').getOr() == 0);
     assert(toDouble('9').isSome == true);
-    assert(toDouble('9').unwrapOr() == 9);
+    assert(toDouble('9').getOr() == 9);
     
     assert(toEnum!TestEnum("?").isSome == false);
-    assert(toEnum!TestEnum("?").unwrapOr() == TestEnum.one);
+    assert(toEnum!TestEnum("?").getOr() == TestEnum.one);
     assert(toEnum!TestEnum("one").isSome == true);
-    assert(toEnum!TestEnum("one").unwrapOr() == TestEnum.one);
+    assert(toEnum!TestEnum("one").getOr() == TestEnum.one);
     assert(toEnum!TestEnum("two").isSome == true);
-    assert(toEnum!TestEnum("two").unwrapOr() == TestEnum.two);
+    assert(toEnum!TestEnum("two").getOr() == TestEnum.two);
 
-    assert(toCStr("Hello").unwrapOr().length == "Hello".length);
-    assert(toCStr("Hello").unwrapOr().cStrToStr() == "Hello");
+    assert(toCStr("Hello").getOr().length == "Hello".length);
+    assert(toCStr("Hello").getOr().cStrToStr() == "Hello");
 
     // TODO: Write more tests for `format` when it is done.
     assert(format("Hello {}!", "world") == "Hello world!");

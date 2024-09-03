@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.6
+// Version: v0.0.7
 // ---
 
 /// The `faults` module provides data structures and codes for error handling.
@@ -54,22 +54,22 @@ struct Result(T) {
         }
     }
 
-    T unwrap() {
+    T get() {
         if (fault) {
             assert(0, "Fault `{}` was detected.".format(fault));
         }
         return value;
     }
 
-    T unwrapOr(T dflt) {
+    T getOr(T other) {
         if (fault) {
-            return dflt;
+            return other;
         } else {
             return value;
         }
     }
 
-    T unwrapOr() {
+    T getOr() {
         return value;
     }
 
@@ -82,8 +82,8 @@ struct Result(T) {
     }
 }
 
-Fault toFault(bool value, Fault dflt = Fault.some) {
-    return value ? dflt : Fault.none;
+Fault toFault(bool value, Fault other = Fault.some) {
+    return value ? other : Fault.none;
 }
 
 // Function test.
@@ -98,23 +98,23 @@ unittest {
 unittest {
     assert(Result!int().isNone == true);
     assert(Result!int().isSome == false);
-    assert(Result!int().unwrapOr() == 0);
+    assert(Result!int().getOr() == 0);
     assert(Result!int(0).isNone == false);
     assert(Result!int(0).isSome == true);
-    assert(Result!int(0).unwrapOr() == 0);
+    assert(Result!int(0).getOr() == 0);
     assert(Result!int(69).isNone == false);
     assert(Result!int(69).isSome == true);
-    assert(Result!int(69).unwrapOr() == 69);
+    assert(Result!int(69).getOr() == 69);
     assert(Result!int(Fault.none).isNone == false);
     assert(Result!int(Fault.none).isSome == true);
-    assert(Result!int(Fault.none).unwrapOr() == 0);
+    assert(Result!int(Fault.none).getOr() == 0);
     assert(Result!int(Fault.some).isNone == true);
     assert(Result!int(Fault.some).isSome == false);
-    assert(Result!int(Fault.some).unwrapOr() == 0);
+    assert(Result!int(Fault.some).getOr() == 0);
     assert(Result!int(69, Fault.none).isNone == false);
     assert(Result!int(69, Fault.none).isSome == true);
-    assert(Result!int(69, Fault.none).unwrapOr() == 69);
+    assert(Result!int(69, Fault.none).getOr() == 69);
     assert(Result!int(69, Fault.some).isNone == true);
     assert(Result!int(69, Fault.some).isSome == false);
-    assert(Result!int(69, Fault.some).unwrapOr() == 0);
+    assert(Result!int(69, Fault.some).getOr() == 0);
 }

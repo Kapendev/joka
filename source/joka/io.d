@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.6
+// Version: v0.0.7
 // ---
 
 /// The `io` module provides input and output functions such as file reading.
@@ -43,7 +43,7 @@ void println(A...)(A args) {
 
 @trusted
 Fault readTextIntoBuffer(IStr path, ref LStr text) {
-    auto file = stdc.fopen(toCStr(path).unwrapOr(), "rb");
+    auto file = stdc.fopen(toCStr(path).getOr(), "rb");
     if (file == null) {
         return Fault.cantOpen;
     }
@@ -77,7 +77,7 @@ Result!LStr readText(IStr path) {
 
 @trusted
 Fault writeText(IStr path, IStr text) {
-    auto file = stdc.fopen(toCStr(path).unwrapOr(), "w");
+    auto file = stdc.fopen(toCStr(path).getOr(), "w");
     if (file == null) {
         return Fault.cantOpen;
     }

@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.6
+// Version: v0.0.7
 // ---
 
 /// The `types` module provides a collection of type definitions.
