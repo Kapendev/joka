@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.7
+// Version: v0.0.8
 // ---
 
 /// The `math` module provides mathematical data structures and functions.
@@ -148,6 +148,10 @@ struct Vec2 {
     }
 
     mixin addXyzwOps!(Vec2, length);
+
+    float angle() {
+        return atan2(y, x);
+    }
 
     float magnitude() {
         return sqrt(x * x + y * y);
@@ -1053,13 +1057,30 @@ T clamp(T)(T x, T a, T b) {
 
 T wrap(T)(T x, T a, T b) {
     auto result = x;
-    while (result < a) {
-        result += b - a;
+    auto range = b - a;
+    static if (isUnsignedType!T) {
+        if (result >= a) {
+            result = (result - a) % range;
+        } else {
+            result = range - ((a - result) % range);
+        }
+    } else static if (isFloatingType!T) {
+        result = fmod(result - a, range);
+        if (result < 0) result += range;
+    } else {
+        result = (result - a) % range;
+        if (result < 0) result += range;
     }
-    while (result >= b) {
-        result -= b - a;
-    }
+    result += a;
     return result;
+}
+
+T snap(T)(T x, T step) {
+    static if (isIntegerType!T) {
+        return cast(T) snap!double(cast(double) x, cast(double) step).round();
+    } else {
+        return (x / step).round() * step;
+    }
 }
 
 float lerp(float from, float to, float weight) {
@@ -1164,10 +1185,7 @@ Vec4 moveTo(Vec4 from, Vec4 to, Vec4 delta) {
 }
 
 float moveToWithSlowdown(float from, float to, float delta, float slowdown) {
-    if (slowdown <= 0.0f) {
-        return moveTo(from, to, delta);
-    }
-
+    if (slowdown <= 0.0f) return to;
     auto target = ((from * (slowdown - 1.0f)) + to) / slowdown;
     auto offset = target - from;
     if (abs(offset) > abs(delta)) return from + offset * delta;
@@ -1175,10 +1193,7 @@ float moveToWithSlowdown(float from, float to, float delta, float slowdown) {
 }
 
 double moveToWithSlowdown(double from, double to, double delta, double slowdown) {
-    if (slowdown <= 0.0) {
-        return moveTo(from, to, delta);
-    }
-
+    if (slowdown <= 0.0) return to;
     auto target = ((from * (slowdown - 1.0)) + to) / slowdown;
     auto offset = target - from;
     if (abs(offset) > abs(delta)) return from + offset * delta;
@@ -1229,6 +1244,22 @@ bool equals(Vec4 a, Vec4 b) {
     return equals(a.x, b.x) && equals(a.y, b.y) && equals(a.z, b.z) && equals(a.w, b.w);
 }
 
+float toRadians(float degrees) {
+    return degrees * (pi / 180.0f);
+}
+
+double toRadians(double degrees) {
+    return degrees * (pi / 180.0);
+}
+
+float toDegrees(float radians) {
+    return radians * (180.0f / pi);
+}
+
+double toDegrees(double radians) {
+    return radians * (180.0 / pi);
+}
+
 IVec2 toIVec(Vec2 vec) {
     return IVec2(cast(int) vec.x, cast(int) vec.y);
 }
@@ -1251,4 +1282,56 @@ Vec3 toVec(IVec3 vec) {
 
 Vec4 toVec(IVec4 vec) {
     return Vec4(vec.x, vec.y, vec.z, vec.w);
+}
+
+// Function test.
+unittest {
+    assert(wrap!uint(0, 0, 69) == 0);
+    assert(wrap!uint(1, 0, 69) == 1);
+    assert(wrap!uint(68, 0, 69) == 68);
+    assert(wrap!uint(69, 0, 69) == 0);
+
+    assert(wrap!uint(9, 9, 69) == 9);
+    assert(wrap!uint(10, 9, 69) == 10);
+    assert(wrap!uint(68, 9, 69) == 68);
+    assert(wrap!uint(69, 9, 69) == 9);
+    assert(wrap!uint(8, 9, 69) == 68);
+
+    assert(cast(int) round(wrap!float(0, 0, 69)) == 0);
+    assert(cast(int) round(wrap!float(1, 0, 69)) == 1);
+    assert(cast(int) round(wrap!float(68, 0, 69)) == 68);
+    assert(cast(int) round(wrap!float(69, 0, 69)) == 0);
+
+    assert(cast(int) round(wrap!float(9, 9, 69)) == 9);
+    assert(cast(int) round(wrap!float(10, 9, 69)) == 10);
+    assert(cast(int) round(wrap!float(68, 9, 69)) == 68);
+    assert(cast(int) round(wrap!float(69, 9, 69)) == 9);
+    assert(cast(int) round(wrap!float(8, 9, 69)) == 68);
+
+    assert(wrap!int(0, 0, 69) == 0);
+    assert(wrap!int(1, 0, 69) == 1);
+    assert(wrap!int(68, 0, 69) == 68);
+    assert(wrap!int(69, 0, 69) == 0);
+
+    assert(wrap!int(9, 9, 69) == 9);
+    assert(wrap!int(10, 9, 69) == 10);
+    assert(wrap!int(68, 9, 69) == 68);
+    assert(wrap!int(69, 9, 69) == 9);
+    assert(wrap!int(8, 9, 69) == 68);
+
+    assert(snap!int(0, 32) == 0);
+    assert(snap!int(-1, 32) == 0);
+    assert(snap!int(1, 32) == 0);
+    assert(snap!int(-31, 32) == -32);
+    assert(snap!int(-32, 32) == -32);
+    assert(snap!int(31, 32) == 32);
+    assert(snap!int(32, 32) == 32);
+
+    assert(cast(int) round(snap!float(0, 32)) == 0);
+    assert(cast(int) round(snap!float(-1, 32)) == 0);
+    assert(cast(int) round(snap!float(1, 32)) == 0);
+    assert(cast(int) round(snap!float(-31, 32)) == -32);
+    assert(cast(int) round(snap!float(-32, 32)) == -32);
+    assert(cast(int) round(snap!float(31, 32)) == 32);
+    assert(cast(int) round(snap!float(32, 32)) == 32);
 }
