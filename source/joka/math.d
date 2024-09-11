@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.8
+// Version: v0.0.9
 // ---
 
 /// The `math` module provides mathematical data structures and functions.
@@ -672,6 +672,16 @@ double fmod(double x, double y) {
 }
 
 @trusted
+float remainder(float x, float y) {
+    return stdc.remainderf(x, y);
+}
+
+@trusted
+double remainder(double x, double y) {
+    return stdc.remainder(x, y);
+}
+
+@trusted
 float exp(float x) {
     return stdc.expf(x);
 }
@@ -793,14 +803,14 @@ Rect abs(Rect rect) {
     return Rect(rect.position.abs, rect.size.abs);
 }
 
+@trusted
 float floor(float x) {
-    auto xx = cast(float) cast(int) x;
-    return (x <= 0.0f && xx != x) ? xx - 1.0f : xx;
+    return stdc.floorf(x);
 }
 
+@trusted
 double floor(double x) {
-    auto xx = cast(double) cast(long) x;
-    return (x <= 0.0 && xx != x) ? xx - 1.0 : xx;
+    return stdc.floor(x);
 }
 
 Vec2 floor(Vec2 vec) {
@@ -819,14 +829,14 @@ Rect floor(Rect rect) {
     return Rect(rect.position.floor, rect.size.floor);
 }
 
+@trusted
 float ceil(float x) {
-    auto xx = cast(float) cast(int) x;
-    return (x <= 0.0f || xx == x) ? xx : xx + 1.0f;
+    return stdc.ceilf(x);
 }
 
+@trusted
 double ceil(double x) {
-    auto xx = cast(double) cast(long) x;
-    return (x <= 0.0 || xx == x) ? xx : xx + 1.0;
+    return stdc.ceil(x);
 }
 
 Vec2 ceil(Vec2 vec) {
@@ -845,12 +855,14 @@ Rect ceil(Rect rect) {
     return Rect(rect.position.ceil, rect.size.ceil);
 }
 
+@trusted
 float round(float x) {
-    return x <= 0.0f ? cast(float) cast(int) (x - 0.5f) : cast(float) cast(int) (x + 0.5f);
+    return stdc.roundf(x);
 }
 
+@trusted
 double round(double x) {
-    return x <= 0.0 ? cast(double) cast(long) (x - 0.5) : cast(double) cast(long) (x + 0.5);
+    return stdc.round(x);
 }
 
 Vec2 round(Vec2 vec) {
@@ -1051,6 +1063,26 @@ Rect atan(Rect rect) {
     return Rect(rect.position.atan, rect.size.atan);
 }
 
+@trusted
+float cbrt(float x) {
+    return stdc.cbrtf(x);
+}
+
+@trusted
+double cbrt(double x) {
+    return stdc.cbrt(x);
+}
+
+@trusted
+float hypot(float x, float y) {
+    return stdc.hypotf(x, y);
+}
+
+@trusted
+double hypot(double x, double y) {
+    return stdc.hypot(x, y);
+}
+
 T clamp(T)(T x, T a, T b) {
     return x <= a ? a : x >= b ? b : x;
 }
@@ -1185,19 +1217,17 @@ Vec4 moveTo(Vec4 from, Vec4 to, Vec4 delta) {
 }
 
 float moveToWithSlowdown(float from, float to, float delta, float slowdown) {
-    if (slowdown <= 0.0f) return to;
+    if (slowdown <= 0.0f || from.equals(to)) return to;
     auto target = ((from * (slowdown - 1.0f)) + to) / slowdown;
     auto offset = target - from;
-    if (abs(offset) > abs(delta)) return from + offset * delta;
-    else return to;
+    return from + offset * delta;
 }
 
 double moveToWithSlowdown(double from, double to, double delta, double slowdown) {
-    if (slowdown <= 0.0) return to;
+    if (slowdown <= 0.0 || from.equals(to)) return to;
     auto target = ((from * (slowdown - 1.0)) + to) / slowdown;
     auto offset = target - from;
-    if (abs(offset) > abs(delta)) return from + offset * delta;
-    else return to;
+    return from + offset * delta;
 }
 
 Vec2 moveToWithSlowdown(Vec2 from, Vec2 to, Vec2 delta, float slowdown) {

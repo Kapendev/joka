@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.8
+// Version: v0.0.9
 // ---
 
 /// The `stdc` module provides access to the C standard library.
@@ -29,11 +29,17 @@ void* memcpy(void* dest, const(void)* src, size_t count);
 
 // math.h
 
+int abs(int x);
+long labs(long x);
+
 float fabsf(float x);
 double fabs(double x);
 
 float fmodf(float x, float y);
 double fmod(double x, double y);
+
+float remainderf(float x, float y);
+double remainder(double x, double y);
 
 float expf(float x);
 double exp(double x);
@@ -62,6 +68,12 @@ double pow(double base, double exponent);
 float sqrtf(float x);
 double sqrt(double x);
 
+float cbrtf(float x);
+double cbrt(double x);
+
+float hypotf(float x, float y);
+double hypot(double x, double y);
+
 float sinf(float x);
 double sin(double x);
 
@@ -82,6 +94,15 @@ double atan(double x);
 
 float atan2f(float y, float x);
 double atan2(double y, double x);
+
+float ceilf(float x);
+double ceil(double x);
+
+float floorf(float x);
+double floor(double x);
+
+float roundf(float x);
+double round(double x);
 
 // stdlib.h
 

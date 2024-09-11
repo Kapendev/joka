@@ -3,8 +3,10 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.8
+// Version: v0.0.9
 // ---
+
+// TODO: Think about the base() function in Variant. Might be stupid because you can add the base as a member of the variant type.
 
 /// The `unions` module provides data structures and functions for working with unions.
 module joka.unions;

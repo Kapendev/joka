@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.8
+// Version: v0.0.9
 // ---
 
 /// The `containers` module provides various data structures that allocate on the heap.
