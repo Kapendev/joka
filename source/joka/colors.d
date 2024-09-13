@@ -3,13 +3,14 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.9
+// Version: v0.0.10
 // ---
 
 /// The `colors` module provides color-related data structures and functions.
 module joka.colors;
 
 import joka.ascii;
+import joka.math;
 import joka.traits;
 import joka.types;
 
@@ -84,6 +85,28 @@ Color toRgba(uint rgba) {
         (rgba & 0xFF00) >> 8,
         (rgba & 0xFF),
     );
+}
+
+Color toColor(Vec3 vec) {
+    return Color(
+        cast(ubyte) clamp(vec.x, 0.0f, 255.0f),
+        cast(ubyte) clamp(vec.y, 0.0f, 255.0f),
+        cast(ubyte) clamp(vec.z, 0.0f, 255.0f),
+        255,
+    );
+}
+
+Color toColor(Vec4 vec) {
+    return Color(
+        cast(ubyte) clamp(vec.x, 0.0f, 255.0f),
+        cast(ubyte) clamp(vec.y, 0.0f, 255.0f),
+        cast(ubyte) clamp(vec.z, 0.0f, 255.0f),
+        cast(ubyte) clamp(vec.w, 0.0f, 255.0f),
+    );
+}
+
+Vec4 toVec(Color color) {
+    return Vec4(color.r, color.g, color.b, color.a);
 }
 
 unittest {
