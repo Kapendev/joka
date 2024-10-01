@@ -3,18 +3,17 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.10
+// Version: v0.0.11
 // ---
 
 /// The `ascii` module provides functions designed to assist with ascii strings.
 module joka.ascii;
 
-import joka.containers;
 import joka.traits;
 import joka.types;
 public import joka.faults;
 
-@safe @nogc nothrow:
+@safe:
 
 enum digitChars = "0123456789";
 enum upperChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -478,6 +477,7 @@ IStr enumToStr(T)(T value) {
 }
 
 /// Converts the given value to its string representation using the specified options.
+@trusted
 IStr toStr(T)(T value, ToStrOptions options = ToStrOptions()) {
     static if (isCharType!T) {
         return charToStr(value);
@@ -649,36 +649,6 @@ IStr format(A...)(IStr formatStr, A args) {
     }
     result = result[0 .. resultIndex];
     return result;
-}
-
-// TODO: Add way to add options in the format string.
-void formatl(A...)(ref LStr text, IStr formatStr, A args) {
-    text.clear();
-
-    auto formatStrIndex = 0;
-    auto argIndex = 0;
-
-    while (formatStrIndex < formatStr.length) {
-        auto c1 = formatStr[formatStrIndex];
-        auto c2 = formatStrIndex + 1 >= formatStr.length ? '+' : formatStr[formatStrIndex + 1];
-        if (c1 == '{' && c2 == '}' && argIndex < args.length) {
-            static foreach (i, arg; args) {
-                if (i == argIndex) {
-                    auto temp = toStr(arg);
-                    foreach (i, c; temp) {
-                        text.append(c);
-                    }
-                    formatStrIndex += 2;
-                    argIndex += 1;
-                    goto loopExit;
-                }
-            }
-            loopExit:
-        } else {
-            text.append(c1);
-            formatStrIndex += 1;
-        }
-    }
 }
 
 // Function test.

@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.10
+// Version: v0.0.11
 // ---
 
 /// The `math` module provides mathematical data structures and functions.
@@ -14,7 +14,7 @@ import joka.traits;
 import joka.types;
 import stdc = joka.stdc;
 
-@safe @nogc nothrow:
+@safe:
 
 enum pi      = 3.1415f;
 enum epsilon = 0.0001f;
@@ -39,7 +39,7 @@ struct IVec2 {
     enum zero = IVec2(0, 0);
     enum one = IVec2(1, 1);
 
-    @safe @nogc nothrow:
+    @safe:
 
     pragma(inline, true)
     this(int x, int y) {
@@ -55,7 +55,7 @@ struct IVec2 {
     mixin addXyzwOps!(IVec2, length);
 
     IStr toStr() {
-        return "({} {})".format(x, y);
+        return "({}, {})".format(x, y);
     }
 }
 
@@ -68,7 +68,7 @@ struct IVec3 {
     enum zero = IVec3(0, 0, 0);
     enum one = IVec3(1, 1, 1);
 
-    @safe @nogc nothrow:
+    @safe:
 
     pragma(inline, true)
     this(int x, int y, int z) {
@@ -90,7 +90,7 @@ struct IVec3 {
     mixin addXyzwOps!(IVec3, length);
 
     IStr toStr() {
-        return "({} {})".format(x, y);
+        return "({}, {}, {})".format(x, y, z);
     }
 }
 
@@ -104,7 +104,7 @@ struct IVec4 {
     enum zero = IVec4(0, 0, 0, 0);
     enum one = IVec4(1, 1, 1, 1);
 
-    @safe @nogc nothrow:
+    @safe:
 
     pragma(inline, true)
     this(int x, int y, int z, int w) {
@@ -122,7 +122,7 @@ struct IVec4 {
     mixin addXyzwOps!(IVec4, length);
 
     IStr toStr() {
-        return "({} {})".format(x, y);
+        return "({}, {}, {}, {})".format(x, y, z, w);
     }
 }
 
@@ -134,7 +134,7 @@ struct Vec2 {
     enum zero = Vec2(0.0f, 0.0f);
     enum one = Vec2(1.0f, 1.0f);
 
-    @safe @nogc nothrow:
+    @safe:
 
     pragma(inline, true)
     this(float x, float y) {
@@ -175,7 +175,7 @@ struct Vec2 {
     }
 
     IStr toStr() {
-        return "({} {})".format(x, y);
+        return "({}, {})".format(x, y);
     }
 }
 
@@ -188,7 +188,7 @@ struct Vec3 {
     enum zero = Vec3(0.0f, 0.0f, 0.0f);
     enum one = Vec3(1.0f, 1.0f, 1.0f);
 
-    @safe @nogc nothrow:
+    @safe:
 
     pragma(inline, true)
     this(float x, float y, float z) {
@@ -231,7 +231,7 @@ struct Vec3 {
     }
 
     IStr toStr() {
-        return "({} {} {})".format(x, y, z);
+        return "({}, {}, {})".format(x, y, z);
     }
 }
 
@@ -245,7 +245,7 @@ struct Vec4 {
     enum zero = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
     enum one = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
-    @safe @nogc nothrow:
+    @safe:
 
     pragma(inline, true)
     this(float x, float y, float z, float w) {
@@ -284,7 +284,7 @@ struct Vec4 {
     }
 
     IStr toStr() {
-        return "({} {} {} {})".format(x, y, z, w);
+        return "({}, {}, {}, {})".format(x, y, z, w);
     }
 }
 
@@ -295,7 +295,7 @@ struct Rect {
     enum zero = Rect(0.0f, 0.0f, 0.0f, 0.0f);
     enum one = Rect(1.0f, 1.0f, 1.0f, 1.0f);
 
-    @safe @nogc nothrow:
+    @safe:
 
     pragma(inline, true)
     this(Vec2 position, Vec2 size) {
@@ -585,7 +585,7 @@ struct Rect {
     }
 
     IStr toStr() {
-        return "({} {} {} {})".format(position.x, position.y, size.x, size.y);
+        return "({}, {}, {}, {})".format(position.x, position.y, size.x, size.y);
     }
 }
 
@@ -596,7 +596,7 @@ struct Circ {
     enum zero = Circ(0.0f, 0.0f, 0.0f);
     enum one = Circ(1.0f, 1.0f, 1.0f);
 
-    @safe @nogc nothrow:
+    @safe:
 
     pragma(inline, true)
     this(Vec2 position, float radius) {
@@ -610,7 +610,7 @@ struct Circ {
     }
 
     IStr toStr() {
-        return "({} {} {})".format(position.x, position.y, radius);
+        return "({}, {}, {})".format(position.x, position.y, radius);
     }
 }
 
@@ -621,7 +621,7 @@ struct Line {
     enum zero = Line(0.0f, 0.0f, 0.0f, 0.0f);
     enum one = Line(1.0f, 1.0f, 1.0f, 1.0f);
 
-    @safe @nogc nothrow:
+    @safe:
 
     pragma(inline, true)
     this(Vec2 a, Vec2 b) {
@@ -645,7 +645,7 @@ struct Line {
     }
 
     IStr toStr() {
-        return "({} {} {} {})".format(a.x, a.y, b.x, b.y);
+        return "({}, {}, {}, {})".format(a.x, a.y, b.x, b.y);
     }
 }
 
@@ -803,14 +803,14 @@ Rect abs(Rect rect) {
     return Rect(rect.position.abs, rect.size.abs);
 }
 
-@trusted
 float floor(float x) {
-    return stdc.floorf(x);
+    auto xx = cast(float) cast(int) x;
+    return (x <= 0.0f && xx != x) ? xx - 1.0f : xx;
 }
 
-@trusted
 double floor(double x) {
-    return stdc.floor(x);
+    auto xx = cast(double) cast(long) x;
+    return (x <= 0.0 && xx != x) ? xx - 1.0 : xx;
 }
 
 Vec2 floor(Vec2 vec) {
@@ -829,14 +829,14 @@ Rect floor(Rect rect) {
     return Rect(rect.position.floor, rect.size.floor);
 }
 
-@trusted
 float ceil(float x) {
-    return stdc.ceilf(x);
+    auto xx = cast(float) cast(int) x;
+    return (x <= 0.0f || xx == x) ? xx : xx + 1.0f;
 }
 
-@trusted
 double ceil(double x) {
-    return stdc.ceil(x);
+    auto xx = cast(double) cast(long) x;
+    return (x <= 0.0 || xx == x) ? xx : xx + 1.0;
 }
 
 Vec2 ceil(Vec2 vec) {
@@ -855,14 +855,12 @@ Rect ceil(Rect rect) {
     return Rect(rect.position.ceil, rect.size.ceil);
 }
 
-@trusted
 float round(float x) {
-    return stdc.roundf(x);
+    return x <= 0.0f ? cast(float) cast(int) (x - 0.5f) : cast(float) cast(int) (x + 0.5f);
 }
 
-@trusted
 double round(double x) {
-    return stdc.round(x);
+    return x <= 0.0 ? cast(double) cast(long) (x - 0.5) : cast(double) cast(long) (x + 0.5);
 }
 
 Vec2 round(Vec2 vec) {
@@ -1091,19 +1089,16 @@ T wrap(T)(T x, T a, T b) {
     auto result = x;
     auto range = b - a;
     static if (isUnsignedType!T) {
-        if (result >= a) {
-            result = (result - a) % range;
-        } else {
-            result = range - ((a - result) % range);
-        }
+        result = cast(T) wrap!long(x, a, b);
     } else static if (isFloatingType!T) {
-        result = fmod(result - a, range);
+        result = fmod(x - a, range);
         if (result < 0) result += range;
+        result += a;
     } else {
-        result = (result - a) % range;
+        result = (x - a) % range;
         if (result < 0) result += range;
+        result += a;
     }
-    result += a;
     return result;
 }
 

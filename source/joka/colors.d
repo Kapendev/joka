@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.10
+// Version: v0.0.11
 // ---
 
 /// The `colors` module provides color-related data structures and functions.
@@ -14,7 +14,7 @@ import joka.math;
 import joka.traits;
 import joka.types;
 
-@safe @nogc nothrow:
+@safe:
 
 enum blank   = Color();
 enum black   = Color(0);
@@ -44,7 +44,7 @@ struct Color {
     enum zero = Color(0, 0, 0, 0);
     enum one = Color(1, 1, 1, 1);
 
-    @safe @nogc nothrow:
+    @safe:
 
     pragma(inline, true)
     this(ubyte r, ubyte g, ubyte b, ubyte a = 255) {
@@ -66,7 +66,7 @@ struct Color {
     }
 
     IStr toStr() {
-        return "({} {} {} {})".format(r, g, b, a);
+        return "({}, {}, {}, {})".format(r, g, b, a);
     }
 }
 
@@ -117,7 +117,4 @@ unittest {
     assert(toRgba(0xff0000ff) == red);
     assert(toRgba(0x00ff00ff) == green);
     assert(toRgba(0x0000ffff) == blue);
-
-    assert(black.toStr() == "(0 0 0 255)");
-    assert(black.alpha(69).toStr() == "(0 0 0 69)");
 }

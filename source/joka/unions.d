@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.10
+// Version: v0.0.11
 // ---
 
 // TODO: Think about the base() function in Variant. Might be stupid because you can add the base as a member of the variant type.
@@ -14,7 +14,7 @@ module joka.unions;
 import joka.types;
 import joka.traits;
 
-@safe @nogc nothrow:
+@safe:
 
 alias VariantKind = int;
 
@@ -41,7 +41,7 @@ struct Variant(A...) {
 
     alias value this;
 
-    @safe @nogc nothrow:
+    @safe:
 
     static foreach (i, T; A) {
         @trusted

@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.10
+// Version: v0.0.11
 // ---
 
 /// The `containers` module provides various data structures that allocate on the heap.
@@ -13,7 +13,7 @@ import joka.ascii;
 import joka.types;
 import stdc = joka.stdc;
 
-@safe @nogc nothrow:
+@safe:
 
 enum defaultListCapacity = 64;
 
@@ -25,7 +25,7 @@ struct List(T) {
     T[] items;
     Sz capacity;
 
-    @safe @nogc nothrow:
+    @safe:
 
     this(const(T)[] args...) {
         foreach (arg; args) {
@@ -176,7 +176,7 @@ struct SparseList(T) {
     Sz openIndex;
     Sz length;
 
-    @safe @nogc nothrow:
+    @safe:
 
     this(const(T)[] args...) {
         foreach (arg; args) {
@@ -355,7 +355,7 @@ struct GenerationalIndex {
     Sz value;
     Sz generation;
 
-    @safe @nogc nothrow:
+    @safe:
 
     this(Sz value, Sz generation = 0) {
         this.value = value;
@@ -367,7 +367,7 @@ struct GenerationalList(T) {
     SparseList!T data;
     List!Sz generations;
 
-    @safe @nogc nothrow:
+    @safe:
 
     ref T opIndex(GenerationalIndex i) {
         if (!has(i)) {
@@ -501,7 +501,7 @@ struct Grid(T) {
     Sz rowCount;
     Sz colCount;
 
-    @safe @nogc nothrow:
+    @safe:
 
     this(Sz rowCount, Sz colCount) {
         resize(rowCount, colCount);
@@ -588,6 +588,36 @@ Sz findListCapacity(Sz length) {
         result *= 2;
     }
     return result;
+}
+
+// TODO: Add way to add options in the format string.
+void formatl(A...)(ref LStr text, IStr formatStr, A args) {
+    text.clear();
+
+    auto formatStrIndex = 0;
+    auto argIndex = 0;
+
+    while (formatStrIndex < formatStr.length) {
+        auto c1 = formatStr[formatStrIndex];
+        auto c2 = formatStrIndex + 1 >= formatStr.length ? '+' : formatStr[formatStrIndex + 1];
+        if (c1 == '{' && c2 == '}' && argIndex < args.length) {
+            static foreach (i, arg; args) {
+                if (i == argIndex) {
+                    auto temp = toStr(arg);
+                    foreach (i, c; temp) {
+                        text.append(c);
+                    }
+                    formatStrIndex += 2;
+                    argIndex += 1;
+                    goto loopExit;
+                }
+            }
+            loopExit:
+        } else {
+            text.append(c1);
+            formatStrIndex += 1;
+        }
+    }
 }
 
 // Function test.

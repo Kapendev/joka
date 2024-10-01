@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.10
+// Version: v0.0.11
 // ---
 
 /// The `faults` module provides data structures and codes for error handling.
@@ -12,7 +12,7 @@ module joka.faults;
 import joka.ascii;
 import joka.traits;
 
-@safe @nogc nothrow:
+@safe:
 
 enum Fault : ubyte {
     none,
@@ -34,7 +34,7 @@ struct Result(T) {
     }
     Fault fault = Fault.some;
 
-    @safe @nogc nothrow:
+    @safe:
 
     this(T value) {
         this.value = value;

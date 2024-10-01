@@ -3,13 +3,13 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.10
+// Version: v0.0.11
 // ---
 
 /// The `types` module provides a collection of type definitions.
 module joka.types;
 
-@safe @nogc nothrow:
+@safe:
 
 alias Sz      = size_t;
 

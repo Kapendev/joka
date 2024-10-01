@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.10
+// Version: v0.0.11
 // ---
 
 /// The `io` module provides input and output functions such as file reading.
@@ -16,7 +16,7 @@ import stdc = joka.stdc;
 public import joka.containers;
 public import joka.faults;
 
-@safe @nogc nothrow:
+@safe:
 
 @trusted
 void printf(A...)(IStr text, A args) {
