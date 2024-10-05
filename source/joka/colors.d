@@ -25,7 +25,12 @@ enum green   = Color(0, 255, 0);
 enum blue    = Color(0, 0, 255);
 enum yellow  = Color(255, 255, 0);
 enum magenta = Color(255, 0, 255);
+enum pink    = Color(255, 192, 204);
 enum cyan    = Color(0, 255, 255);
+enum orange  = Color(255, 165, 0);
+enum beige   = Color(240, 235, 210);
+enum brown   = Color(165, 42, 42);
+enum maroon  = Color(128, 0, 0);
 
 enum gray1   = toRgb(0x202020);
 enum gray2   = toRgb(0x606060);
@@ -33,6 +38,7 @@ enum gray3   = toRgb(0x9f9f9f);
 enum gray4   = toRgb(0xdfdfdf);
 
 alias gray = gray2;
+alias cream = beige;
 
 struct Color {
     ubyte r;
