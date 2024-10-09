@@ -297,7 +297,7 @@ struct SparseList(T) {
     }
 
     auto ids() {
-        struct Range {
+        static struct Range {
             bool[] flags;
             Sz id;
 
@@ -325,7 +325,7 @@ struct SparseList(T) {
     }
 
     auto items() {
-        struct Range {
+        static struct Range {
             T[] data;
             bool[] flags;
             Sz id;
@@ -441,7 +441,7 @@ struct GenerationalList(T) {
     }
 
     auto ids() {
-        struct Range {
+        static struct Range {
             Sz[] generations;
             bool[] flags;
             Sz id;
@@ -470,7 +470,7 @@ struct GenerationalList(T) {
     }
 
     auto items() {
-        struct Range {
+        static struct Range {
             T[] data;
             bool[] flags;
             Sz id;
@@ -570,6 +570,7 @@ struct Grid(T) {
         }
         if (tiles.ptr == null) {
             tiles = (cast(T*) stdc.malloc(maxGridCapacity * T.sizeof))[0 .. maxGridCapacity];
+            stdc.memset(tiles.ptr, 0, maxGridCapacity * T.sizeof);
         }
         this.rowCount = rowCount;
         this.colCount = colCount;
