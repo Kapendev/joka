@@ -14,7 +14,7 @@ module joka.unions;
 import joka.types;
 import joka.traits;
 
-@safe:
+@safe @nogc nothrow:
 
 alias VariantKind = int;
 
@@ -41,7 +41,7 @@ struct Variant(A...) {
 
     alias value this;
 
-    @safe:
+    @safe @nogc nothrow:
 
     static foreach (i, T; A) {
         @trusted

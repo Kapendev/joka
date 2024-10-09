@@ -11,7 +11,7 @@ module joka.traits;
 
 import joka.types;
 
-@safe:
+@safe @nogc nothrow:
 
 alias AliasArgs(A...) = A;
 

@@ -14,7 +14,7 @@ import joka.traits;
 import joka.types;
 import stdc = joka.stdc;
 
-@safe:
+@safe @nogc nothrow:
 
 enum pi      = 3.1415f;
 enum epsilon = 0.0001f;
@@ -39,7 +39,7 @@ struct IVec2 {
     enum zero = IVec2(0, 0);
     enum one = IVec2(1, 1);
 
-    @safe:
+    @safe @nogc nothrow:
 
     pragma(inline, true)
     this(int x, int y) {
@@ -68,7 +68,7 @@ struct IVec3 {
     enum zero = IVec3(0, 0, 0);
     enum one = IVec3(1, 1, 1);
 
-    @safe:
+    @safe @nogc nothrow:
 
     pragma(inline, true)
     this(int x, int y, int z) {
@@ -104,7 +104,7 @@ struct IVec4 {
     enum zero = IVec4(0, 0, 0, 0);
     enum one = IVec4(1, 1, 1, 1);
 
-    @safe:
+    @safe @nogc nothrow:
 
     pragma(inline, true)
     this(int x, int y, int z, int w) {
@@ -134,7 +134,7 @@ struct Vec2 {
     enum zero = Vec2(0.0f, 0.0f);
     enum one = Vec2(1.0f, 1.0f);
 
-    @safe:
+    @safe @nogc nothrow:
 
     pragma(inline, true)
     this(float x, float y) {
@@ -188,7 +188,7 @@ struct Vec3 {
     enum zero = Vec3(0.0f, 0.0f, 0.0f);
     enum one = Vec3(1.0f, 1.0f, 1.0f);
 
-    @safe:
+    @safe @nogc nothrow:
 
     pragma(inline, true)
     this(float x, float y, float z) {
@@ -245,7 +245,7 @@ struct Vec4 {
     enum zero = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
     enum one = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
-    @safe:
+    @safe @nogc nothrow:
 
     pragma(inline, true)
     this(float x, float y, float z, float w) {
@@ -258,6 +258,11 @@ struct Vec4 {
     pragma(inline, true)
     this(float x) {
         this(x, x, x, x);
+    }
+
+    pragma(inline, true)
+    this(Vec2 xy, Vec2 zw) {
+        this(xy.x, xy.y, zw.x, zw.y);
     }
 
     mixin addXyzwOps!(Vec4, length);
@@ -295,7 +300,7 @@ struct Rect {
     enum zero = Rect(0.0f, 0.0f, 0.0f, 0.0f);
     enum one = Rect(1.0f, 1.0f, 1.0f, 1.0f);
 
-    @safe:
+    @safe @nogc nothrow:
 
     pragma(inline, true)
     this(Vec2 position, Vec2 size) {
@@ -596,7 +601,7 @@ struct Circ {
     enum zero = Circ(0.0f, 0.0f, 0.0f);
     enum one = Circ(1.0f, 1.0f, 1.0f);
 
-    @safe:
+    @safe @nogc nothrow:
 
     pragma(inline, true)
     this(Vec2 position, float radius) {
@@ -621,7 +626,7 @@ struct Line {
     enum zero = Line(0.0f, 0.0f, 0.0f, 0.0f);
     enum one = Line(1.0f, 1.0f, 1.0f, 1.0f);
 
-    @safe:
+    @safe @nogc nothrow:
 
     pragma(inline, true)
     this(Vec2 a, Vec2 b) {

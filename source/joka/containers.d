@@ -13,9 +13,12 @@ import joka.ascii;
 import joka.types;
 import stdc = joka.stdc;
 
-@safe:
+@safe @nogc nothrow:
 
 enum defaultListCapacity = 64;
+enum maxGridRowCapacity = 128;
+enum maxGridColCapacity = 128;
+enum maxGridCapacity = maxGridRowCapacity * maxGridColCapacity;
 
 alias LStr   = List!char;
 alias LStr16 = List!wchar;
@@ -25,7 +28,7 @@ struct List(T) {
     T[] items;
     Sz capacity;
 
-    @safe:
+    @safe @nogc nothrow:
 
     this(const(T)[] args...) {
         foreach (arg; args) {
@@ -176,7 +179,7 @@ struct SparseList(T) {
     Sz openIndex;
     Sz length;
 
-    @safe:
+    @safe @nogc nothrow:
 
     this(const(T)[] args...) {
         foreach (arg; args) {
@@ -355,7 +358,7 @@ struct GenerationalIndex {
     Sz value;
     Sz generation;
 
-    @safe:
+    @safe @nogc nothrow:
 
     this(Sz value, Sz generation = 0) {
         this.value = value;
@@ -367,7 +370,7 @@ struct GenerationalList(T) {
     SparseList!T data;
     List!Sz generations;
 
-    @safe:
+    @safe @nogc nothrow:
 
     ref T opIndex(GenerationalIndex i) {
         if (!has(i)) {
@@ -497,18 +500,18 @@ struct GenerationalList(T) {
 }
 
 struct Grid(T) {
-    List!T tiles;
+    T[] tiles;
     Sz rowCount;
     Sz colCount;
 
-    @safe:
+    @safe @nogc nothrow:
 
     this(Sz rowCount, Sz colCount) {
         resize(rowCount, colCount);
     }
 
     T[] opIndex() {
-        return tiles[];
+        return tiles[0 .. length];
     }
 
     ref T opIndex(Sz row, Sz col) {
@@ -543,11 +546,12 @@ struct Grid(T) {
     }
 
     Sz length() {
-        return tiles.length;
+        return rowCount * colCount;
     }
 
     Sz capacity() {
-        return tiles.capacity;
+        if (tiles.ptr == null) return 0;
+        else return maxGridCapacity;
     }
 
     @trusted
@@ -559,24 +563,28 @@ struct Grid(T) {
         return row < rowCount && col < colCount;
     }
 
+    @trusted
     void resize(Sz rowCount, Sz colCount) {
-        this.tiles.resize(rowCount * colCount);
+        if (rowCount > maxGridRowCapacity || colCount > maxGridColCapacity) {
+            assert(0, "Max grid size is {}x{}.".format(maxGridRowCapacity, maxGridColCapacity));
+        }
+        if (tiles.ptr == null) {
+            tiles = (cast(T*) stdc.malloc(maxGridCapacity * T.sizeof))[0 .. maxGridCapacity];
+        }
         this.rowCount = rowCount;
         this.colCount = colCount;
     }
 
     void fill(T value) {
-        tiles.fill(value);
+        foreach (i; 0 .. length) {
+            tiles[i] = value;
+        }
     }
 
-    void clear() {
-        tiles.clear();
-        rowCount = 0;
-        colCount = 0;
-    }
-
+    @trusted
     void free() {
-        tiles.free();
+        stdc.free(tiles.ptr);
+        tiles = [];
         rowCount = 0;
         colCount = 0;
     }
@@ -826,7 +834,7 @@ unittest {
 
     numbers = Grid!int(8, 8);
     assert(numbers.length == 8 * 8);
-    assert(numbers.capacity == defaultListCapacity);
+    assert(numbers.capacity == maxGridCapacity);
     assert(numbers.ptr != null);
     assert(numbers.rowCount == 8);
     assert(numbers.colCount == 8);

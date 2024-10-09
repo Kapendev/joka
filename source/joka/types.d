@@ -9,7 +9,7 @@
 /// The `types` module provides a collection of type definitions.
 module joka.types;
 
-@safe:
+@safe @nogc nothrow:
 
 alias Sz      = size_t;
 

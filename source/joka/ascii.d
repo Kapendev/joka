@@ -13,8 +13,6 @@ import joka.traits;
 import joka.types;
 public import joka.faults;
 
-@safe:
-
 enum digitChars = "0123456789";
 enum upperChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 enum lowerChars = "abcdefghijklmnopqrstuvwxyz";
@@ -32,6 +30,74 @@ version (Windows) {
 struct ToStrOptions {
     ubyte doublePrecision = 2;
 }
+
+/// Converts the given value to its string representation using the specified options.
+@trusted
+IStr toStr(T)(T value, ToStrOptions options = ToStrOptions()) {
+    static if (isCharType!T) {
+        return charToStr(value);
+    } else static if (isBoolType!T) {
+        return boolToStr(value);
+    } else static if (isUnsignedType!T) {
+        return unsignedToStr(value);
+    } else static if (isSignedType!T) {
+        return signedToStr(value);
+    } else static if (isFloatingType!T) {
+        return doubleToStr(value, options.doublePrecision);
+    } else static if (isStrType!T) {
+        return value;
+    } else static if (isCStrType!T) {
+        return cStrToStr(value);
+    } else static if (isEnumType!T) {
+        return enumToStr(value);
+    } else static if (hasMember!(T, "toStr")) {
+        return value.toStr();
+    } else {
+        static assert(0, funcImplementationErrorMessage!(T, "toStr"));
+    }
+}
+
+// TODO: Add way to add options in the format string.
+@trusted
+IStr format(A...)(IStr formatStr, A args) {
+    static char[1024][8] buffers = void;
+    static byte bufferIndex = 0;
+
+    bufferIndex = (bufferIndex + 1) % buffers.length;
+
+    auto result = buffers[bufferIndex][];
+    auto resultIndex = 0;
+    auto formatStrIndex = 0;
+    auto argIndex = 0;
+
+    while (formatStrIndex < formatStr.length) {
+        auto c1 = formatStr[formatStrIndex];
+        auto c2 = formatStrIndex + 1 >= formatStr.length ? '+' : formatStr[formatStrIndex + 1];
+        if (c1 == '{' && c2 == '}' && argIndex < args.length) {
+            static foreach (i, arg; args) {
+                if (i == argIndex) {
+                    auto temp = toStr(arg);
+                    foreach (i, c; temp) {
+                        result[resultIndex + i] = c;
+                    }
+                    resultIndex += temp.length;
+                    formatStrIndex += 2;
+                    argIndex += 1;
+                    goto loopExit;
+                }
+            }
+            loopExit:
+        } else {
+            result[resultIndex] = c1;
+            resultIndex += 1;
+            formatStrIndex += 1;
+        }
+    }
+    result = result[0 .. resultIndex];
+    return result;
+}
+
+@safe @nogc nothrow:
 
 /// Checks if the given character is a digit (0-9).
 bool isDigit(char c) {
@@ -476,32 +542,6 @@ IStr enumToStr(T)(T value) {
     }
 }
 
-/// Converts the given value to its string representation using the specified options.
-@trusted
-IStr toStr(T)(T value, ToStrOptions options = ToStrOptions()) {
-    static if (isCharType!T) {
-        return charToStr(value);
-    } else static if (isBoolType!T) {
-        return boolToStr(value);
-    } else static if (isUnsignedType!T) {
-        return unsignedToStr(value);
-    } else static if (isSignedType!T) {
-        return signedToStr(value);
-    } else static if (isFloatingType!T) {
-        return doubleToStr(value, options.doublePrecision);
-    } else static if (isStrType!T) {
-        return value;
-    } else static if (isCStrType!T) {
-        return cStrToStr(value);
-    } else static if (isEnumType!T) {
-        return enumToStr(value);
-    } else static if (hasMember!(T, "toStr")) {
-        return value.toStr();
-    } else {
-        static assert(0, funcImplementationErrorMessage!(T, "toStr"));
-    }
-}
-
 Result!bool toBool(IStr str) {
     if (str == "false") {
         return Result!bool(false);
@@ -610,45 +650,6 @@ Result!ICStr toCStr(IStr str) {
         value[str.length] = '\0';
         return Result!ICStr(value.ptr);
     }
-}
-
-// TODO: Add way to add options in the format string.
-IStr format(A...)(IStr formatStr, A args) {
-    static char[1024][8] buffers = void;
-    static byte bufferIndex = 0;
-
-    bufferIndex = (bufferIndex + 1) % buffers.length;
-
-    auto result = buffers[bufferIndex][];
-    auto resultIndex = 0;
-    auto formatStrIndex = 0;
-    auto argIndex = 0;
-
-    while (formatStrIndex < formatStr.length) {
-        auto c1 = formatStr[formatStrIndex];
-        auto c2 = formatStrIndex + 1 >= formatStr.length ? '+' : formatStr[formatStrIndex + 1];
-        if (c1 == '{' && c2 == '}' && argIndex < args.length) {
-            static foreach (i, arg; args) {
-                if (i == argIndex) {
-                    auto temp = toStr(arg);
-                    foreach (i, c; temp) {
-                        result[resultIndex + i] = c;
-                    }
-                    resultIndex += temp.length;
-                    formatStrIndex += 2;
-                    argIndex += 1;
-                    goto loopExit;
-                }
-            }
-            loopExit:
-        } else {
-            result[resultIndex] = c1;
-            resultIndex += 1;
-            formatStrIndex += 1;
-        }
-    }
-    result = result[0 .. resultIndex];
-    return result;
 }
 
 // Function test.

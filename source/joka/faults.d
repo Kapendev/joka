@@ -12,7 +12,7 @@ module joka.faults;
 import joka.ascii;
 import joka.traits;
 
-@safe:
+@safe @nogc nothrow:
 
 enum Fault : ubyte {
     none,
@@ -34,7 +34,7 @@ struct Result(T) {
     }
     Fault fault = Fault.some;
 
-    @safe:
+    @safe @nogc nothrow:
 
     this(T value) {
         this.value = value;
