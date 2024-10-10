@@ -502,6 +502,10 @@ struct GenerationalList(T) {
 
 struct Grid(T, Sz H = defaultGridRowCount, Sz W = defaultGridColCount) {
     T[] tiles;
+    
+    enum maxRowCount = H;
+    enum maxColCount = W;
+    enum maxCapacity = H * W;
 
     @safe @nogc nothrow:
 
@@ -554,15 +558,15 @@ struct Grid(T, Sz H = defaultGridRowCount, Sz W = defaultGridColCount) {
     }
 
     Sz rowCount() {
-        return tiles.length == 0 ? 0 : H;
+        return tiles.length == 0 ? 0 : maxRowCount;
     }
 
     Sz colCount() {
-        return tiles.length == 0 ? 0 : W;
+        return tiles.length == 0 ? 0 : maxColCount;
     }
 
     Sz capacity() {
-        return tiles.length == 0 ? 0 : H * W;
+        return tiles.length == 0 ? 0 : maxCapacity;
     }
 
     bool has(Sz row, Sz col) {
@@ -572,7 +576,7 @@ struct Grid(T, Sz H = defaultGridRowCount, Sz W = defaultGridColCount) {
     @trusted
     void fill(T value) {
         if (tiles.ptr == null) {
-            tiles = (cast(T*) stdc.malloc((H * W) * T.sizeof))[0 .. (H * W)];
+            tiles = (cast(T*) stdc.malloc(maxCapacity * T.sizeof))[0 .. maxCapacity];
         }
         foreach (i; 0 .. tiles.length) {
             tiles[i] = value;
