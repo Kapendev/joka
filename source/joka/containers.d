@@ -16,9 +16,10 @@ import stdc = joka.stdc;
 @safe @nogc nothrow:
 
 enum defaultListCapacity = 64;
-enum maxGridRowCapacity = 128;
-enum maxGridColCapacity = 128;
-enum maxGridCapacity = maxGridRowCapacity * maxGridColCapacity;
+
+enum defaultGridRowCount = 128;
+enum defaultGridColCount = 128;
+enum defaultGridCapacity = defaultGridRowCount * defaultGridColCount;
 
 alias LStr   = List!char;
 alias LStr16 = List!wchar;
@@ -499,15 +500,13 @@ struct GenerationalList(T) {
     }
 }
 
-struct Grid(T) {
+struct Grid(T, Sz H = defaultGridRowCount, Sz W = defaultGridColCount) {
     T[] tiles;
-    Sz rowCount;
-    Sz colCount;
 
     @safe @nogc nothrow:
 
-    this(Sz rowCount, Sz colCount) {
-        resize(rowCount, colCount);
+    this(T value) {
+        fill(value);
     }
 
     T[] opIndex() {
@@ -546,12 +545,7 @@ struct Grid(T) {
     }
 
     Sz length() {
-        return rowCount * colCount;
-    }
-
-    Sz capacity() {
-        if (tiles.ptr == null) return 0;
-        else return maxGridCapacity;
+        return tiles.length;
     }
 
     @trusted
@@ -559,25 +553,28 @@ struct Grid(T) {
         return tiles.ptr;
     }
 
+    Sz rowCount() {
+        return tiles.length == 0 ? 0 : H;
+    }
+
+    Sz colCount() {
+        return tiles.length == 0 ? 0 : W;
+    }
+
+    Sz capacity() {
+        return tiles.length == 0 ? 0 : H * W;
+    }
+
     bool has(Sz row, Sz col) {
         return row < rowCount && col < colCount;
     }
 
     @trusted
-    void resize(Sz rowCount, Sz colCount) {
-        if (rowCount > maxGridRowCapacity || colCount > maxGridColCapacity) {
-            assert(0, "Max grid size is {}x{}.".format(maxGridRowCapacity, maxGridColCapacity));
-        }
-        if (tiles.ptr == null) {
-            tiles = (cast(T*) stdc.malloc(maxGridCapacity * T.sizeof))[0 .. maxGridCapacity];
-            stdc.memset(tiles.ptr, 0, maxGridCapacity * T.sizeof);
-        }
-        this.rowCount = rowCount;
-        this.colCount = colCount;
-    }
-
     void fill(T value) {
-        foreach (i; 0 .. length) {
+        if (tiles.ptr == null) {
+            tiles = (cast(T*) stdc.malloc((H * W) * T.sizeof))[0 .. (H * W)];
+        }
+        foreach (i; 0 .. tiles.length) {
             tiles[i] = value;
         }
     }
@@ -586,8 +583,6 @@ struct Grid(T) {
     void free() {
         stdc.free(tiles.ptr);
         tiles = [];
-        rowCount = 0;
-        colCount = 0;
     }
 }
 
@@ -833,20 +828,20 @@ unittest {
     assert(numbers.rowCount == 0);
     assert(numbers.colCount == 0);
 
-    numbers = Grid!int(8, 8);
-    assert(numbers.length == 8 * 8);
-    assert(numbers.capacity == maxGridCapacity);
+    numbers = Grid!int(-1);
+    assert(numbers.length == defaultGridCapacity);
+    assert(numbers.capacity == defaultGridCapacity);
     assert(numbers.ptr != null);
-    assert(numbers.rowCount == 8);
-    assert(numbers.colCount == 8);
-    assert(numbers[0, 0] == 0);
-    assert(numbers[7, 7] == 0);
+    assert(numbers.rowCount == defaultGridRowCount);
+    assert(numbers.colCount == defaultGridColCount);
+    assert(numbers[0, 0] == -1);
+    assert(numbers[defaultGridRowCount - 1, defaultGridColCount - 1] == -1);
     numbers[0, 0] = 0;
     numbers[0, 0] += 1;
     numbers[0, 0] -= 1;
-    assert(numbers.has(7, 8) == false);
-    assert(numbers.has(8, 7) == false);
-    assert(numbers.has(8, 8) == false);
+    assert(numbers.has(7, defaultGridColCount) == false);
+    assert(numbers.has(defaultGridRowCount, 7) == false);
+    assert(numbers.has(defaultGridRowCount, defaultGridColCount) == false);
     numbers.free();
     assert(numbers.length == 0);
     assert(numbers.capacity == 0);
