@@ -119,6 +119,11 @@ struct IVec4 {
         this(x, x, x, x);
     }
 
+    pragma(inline, true)
+    this(IVec2 xy, IVec2 zw) {
+        this(xy.x, xy.y, zw.x, zw.y);
+    }
+
     mixin addXyzwOps!(IVec4, length);
 
     IStr toStr() {
