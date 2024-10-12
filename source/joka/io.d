@@ -16,8 +16,6 @@ import stdc = joka.stdc;
 public import joka.containers;
 public import joka.faults;
 
-@safe:
-
 @trusted
 void printf(A...)(IStr text, A args) {
     stdc.fputs(format("{}\0", format(text, args)).ptr, stdc.stdout);
@@ -28,18 +26,22 @@ void printfln(A...)(IStr text, A args) {
     stdc.fputs(format("{}\n\0", format(text, args)).ptr, stdc.stdout);
 }
 
+@safe
 void print(A...)(A args) {
     static foreach (arg; args) {
         printf("{}", arg);
     }
 }
 
+@safe
 void println(A...)(A args) {
     static foreach (arg; args) {
         printf("{}", arg);
     }
     printf("\n");
 }
+
+@safe @nogc nothrow:
 
 @trusted
 Fault readTextIntoBuffer(IStr path, ref LStr text) {

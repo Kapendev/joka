@@ -1259,24 +1259,24 @@ Vec4 moveToWithSlowdown(Vec4 from, Vec4 to, Vec4 delta, float slowdown) {
     );
 }
 
-bool equals(float a, float b) {
-    return abs(a - b) < epsilon;
+bool equals(float a, float b, float localEpsilon = epsilon) {
+    return abs(a - b) < localEpsilon;
 }
 
-bool equals(double a, double b) {
-    return abs(a - b) < epsilon;
+bool equals(double a, double b, double localEpsilon = epsilon) {
+    return abs(a - b) < localEpsilon;
 }
 
-bool equals(Vec2 a, Vec2 b) {
-    return equals(a.x, b.x) && equals(a.y, b.y);
+bool equals(Vec2 a, Vec2 b, float localEpsilon = epsilon) {
+    return equals(a.x, b.x, localEpsilon) && equals(a.y, b.y, localEpsilon);
 }
 
-bool equals(Vec3 a, Vec3 b) {
-    return equals(a.x, b.x) && equals(a.y, b.y) && equals(a.z, b.z);
+bool equals(Vec3 a, Vec3 b, float localEpsilon = epsilon) {
+    return equals(a.x, b.x, localEpsilon) && equals(a.y, b.y, localEpsilon) && equals(a.z, b.z, localEpsilon);
 }
 
-bool equals(Vec4 a, Vec4 b) {
-    return equals(a.x, b.x) && equals(a.y, b.y) && equals(a.z, b.z) && equals(a.w, b.w);
+bool equals(Vec4 a, Vec4 b, float localEpsilon = epsilon) {
+    return equals(a.x, b.x, localEpsilon) && equals(a.y, b.y, localEpsilon) && equals(a.z, b.z, localEpsilon) && equals(a.w, b.w, localEpsilon);
 }
 
 float toRadians(float degrees) {

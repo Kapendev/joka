@@ -13,6 +13,8 @@ import joka.traits;
 import joka.types;
 public import joka.faults;
 
+@safe:
+
 enum digitChars = "0123456789";
 enum upperChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 enum lowerChars = "abcdefghijklmnopqrstuvwxyz";

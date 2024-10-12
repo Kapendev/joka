@@ -10,6 +10,7 @@
 module joka.containers;
 
 import joka.ascii;
+import joka.math;
 import joka.types;
 import stdc = joka.stdc;
 
@@ -524,6 +525,10 @@ struct Grid(T, Sz H = defaultGridRowCount, Sz W = defaultGridColCount) {
         return tiles[colCount * row + col];
     }
 
+    ref T opIndex(IVec2 position) {
+        return opIndex(position.y, position.x);
+    }
+
     void opIndexAssign(T rhs, Sz row, Sz col) {
         if (!has(row, col)) {
             assert(0, "Tile `[{}, {}]` does not exist.".format(row, col));
@@ -531,11 +536,19 @@ struct Grid(T, Sz H = defaultGridRowCount, Sz W = defaultGridColCount) {
         tiles[colCount * row + col] = rhs;
     }
 
+    void opIndexAssign(T rhs, IVec2 position) {
+        return opIndexAssign(rhs, position.y, position.x);
+    }
+
     void opIndexOpAssign(IStr op)(T rhs, Sz row, Sz col) {
         if (!has(row, col)) {
             assert(0, "Tile `[{}, {}]` does not exist.".format(row, col));
         }
         mixin("tiles[colCount * row + col]", op, "= rhs;");
+    }
+
+    void opIndexOpAssign(IStr op)(T rhs, IVec2 position) {
+        return opIndexOpAssign!(op)(rhs, position.y, position.x);
     }
 
     Sz opDollar(Sz dim)() {
@@ -571,6 +584,10 @@ struct Grid(T, Sz H = defaultGridRowCount, Sz W = defaultGridColCount) {
 
     bool has(Sz row, Sz col) {
         return row < rowCount && col < colCount;
+    }
+
+    bool has(IVec2 position) {
+        return has(position.y, position.x);
     }
 
     @trusted
