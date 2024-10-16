@@ -1081,16 +1081,6 @@ double cbrt(double x) {
     return stdc.cbrt(x);
 }
 
-@trusted
-float hypot(float x, float y) {
-    return stdc.hypotf(x, y);
-}
-
-@trusted
-double hypot(double x, double y) {
-    return stdc.hypot(x, y);
-}
-
 T clamp(T)(T x, T a, T b) {
     return x <= a ? a : x >= b ? b : x;
 }
