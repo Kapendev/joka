@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.11
+// Version: v0.0.12
 // ---
 
 /// The `traits` module provides compile-time functions such as type checking.
