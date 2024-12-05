@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.12
+// Version: v0.0.13
 // ---
 
 /// The `ascii` module provides functions designed to assist with ascii strings.

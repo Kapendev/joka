@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.12
+// Version: v0.0.13
 // ---
 
 /// The `containers` module provides various data structures that allocate on the heap.
@@ -17,9 +17,9 @@ import stdc = joka.stdc;
 @safe @nogc nothrow:
 
 enum defaultListCapacity = 64;
-
-enum defaultGridRowCount = 128;
-enum defaultGridColCount = 128;
+enum defaultFixedListCapacity = 64;
+enum defaultGridRowCount = 256;
+enum defaultGridColCount = 256;
 enum defaultGridCapacity = defaultGridRowCount * defaultGridColCount;
 
 alias LStr   = List!char;
@@ -39,18 +39,6 @@ struct List(T) {
     }
 
     this(List!T list) {
-        foreach (item; list.items) {
-            append(item);
-        }
-    }
-
-    this(SparseList!T list) {
-        foreach (item; list.items) {
-            append(item);
-        }
-    }
-
-    this(GenerationalList!T list) {
         foreach (item; list.items) {
             append(item);
         }
@@ -106,6 +94,10 @@ struct List(T) {
         return items.ptr;
     }
 
+    bool isEmpty() {
+        return length == 0;
+    }
+
     @trusted
     void append(const(T)[] args...) {
         foreach (arg; args) {
@@ -125,10 +117,27 @@ struct List(T) {
         items = items[0 .. $ - 1];
     }
 
+    void removeAndShift(Sz i) {
+        foreach (j; i .. items.length - 1) {
+            items[j] = items[j + 1];
+        }
+        items = items[0 .. $ - 1];
+    }
+
     T pop() {
         if (length > 0) {
             T temp = items[$ - 1];
             remove(length - 1);
+            return temp;
+        } else {
+            return T.init;
+        }
+    }
+
+    T popFront() {
+        if (length > 0) {
+            T temp = items[0];
+            removeAndShift(0);
             return temp;
         } else {
             return T.init;
@@ -171,6 +180,138 @@ struct List(T) {
         stdc.free(items.ptr);
         items = [];
         capacity = 0;
+    }
+}
+
+struct FixedList(T, Sz N = defaultFixedListCapacity) {
+    T[N] data;
+    Sz length;
+
+    @safe @nogc nothrow:
+
+    this(const(T)[] args...) {
+        foreach (arg; args) {
+            append(arg);
+        }
+    }
+
+    T[] opSlice(Sz dim)(Sz i, Sz j) {
+        return items[i .. j];
+    }
+
+    T[] opIndex() {
+        return items[];
+    }
+
+    // D calls this function when the slice operator is used. Does something but I do not remember what lol.
+    T[] opIndex(T[] slice) {
+        return slice;
+    }
+
+    // D will let you get the pointer of the array item if you return a ref value.
+    ref T opIndex(Sz i) {
+        return items[i];
+    }
+
+    @trusted
+    void opIndexAssign(const(T) rhs, Sz i) {
+        items[i] = cast(T) rhs;
+    }
+
+    @trusted
+    void opIndexOpAssign(IStr op)(const(T) rhs, Sz i) {
+        mixin("items[i]", op, "= cast(T) rhs;");
+    }
+
+    bool opEquals(List!T rhs) {
+        return items == rhs.items;
+    }
+
+    @trusted
+    bool opEquals(const(T)[] rhs) {
+        return items == cast(T[]) rhs;
+    }
+
+    Sz opDollar(Sz dim)() {
+        return items.length;
+    }
+
+    T[] items() {
+        return data[0 .. length];
+    }
+
+    Sz capacity() {
+        return data.length;
+    }
+
+    @trusted
+    T* ptr() {
+        return items.ptr;
+    }
+
+    bool isEmpty() {
+        return length == 0;
+    }
+
+    @trusted
+    void append(const(T)[] args...) {
+        foreach (arg; args) {
+            length += 1;
+            items[$ - 1] = cast(T) arg;
+        }
+    }
+
+    void remove(Sz i) {
+        items[i] = items[$ - 1];
+        length -= 1;
+    }
+
+    void removeAndShift(Sz i) {
+        foreach (j; i .. items.length - 1) {
+            items[j] = items[j + 1];
+        }
+        length -= 1;
+    }
+
+    T pop() {
+        if (length > 0) {
+            T temp = items[$ - 1];
+            remove(length - 1);
+            return temp;
+        } else {
+            return T.init;
+        }
+    }
+
+    T popFront() {
+        if (length > 0) {
+            T temp = items[0];
+            removeAndShift(0);
+            return temp;
+        } else {
+            return T.init;
+        }
+    }
+
+    void resize(Sz length) {
+        if (length <= this.length) {
+            this.length = length;
+        } else {
+            foreach (i; 0 .. length - this.length) {
+                append(T.init);
+            }
+        }
+    }
+
+    @trusted
+    void fill(const(T) value) {
+        foreach (ref item; items) {
+            item = cast(T) value;
+        }
+    }
+
+    void clear() {
+        length = 0;
     }
 }
 
@@ -225,6 +366,10 @@ struct SparseList(T) {
     @trusted
     T* ptr() {
         return data.ptr;
+    }
+
+    bool isEmpty() {
+        return length == 0;
     }
 
     bool has(Sz i) {
@@ -410,6 +555,10 @@ struct GenerationalList(T) {
         return data.ptr;
     }
 
+    bool isEmpty() {
+        return length == 0;
+    }
+
     bool has(GenerationalIndex i) {
         return data.has(i.value) && generations[i.value] == i.generation;
     }
@@ -582,6 +731,10 @@ struct Grid(T, Sz H = defaultGridRowCount, Sz W = defaultGridColCount) {
         return tiles.length == 0 ? 0 : maxCapacity;
     }
 
+    bool isEmpty() {
+        return length == 0;
+    }
+
     bool has(Sz row, Sz col) {
         return row < rowCount && col < colCount;
     }
@@ -704,6 +857,44 @@ unittest {
     assert(text.length == 0);
     assert(text.capacity == defaultListCapacity * 2);
     text.free();
+}
+
+// List test.
+unittest {
+    FixedList!char text;
+
+    text = FixedList!char();
+    assert(text.length == 0);
+    assert(text.capacity == defaultFixedListCapacity);
+
+    text = FixedList!char("abc");
+    assert(text.length == 3);
+    text.clear();
+    assert(text.length == 0);
+
+    text = FixedList!char("Hello world!");
+    assert(text.length == "Hello world!".length);
+    assert(text[] == text.items);
+    assert(text[0] == text.items[0]);
+    assert(text[0 .. $] == text.items[0 .. $]);
+    assert(text[0] == 'H');
+    text[0] = 'h';
+    text[0] += 1;
+    text[0] -= 1;
+    assert(text[0] == 'h');
+    text.append("!!");
+    assert(text == "hello world!!!");
+    assert(text.pop() == '!');
+    assert(text.pop() == '!');
+    assert(text == "hello world!");
+    text.resize(0);
+    assert(text == "");
+    assert(text.length == 0);
+    assert(text.pop() == char.init);
+    text.resize(1);
+    assert(text[0] == char.init);
+    assert(text.length == 1);
+    text.clear();
 }
 
 // SparseList test.

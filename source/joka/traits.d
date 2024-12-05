@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.12
+// Version: v0.0.13
 // ---
 
 /// The `traits` module provides compile-time functions such as type checking.
@@ -83,7 +83,7 @@ bool isPrimaryType(T)() {
 }
 
 bool isArrayType(T)() {
-    return is(T : const(A)[N], A, N);
+    return is(T : const(A)[N], A, Sz N);
 }
 
 bool isPtrType(T)() {
@@ -143,6 +143,10 @@ IStr toCleanNumber(alias i)() {
     } else {
         return str;
     }
+}
+
+template toStaticArray(alias slice) {
+    auto toStaticArray = cast(typeof(slice[0])[slice.length]) slice;
 }
 
 mixin template addXyzwOps(T, Sz N) {
@@ -218,6 +222,19 @@ mixin template addXyzwOps(T, Sz N) {
             mixin("y", op, "=rhs.y;");
             mixin("z", op, "=rhs.z;");
             mixin("w", op, "=rhs.w;");
+        }
+    }
+
+    pragma(inline, true)
+    bool opCast(T: bool)() {
+        static if (N == 1) {
+            return x != 0;
+        } else static if (N == 2) {
+            return x != 0 || y != 0;
+        } else static if (N == 3) {
+            return x != 0 || y != 0 || z != 0;
+        } else static if (N == 4) {
+            return x != 0 || y != 0 || z != 0 || w != 0;
         }
     }
 }
@@ -297,10 +314,25 @@ mixin template addRgbaOps(T, Sz N) {
             mixin("a", op, "=rhs.a;");
         }
     }
+
+    pragma(inline, true)
+    bool opCast(T: bool)() {
+        static if (N == 1) {
+            return r != 0;
+        } else static if (N == 2) {
+            return r != 0 || g != 0;
+        } else static if (N == 3) {
+            return r != 0 || g != 0 || b != 0;
+        } else static if (N == 4) {
+            return r != 0 || g != 0 || b != 0 || a != 0;
+        }
+    }
 }
 
 // Function test.
 unittest {
     assert(isInAliasArgs!(int, AliasArgs!(float)) == false);
     assert(isInAliasArgs!(int, AliasArgs!(float, int)) == true);
+    assert(isArrayType!(int[3]) == true);
+    assert(isArrayType!(typeof(toStaticArray!([1, 2, 3]))));
 }

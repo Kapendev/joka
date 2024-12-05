@@ -9,6 +9,7 @@ It provides data structures and functions that work without garbage collection, 
 ## Data Structures
 
 * [x] Dynamic Array (`List`)
+* [x] Dynamic Stack Array (`FixedList`)
 * [x] Sparse Array (`SparseList`)
 * [x] Generational Array (`GenerationalList`)
 * [x] Flattened 2D Array (`Grid`)
