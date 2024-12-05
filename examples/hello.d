@@ -18,5 +18,5 @@ void main() {
 
     printfln("Number:    {}", toStr(9));
     printfln("Vector:    {}", Vec2(1));
-    printfln("Rectangle: {}", Rect(0, 0, 160, 144));
+    printfln("Rectangle: {}", Rect(160, 144));
 }
