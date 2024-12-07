@@ -507,9 +507,9 @@ struct GenerationalIndex {
 
     @safe @nogc nothrow:
 
-    this(Sz value, Sz generation = 0) {
-        this.value = value;
-        this.generation = generation;
+    pragma(inline, true)
+    bool opCast(T: bool)() {
+        return value != 0;
     }
 }
 
