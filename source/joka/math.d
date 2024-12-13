@@ -1087,7 +1087,7 @@ T clamp(T)(T x, T a, T b) {
 
 T wrap(T)(T x, T a, T b) {
     auto result = x;
-    auto range = b - a;
+    auto range = cast(T) (b - a);
     static if (isUnsignedType!T) {
         result = cast(T) wrap!long(x, a, b);
     } else static if (isFloatingType!T) {
@@ -1095,7 +1095,7 @@ T wrap(T)(T x, T a, T b) {
         if (result < 0) result += range;
         result += a;
     } else {
-        result = (x - a) % range;
+        result = cast(T) ((x - a) % range);
         if (result < 0) result += range;
         result += a;
     }
