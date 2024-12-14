@@ -469,7 +469,6 @@ IStr signedToStr(long value) {
 
 /// Converts the given double value to its string representation with the specified precision.
 IStr doubleToStr(double value, ulong precision = 2) {
-    import joka.io;
     static char[64] buffer = void;
 
     if (precision == 0) {

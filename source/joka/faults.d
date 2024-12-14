@@ -54,6 +54,11 @@ struct Result(T) {
         }
     }
 
+    pragma(inline, true)
+    bool opCast(T: bool)() {
+        return isSome;
+    }
+
     T get() {
         if (fault) {
             assert(0, "Fault `{}` was detected.".format(fault));

@@ -446,6 +446,7 @@ struct Rect {
         return area(Hook.bottomRight);
     }
 
+    // NOTE: No idea what to do about the >, < and >=, <= thing. It's not that hard to do manually, but eh.
     bool hasPoint(Vec2 point) {
         return (
             point.x > position.x &&
