@@ -17,7 +17,7 @@ import stdc = joka.stdc;
 @safe @nogc nothrow:
 
 enum defaultListCapacity = 64;
-enum defaultFixedListCapacity = 64;
+enum defaultFixedListCapacity = 128;
 enum defaultGridRowCount = 256;
 enum defaultGridColCount = 256;
 enum defaultGridCapacity = defaultGridRowCount * defaultGridColCount;
@@ -451,11 +451,11 @@ struct SparseList(T) {
             bool empty() {
                 return id == flags.length;
             }
-            
+
             Sz front() {
                 return id;
             }
-            
+
             void popFront() {
                 id += 1;
                 while (id != flags.length && !flags[id]) {
@@ -480,11 +480,11 @@ struct SparseList(T) {
             bool empty() {
                 return id == flags.length;
             }
-            
+
             ref T front() {
                 return data[id];
             }
-            
+
             void popFront() {
                 id += 1;
                 while (id != flags.length && !flags[id]) {
@@ -600,11 +600,11 @@ struct GenerationalList(T) {
             bool empty() {
                 return id == flags.length;
             }
-            
+
             GenerationalIndex front() {
                 return GenerationalIndex(id, generations[id]);
             }
-            
+
             void popFront() {
                 id += 1;
                 while (id != flags.length && !flags[id]) {
@@ -629,11 +629,11 @@ struct GenerationalList(T) {
             bool empty() {
                 return id == flags.length;
             }
-            
+
             ref T front() {
                 return data[id];
             }
-            
+
             void popFront() {
                 id += 1;
                 while (id != flags.length && !flags[id]) {
@@ -652,7 +652,7 @@ struct GenerationalList(T) {
 
 struct Grid(T, Sz H = defaultGridRowCount, Sz W = defaultGridColCount) {
     T[] tiles;
-    
+
     enum maxRowCount = H;
     enum maxColCount = W;
     enum maxCapacity = H * W;
