@@ -45,7 +45,7 @@ void println(A...)(A args) {
 
 @trusted
 Fault readTextIntoBuffer(IStr path, ref LStr text) {
-    auto file = stdc.fopen(toCStr(path).getOr(), "rb");
+    auto file = stdc.fopen(toCStr(path).getOr(), "r+b");
     if (file == null) {
         return Fault.cantOpen;
     }
