@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.15
+// Version: v0.0.16
 // ---
 
 /// The `math` module provides mathematical data structures and functions.
@@ -19,21 +19,23 @@ import stdc = joka.stdc;
 enum pi      = 3.1415f;
 enum epsilon = 0.0001f;
 
+/// A type representing relative points.
 enum Hook : ubyte {
-    topLeft,
-    top,
-    topRight,
-    left,
-    center,
-    right,
-    bottomLeft,
-    bottom,
-    bottomRight,
+    topLeft,     /// The top left point.
+    top,         /// The top point.
+    topRight,    /// The top right point.
+    left,        /// The left point.
+    center,      /// The center point.
+    right,       /// The right point.
+    bottomLeft,  /// The bottom left point.
+    bottom,      /// The bottom point.
+    bottomRight, /// The bottom right point.
 }
 
+/// A 2D vector using ints.
 struct IVec2 {
-    int x;
-    int y;
+    int x; /// The X component of the vector.
+    int y; /// The Y component of the vector.
 
     enum length = 2;
     enum zero = IVec2(0, 0);
@@ -54,15 +56,18 @@ struct IVec2 {
 
     mixin addXyzwOps!(IVec2, length);
 
+    /// Returns a string representation with a limited lifetime.
+    /// See `format` in the `joka.ascii` module for details about the lifetime.
     IStr toStr() {
         return "({}, {})".format(x, y);
     }
 }
 
+/// A 3D vector using ints.
 struct IVec3 {
-    int x;
-    int y;
-    int z;
+    int x; /// The X component of the vector.
+    int y; /// The Y component of the vector.
+    int z; /// The Z component of the vector.
 
     enum length = 3;
     enum zero = IVec3(0, 0, 0);
@@ -89,16 +94,19 @@ struct IVec3 {
 
     mixin addXyzwOps!(IVec3, length);
 
+    /// Returns a string representation with a limited lifetime.
+    /// See `format` in the `joka.ascii` module for details about the lifetime.
     IStr toStr() {
         return "({}, {}, {})".format(x, y, z);
     }
 }
 
+/// A 4D vector using ints.
 struct IVec4 {
-    int x;
-    int y;
-    int z;
-    int w;
+    int x; /// The X component of the vector.
+    int y; /// The Y component of the vector.
+    int z; /// The Z component of the vector.
+    int w; /// The W component of the vector.
 
     enum length = 4;
     enum zero = IVec4(0, 0, 0, 0);
@@ -126,14 +134,17 @@ struct IVec4 {
 
     mixin addXyzwOps!(IVec4, length);
 
+    /// Returns a string representation with a limited lifetime.
+    /// See `format` in the `joka.ascii` module for details about the lifetime.
     IStr toStr() {
         return "({}, {}, {}, {})".format(x, y, z, w);
     }
 }
 
+/// A 2D vector using floats.
 struct Vec2 {
-    float x = 0.0f;
-    float y = 0.0f;
+    float x = 0.0f; /// The X component of the vector.
+    float y = 0.0f; /// The Y component of the vector.
 
     enum length = 2;
     enum zero = Vec2(0.0f, 0.0f);
@@ -179,15 +190,18 @@ struct Vec2 {
         return (to - this).normalize();
     }
 
+    /// Returns a string representation with a limited lifetime.
+    /// See `format` in the `joka.ascii` module for details about the lifetime.
     IStr toStr() {
         return "({}, {})".format(x, y);
     }
 }
 
+/// A 3D vector using floats.
 struct Vec3 {
-    float x = 0.0f;
-    float y = 0.0f;
-    float z = 0.0f;
+    float x = 0.0f; /// The X component of the vector.
+    float y = 0.0f; /// The Y component of the vector.
+    float z = 0.0f; /// The Z component of the vector.
 
     enum length = 3;
     enum zero = Vec3(0.0f, 0.0f, 0.0f);
@@ -235,16 +249,19 @@ struct Vec3 {
         return (to - this).normalize();
     }
 
+    /// Returns a string representation with a limited lifetime.
+    /// See `format` in the `joka.ascii` module for details about the lifetime.
     IStr toStr() {
         return "({}, {}, {})".format(x, y, z);
     }
 }
 
+/// A 4D vector using floats.
 struct Vec4 {
-    float x = 0.0f;
-    float y = 0.0f;
-    float z = 0.0f;
-    float w = 0.0f;
+    float x = 0.0f; /// The X component of the vector.
+    float y = 0.0f; /// The Y component of the vector.
+    float z = 0.0f; /// The Z component of the vector.
+    float w = 0.0f; /// The W component of the vector.
 
     enum length = 4;
     enum zero = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
@@ -293,14 +310,17 @@ struct Vec4 {
         return (to - this).normalize();
     }
 
+    /// Returns a string representation with a limited lifetime.
+    /// See `format` in the `joka.ascii` module for details about the lifetime.
     IStr toStr() {
         return "({}, {}, {}, {})".format(x, y, z, w);
     }
 }
 
+/// A 2D Rectangle using floats.
 struct Rect {
-    Vec2 position;
-    Vec2 size;
+    Vec2 position; /// The position of the rectangle.
+    Vec2 size;     /// The size of the rectangle.
 
     enum zero = Rect(0.0f, 0.0f, 0.0f, 0.0f);
     enum one = Rect(1.0f, 1.0f, 1.0f, 1.0f);
@@ -351,7 +371,7 @@ struct Rect {
 
     Vec2 origin(Hook hook) {
         final switch (hook) {
-            case Hook.topLeft: return size * Vec2(0.0f, 0.0f);
+            case Hook.topLeft: return Vec2();
             case Hook.top: return size * Vec2(0.5f, 0.0f);
             case Hook.topRight: return size * Vec2(1.0f, 0.0f);
             case Hook.left: return size * Vec2(0.0f, 0.5f);
@@ -359,7 +379,7 @@ struct Rect {
             case Hook.right: return size * Vec2(1.0f, 0.5f);
             case Hook.bottomLeft: return size * Vec2(0.0f, 1.0f);
             case Hook.bottom: return size * Vec2(0.5f, 1.0f);
-            case Hook.bottomRight: return size * Vec2(1.0f, 1.0f);
+            case Hook.bottomRight: return size;
         }
     }
 
@@ -612,14 +632,17 @@ struct Rect {
         return temp.subBottom(amount);
     }
 
+    /// Returns a string representation with a limited lifetime.
+    /// See `format` in the `joka.ascii` module for details about the lifetime.
     IStr toStr() {
         return "({}, {}, {}, {})".format(position.x, position.y, size.x, size.y);
     }
 }
 
+/// A 2D Circle using floats.
 struct Circ {
-    Vec2 position;
-    float radius = 0.0f;
+    Vec2 position;       /// The position of the circle.
+    float radius = 0.0f; /// The radius of the circle.
 
     enum zero = Circ(0.0f, 0.0f, 0.0f);
     enum one = Circ(1.0f, 1.0f, 1.0f);
@@ -637,14 +660,17 @@ struct Circ {
         this(Vec2(x, y), radius);
     }
 
+    /// Returns a string representation with a limited lifetime.
+    /// See `format` in the `joka.ascii` module for details about the lifetime.
     IStr toStr() {
         return "({}, {}, {})".format(position.x, position.y, radius);
     }
 }
 
+/// A 2D Line using floats.
 struct Line {
-    Vec2 a;
-    Vec2 b;
+    Vec2 a; /// The start point of the line.
+    Vec2 b; /// The end point of the line.
 
     enum zero = Line(0.0f, 0.0f, 0.0f, 0.0f);
     enum one = Line(1.0f, 1.0f, 1.0f, 1.0f);
@@ -672,6 +698,8 @@ struct Line {
         this(Vec2(ax, ay), b);
     }
 
+    /// Returns a string representation with a limited lifetime.
+    /// See `format` in the `joka.ascii` module for details about the lifetime.
     IStr toStr() {
         return "({}, {}, {}, {})".format(a.x, a.y, b.x, b.y);
     }

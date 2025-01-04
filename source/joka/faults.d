@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.15
+// Version: v0.0.16
 // ---
 
 /// The `faults` module provides data structures and codes for error handling.
@@ -14,25 +14,27 @@ import joka.traits;
 
 @safe @nogc nothrow:
 
+/// A type representing error values.
 enum Fault : ubyte {
-    none,
-    some,
-    invalid,
-    overflow,
-    cantFind,
-    cantOpen,
-    cantClose,
-    cantRead,
-    cantWrite,
+    none,      /// Not an error.
+    some,      /// A generic error.
+    invalid,   /// An invalid value error.
+    overflow,  /// An overflow error.
+    cantFind,  /// A wrong path error.
+    cantOpen,  /// An open permissions error.
+    cantClose, /// A close permissions error.
+    cantRead,  /// A read permissions error.
+    cantWrite, /// A write permissions error.
 }
 
+/// Represents a result of a procedure.
 struct Result(T) {
     static if (isNumberType!T) {
         T value = 0;
     } else {
-        T value;
+        T value;              /// The value of the result.
     }
-    Fault fault = Fault.some;
+    Fault fault = Fault.some; /// The error code of the result.
 
     @safe @nogc nothrow:
 
@@ -59,6 +61,7 @@ struct Result(T) {
         return isSome;
     }
 
+    /// Returns the result value. Asserts when the result is an error.
     T get() {
         if (fault) {
             assert(0, "Fault `{}` was detected.".format(fault));
@@ -66,6 +69,7 @@ struct Result(T) {
         return value;
     }
 
+    /// Returns the result value. Returns a default value when the result is an error.
     T getOr(T other) {
         if (fault) {
             return other;
@@ -74,14 +78,17 @@ struct Result(T) {
         }
     }
 
+    /// Returns the result value. Returns a default value when the result is an error.
     T getOr() {
         return value;
     }
 
+    /// Returns true when the result is an error.
     bool isNone() {
         return fault != 0;
     }
 
+    /// Returns true when the result is a value.
     bool isSome() {
         return fault == 0;
     }
