@@ -420,6 +420,11 @@ struct SparseList(T) {
         length -= 1;
     }
 
+    void reserve(Sz capacity) {
+        data.reserve(capacity);
+        flags.reserve(capacity);
+    }
+
     @trusted
     void fill(const(T) value) {
         foreach (ref item; items) {
@@ -575,6 +580,11 @@ struct GenerationalList(T) {
         }
         data.remove(i.value);
         generations[data.hotIndex] += 1;
+    }
+
+    void reserve(Sz capacity) {
+        data.reserve(capacity);
+        generations.reserve(capacity);
     }
 
     void fill(const(T) value) {

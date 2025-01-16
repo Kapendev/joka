@@ -44,7 +44,7 @@ void println(A...)(A args) {
 @safe @nogc nothrow:
 
 @trusted
-Fault readTextIntoBuffer(IStr path, ref LStr text) {
+Fault readTextIntoBuffer(IStr path, ref LStr buffer) {
     auto file = stdc.fopen(toCStr(path).getOr(), "r+b");
     if (file == null) {
         return Fault.cantOpen;
@@ -64,8 +64,8 @@ Fault readTextIntoBuffer(IStr path, ref LStr text) {
         return Fault.cantRead;
     }
 
-    text.resize(fileSize);
-    stdc.fread(text.items.ptr, fileSize, 1, file);
+    buffer.resize(fileSize);
+    stdc.fread(buffer.items.ptr, fileSize, 1, file);
     if (stdc.fclose(file) != 0) {
         return Fault.cantClose;
     }
@@ -74,7 +74,8 @@ Fault readTextIntoBuffer(IStr path, ref LStr text) {
 
 Result!LStr readText(IStr path) {
     LStr value;
-    return Result!LStr(value, readTextIntoBuffer(path, value));
+    auto fault = readTextIntoBuffer(path, value);
+    return Result!LStr(value, fault);
 }
 
 @trusted
