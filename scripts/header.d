@@ -1,8 +1,12 @@
-#!/bin/env rdmd
+#!/bin/env -S dmd -i -run
 
 /// A helper script that adds a header to every file in a directory.
 
-import std;
+import std.file;
+import std.stdio;
+import std.string;
+import std.algorithm;
+import std.parallelism;
 
 enum fileExt = ".d";
 enum header = "// ---
@@ -10,7 +14,7 @@ enum header = "// ---
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.16
+// Version: v0.0.17
 // ---";
 
 int main(string[] args) {
