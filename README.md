@@ -3,9 +3,6 @@
 Joka is a simple nogc utility library for the D programming language.
 It provides data structures and functions that work without garbage collection, offering precise memory control and minimal runtime overhead.
 
-> [!WARNING]  
-> This is alpha software. Use it only if you are very cool.
-
 ## Data Structures
 
 * [x] Dynamic Array (`List`)

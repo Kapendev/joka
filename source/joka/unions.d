@@ -16,30 +16,27 @@ import joka.traits;
 
 @safe @nogc nothrow:
 
-alias VariantKind = int;
-
-struct None {}
+alias VariantType = int;
 
 union VariantValue(A...) {
     static assert(A.length != 0, "Arguments must contain at least one element.");
 
     static foreach (i, T; A) {
         static if (i == 0 && isNumberType!T) {
-            mixin("T ", "member", toCleanNumber!i, "= 0;");
+            mixin("T m", toCleanNumber!i, "= 0;");
         }  else {
-            mixin("T ", "member", toCleanNumber!i, ";");
+            mixin("T m", toCleanNumber!i, ";");
         }
     }
 
-    enum length = A.length;
     alias Types = A;
 }
 
 struct Variant(A...) {
     VariantValue!A value;
-    VariantKind kind;
+    VariantType type;
 
-    alias value this;
+    alias Types = A;
 
     @safe @nogc nothrow:
 
@@ -49,7 +46,7 @@ struct Variant(A...) {
             auto temp = VariantValue!A();
             *(cast(T*) &temp) = value;
             this.value = temp;
-            this.kind = i;
+            this.type = i;
         }
     }
 
@@ -59,36 +56,31 @@ struct Variant(A...) {
             auto temp = VariantValue!A();
             *(cast(T*) &temp) = rhs;
             value = temp;
-            kind = i;
+            type = i;
         }
     }
 
-    IStr kindName() {
+    IStr typeName() {
         static foreach (i, T; A) {
-            if (kind == i) {
+            if (type == i) {
                 return T.stringof;
             }
         }
         assert(0, "WTF!");
     }
 
-    bool isKind(T)() {
+    bool isType(T)() {
         static assert(isInAliasArgs!(T, A), "Type `" ~ T.stringof ~ "` is not part of the variant.");
-        return kind == findInAliasArgs!(T, A);
-    }
-
-    @trusted
-    ref A[0] base() {
-        return member0;
+        return type == findInAliasArgs!(T, A);
     }
 
     @trusted
     ref T get(T)() {
-        if (isKind!T) {
-            mixin("return ", "value.member", findInAliasArgs!(T, A), ";"); 
+        if (isType!T) {
+            mixin("return value.m", findInAliasArgs!(T, A), ";");
         } else {
             static foreach (i, TT; A) {
-                if (i == kind) {
+                if (i == type) {
                     assert(0, "Value is `" ~ A[i].stringof ~ "` and not `" ~ T.stringof ~ "`.");
                 }
             }
@@ -98,32 +90,32 @@ struct Variant(A...) {
 
     @trusted
     auto call(IStr func, AA...)(AA args) {
-        switch (kind) {
+        switch (type) {
             static foreach (i, T; A) {
                 static assert(hasMember!(T, func), funcImplementationErrorMessage!(T, func));
-                mixin("case ", i, ": return value.member", toCleanNumber!i, ".", func, "(args);");
+                mixin("case ", i, ": return value.m", toCleanNumber!i, ".", func, "(args);");
             }
             default: assert(0, "WTF!");
         }
     }
 
-    template kindOf(T) {
+    template typeOf(T) {
         static assert(isInAliasArgs!(T, A), "Type `" ~ T.stringof ~ "` is not part of the variant.");
-        enum kindOf = findInAliasArgs!(T, A);
+        enum typeOf = findInAliasArgs!(T, A);
     }
 
-    template kindNameOf(T) {
+    template typeNameOf(T) {
         static assert(isInAliasArgs!(T, A), "Type `" ~ T.stringof ~ "` is not part of the variant.");
-        enum kindNameOf = T.stringof;
+        enum typeNameOf = T.stringof;
     }
 }
 
-T toVariant(T)(VariantKind kind) {
+T toVariant(T)(VariantType type) {
     static assert(isVariantType!T, "Type `" ~ T.stringof  ~ "` is not a variant.");
 
     T result;
     static foreach (i, Type; T.Types) {
-        if (i == kind) {
+        if (i == type) {
             static if (isNumberType!Type) {
                 result = cast(Type) 0;
             } else {
@@ -136,12 +128,12 @@ T toVariant(T)(VariantKind kind) {
     return result;
 }
 
-T toVariant(T)(IStr kindName) {
+T toVariant(T)(IStr typeName) {
     static assert(isVariantType!T, "Type `" ~ T.stringof  ~ "` is not a variant.");
 
     T result;
     static foreach (i, Type; T.Types) {
-        if (Type.stringof == kindName) {
+        if (Type.stringof == typeName) {
             static if (isNumberType!Type) {
                 result = cast(Type) 0;
             } else {
@@ -158,31 +150,26 @@ bool isVariantType(T)() {
     return is(T : Variant!A, A...);
 }
 
-mixin template addBase(T) {
-    T base;
-    alias base this;
-}
-
 // Variant test.
 unittest {
     alias Number = Variant!(float, double);
 
-    assert(Number().kindName == "float");
-    assert(Number().isKind!float == true);
-    assert(Number().isKind!double == false);
+    assert(Number().typeName == "float");
+    assert(Number().isType!float == true);
+    assert(Number().isType!double == false);
     assert(Number().get!float() == 0);
-    assert(Number(0.0f).kindName == "float");
-    assert(Number(0.0f).isKind!float == true);
-    assert(Number(0.0f).isKind!double == false);
+    assert(Number(0.0f).typeName == "float");
+    assert(Number(0.0f).isType!float == true);
+    assert(Number(0.0f).isType!double == false);
     assert(Number(0.0f).get!float() == 0);
-    assert(Number(0.0).isKind!float == false);
-    assert(Number(0.0).isKind!double == true);
-    assert(Number(0.0).kindName == "double");
+    assert(Number(0.0).isType!float == false);
+    assert(Number(0.0).isType!double == true);
+    assert(Number(0.0).typeName == "double");
     assert(Number(0.0).get!double() == 0);
-    assert(Number.kindOf!float == 0);
-    assert(Number.kindOf!double == 1);
-    assert(Number.kindNameOf!float == "float");
-    assert(Number.kindNameOf!double == "double");
+    assert(Number.typeOf!float == 0);
+    assert(Number.typeOf!double == 1);
+    assert(Number.typeNameOf!float == "float");
+    assert(Number.typeNameOf!double == "double");
 
     auto number = Number();
     number = 0.0;
@@ -191,7 +178,7 @@ unittest {
     assert(number.get!float() == 0);
     number.get!float() += 69.0f;
     assert(number.get!float() == 69);
-    
+
     auto numberPtr = &number.get!float();
     *numberPtr *= 10;
     assert(number.get!float() == 690);
@@ -201,8 +188,8 @@ unittest {
 unittest {
     alias Number = Variant!(float, double);
 
-    assert(toVariant!Number(Number.kindOf!float).get!float() == 0);
-    assert(toVariant!Number(Number.kindOf!double).get!double() == 0);
-    assert(toVariant!Number(Number.kindNameOf!float).get!float() == 0);
-    assert(toVariant!Number(Number.kindNameOf!double).get!double() == 0);
+    assert(toVariant!Number(Number.typeOf!float).get!float() == 0);
+    assert(toVariant!Number(Number.typeOf!double).get!double() == 0);
+    assert(toVariant!Number(Number.typeNameOf!float).get!float() == 0);
+    assert(toVariant!Number(Number.typeNameOf!double).get!double() == 0);
 }

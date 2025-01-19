@@ -20,6 +20,7 @@ enum Fault : ubyte {
     some,      /// A generic error.
     invalid,   /// An invalid value error.
     overflow,  /// An overflow error.
+    cantParse, /// A parse error.
     cantFind,  /// A wrong path error.
     cantOpen,  /// An open permissions error.
     cantClose, /// A close permissions error.

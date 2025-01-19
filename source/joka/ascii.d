@@ -101,27 +101,32 @@ IStr format(A...)(IStr formatStr, A args) {
 
 @safe @nogc nothrow:
 
-/// Checks if the given character is a digit (0-9).
+/// Returns true if the given character is a symbol (!, ", ...).
+bool isSymbol(char c) {
+    return (c >= '!' && c <= '/') || (c >= ':' && c <= '@') || (c >= '[' && c <= '`') || (c >= '{' && c <= '~');
+}
+
+/// Returns true if the given character is a digit (0-9).
 bool isDigit(char c) {
     return c >= '0' && c <= '9';
 }
 
-/// Checks if the given character is an uppercase letter (A-Z).
+/// Returns true if the given character is an uppercase letter (A-Z).
 bool isUpper(char c) {
     return c >= 'A' && c <= 'Z';
 }
 
-/// Checks if the given character is a lowercase letter (a-z).
+/// Returns true the given character is a lowercase letter (a-z).
 bool isLower(char c) {
     return c >= 'a' && c <= 'z';
 }
 
-/// Checks if the given character is an alphabetic letter (A-Z or a-z).
+/// Returns true if the given character is an alphabetic letter (A-Z or a-z).
 bool isAlpha(char c) {
     return isLower(c) || isUpper(c);
 }
 
-/// Checks if the given character is a whitespace character (space, tab, ...).
+/// Returns true if the given character is a whitespace character (space, tab, ...).
 bool isSpace(char c) {
     foreach (sc; spaceChars) {
         if (c == sc) return true;
@@ -129,7 +134,7 @@ bool isSpace(char c) {
     return false;
 }
 
-/// Checks if the given string represents a C-style string.
+/// Returns true if the given string represents a C-style string.
 bool isCStr(IStr str) {
     return str.length != 0 && str[$ - 1] == '\0';
 }
@@ -168,17 +173,17 @@ Sz length(ICStr str) {
     return result;
 }
 
-/// Checks if the two given strings are equal.
+/// Returns true if the two given strings are equal.
 bool equals(IStr str, IStr other) {
     return str == other;
 }
 
-/// Checks if the given string is equal to the specified character.
+/// Returns true if the given string is equal to the specified character.
 bool equals(IStr str, char other) {
     return equals(str, charToStr(other));
 }
 
-/// Checks if the two given strings are equal, ignoring case.
+/// Returns true if the two given strings are equal, ignoring case.
 bool equalsNoCase(IStr str, IStr other) {
     if (str.length != other.length) return false;
     foreach (i; 0 .. str.length) {
@@ -187,29 +192,29 @@ bool equalsNoCase(IStr str, IStr other) {
     return true;
 }
 
-/// Checks if the given string is equal to the specified character, ignoring case.
+/// Returns true if the given string is equal to the specified character, ignoring case.
 bool equalsNoCase(IStr str, char other) {
     return equalsNoCase(str, charToStr(other));
 }
 
-/// Checks if the given string starts with the specified substring.
+/// Returns true if the given string starts with the specified substring.
 bool startsWith(IStr str, IStr start) {
     if (str.length < start.length) return false;
     return str[0 .. start.length] == start;
 }
 
-/// Checks if the given string starts with the specified character.
+/// Returns true if the given string starts with the specified character.
 bool startsWith(IStr str, char start) {
     return startsWith(str, charToStr(start));
 }
 
-/// Checks if the given string ends with the specified substring.
+/// Returns true if the given string ends with the specified substring.
 bool endsWith(IStr str, IStr end) {
     if (str.length < end.length) return false;
     return str[$ - end.length .. $] == end;
 }
 
-/// Checks if the given string ends with the specified character.
+/// Returns true if the given string ends with the specified character.
 bool endsWith(IStr str, char end) {
     return endsWith(str, charToStr(end));
 }
@@ -536,8 +541,8 @@ IStr cStrToStr(ICStr value) {
 /// Converts the given enum value to its string representation.
 IStr enumToStr(T)(T value) {
     switch (value) {
-        static foreach (member; __traits(allMembers, T)) {
-            mixin("case T.", member, ": return member;");
+        static foreach (m; __traits(allMembers, T)) {
+            mixin("case T.", m, ": return m;");
         }
         default: assert(0, "WTF!");
     }
@@ -555,7 +560,7 @@ Result!bool toBool(IStr str) {
 
 Result!ulong toUnsigned(IStr str) {
     if (str.length == 0 || str.length >= 18) {
-        return Result!ulong(Fault.invalid);
+        return Result!ulong(Fault.overflow);
     } else {
         if (str.length == 1 && str[0] == '+') {
             return Result!ulong(Fault.invalid);
@@ -584,7 +589,7 @@ Result!ulong toUnsigned(char c) {
 
 Result!long toSigned(IStr str) {
     if (str.length == 0 || str.length >= 18) {
-        return Result!long(Fault.invalid);
+        return Result!long(Fault.overflow);
     } else {
         auto temp = toUnsigned(str[(str[0] == '-' ? 1 : 0) .. $]);
         return Result!long(str[0] == '-' ? -temp.value : temp.value, temp.fault);
@@ -632,8 +637,8 @@ Result!double toDouble(char c) {
 
 Result!T toEnum(T)(IStr str) {
     switch (str) {
-        static foreach (member; __traits(allMembers, T)) {
-            mixin("case ", member.stringof, ": return Result!T(T.", member, ");");
+        static foreach (m; __traits(allMembers, T)) {
+            mixin("case m: return Result!T(T.", m, ");");
         }
         default: return Result!T(Fault.invalid);
     }
@@ -843,7 +848,7 @@ unittest {
     assert(toDouble('0').getOr() == 0);
     assert(toDouble('9').isSome == true);
     assert(toDouble('9').getOr() == 9);
-    
+
     assert(toEnum!TestEnum("?").isSome == false);
     assert(toEnum!TestEnum("?").getOr() == TestEnum.one);
     assert(toEnum!TestEnum("one").isSome == true);
