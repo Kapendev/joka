@@ -16,7 +16,7 @@ import joka.traits;
 
 @safe @nogc nothrow:
 
-alias VariantType = int;
+alias VariantType = ubyte;
 
 union VariantValue(A...) {
     static assert(A.length != 0, "Arguments must contain at least one element.");

@@ -333,6 +333,23 @@ void copy(ref Str str, IStr source, Sz startIndex = 0) {
     str = str[0 .. startIndex + source.length];
 }
 
+/// Concatenates the given strings.
+IStr concat(IStr[] args...) {
+    static char[1024][4] buffers = void;
+    static byte bufferIndex = 0;
+
+    if (args.length == 0) return ".";
+    bufferIndex = (bufferIndex + 1) % buffers.length;
+    auto result = buffers[bufferIndex][];
+    auto length = 0;
+    foreach (i, arg; args) {
+        result.copyChars(arg, length);
+        length += arg.length;
+    }
+    result = result[0 .. length];
+    return result;
+}
+
 /// Extracts and returns the directory part of the given path, or "." if there is no directory.
 IStr pathDir(IStr path) {
     auto end = findEnd(path, pathSep);
