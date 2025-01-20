@@ -165,7 +165,7 @@ void toLower(Str str) {
 
 /// Returns the length of the given C-style string.
 @trusted
-Sz length(ICStr str) {
+Sz cStrLength(ICStr str) {
     Sz result = 0;
     while (str[result] != '\0') {
         result += 1;
@@ -552,7 +552,7 @@ IStr doubleToStr(double value, ulong precision = 2) {
 /// Converts the given C-style string to a string.
 @trusted
 IStr cStrToStr(ICStr value) {
-    return value[0 .. value.length];
+    return value[0 .. value.cStrLength];
 }
 
 /// Converts the given enum value to its string representation.
