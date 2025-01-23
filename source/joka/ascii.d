@@ -20,6 +20,7 @@ enum upperChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 enum lowerChars = "abcdefghijklmnopqrstuvwxyz";
 enum alphaChars = upperChars ~ lowerChars;
 enum spaceChars = " \t\v\r\n\f";
+enum symbolChars = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
 
 version (Windows) {
     enum pathSep = '\\';
@@ -62,7 +63,7 @@ IStr toStr(T)(T value, ToStrOptions options = ToStrOptions()) {
 // TODO: Add way to add options in the format string.
 @trusted
 IStr format(A...)(IStr formatStr, A args) {
-    static char[1024][8] buffers = void;
+    static char[1024][16] buffers = void;
     static byte bufferIndex = 0;
 
     bufferIndex = (bufferIndex + 1) % buffers.length;
@@ -173,16 +174,6 @@ Sz cStrLength(ICStr str) {
     return result;
 }
 
-/// Returns true if the two given strings are equal.
-bool equals(IStr str, IStr other) {
-    return str == other;
-}
-
-/// Returns true if the given string is equal to the specified character.
-bool equals(IStr str, char other) {
-    return equals(str, charToStr(other));
-}
-
 /// Returns true if the two given strings are equal, ignoring case.
 bool equalsNoCase(IStr str, IStr other) {
     if (str.length != other.length) return false;
@@ -220,7 +211,7 @@ bool endsWith(IStr str, char end) {
 }
 
 /// Counts the number of occurrences of the specified substring in the given string.
-int count(IStr str, IStr item) {
+int countItem(IStr str, IStr item) {
     int result = 0;
     if (str.length < item.length || item.length == 0) return result;
     foreach (i; 0 .. str.length - item.length) {
@@ -233,8 +224,8 @@ int count(IStr str, IStr item) {
 }
 
 /// Counts the number of occurrences of the specified character in the given string.
-int count(IStr str, char item) {
-    return count(str, charToStr(item));
+int countItem(IStr str, char item) {
+    return countItem(str, charToStr(item));
 }
 
 /// Finds the starting index of the first occurrence of the specified substring in the given string, or returns -1 if not found.
@@ -309,7 +300,7 @@ IStr removeSuffix(IStr str, IStr suffix) {
 }
 
 /// Advances the given string by the specified number of characters.
-IStr advance(IStr str, Sz amount) {
+IStr advanceStr(IStr str, Sz amount) {
     if (str.length < amount) {
         return str[$ .. $];
     } else {
@@ -318,24 +309,22 @@ IStr advance(IStr str, Sz amount) {
 }
 
 /// Copies characters from the source string to the destination string starting at the specified index.
-void copyChars(Str str, IStr source, Sz startIndex = 0) {
-    if (str.length < source.length) {
-        assert(0, "Destination string `{}` must be at least as long as the source string `{}`.".format(str, source));
-    }
-    foreach (i, c; source) {
-        str[startIndex + i] = c;
-    }
+Fault copyChars(Str str, IStr source, Sz startIndex = 0) {
+    if (str.length < source.length) return Fault.overflow;
+    foreach (i, c; source) str[startIndex + i] = c;
+    return Fault.none;
 }
 
 /// Copies characters from the source string to the destination string starting at the specified index and adjusts the length of the destination string.
-void copy(ref Str str, IStr source, Sz startIndex = 0) {
-    copyChars(str, source, startIndex);
+Fault copyStr(ref Str str, IStr source, Sz startIndex = 0) {
+    if (auto fault = copyChars(str, source, startIndex)) return fault;
     str = str[0 .. startIndex + source.length];
+    return Fault.none;
 }
 
 /// Concatenates the given strings.
 IStr concat(IStr[] args...) {
-    static char[1024][4] buffers = void;
+    static char[1024][16] buffers = void;
     static byte bufferIndex = 0;
 
     if (args.length == 0) return ".";
@@ -362,7 +351,7 @@ IStr pathDir(IStr path) {
 
 /// Formats the given path to a standard form, normalizing separators.
 IStr pathFormat(IStr path) {
-    static char[1024][4] buffers = void;
+    static char[1024][16] buffers = void;
     static byte bufferIndex = 0;
 
     if (path.length == 0) {
@@ -385,7 +374,7 @@ IStr pathFormat(IStr path) {
 
 /// Concatenates the given paths, ensuring proper path separators between them.
 IStr pathConcat(IStr[] args...) {
-    static char[1024][4] buffers = void;
+    static char[1024][16] buffers = void;
     static byte bufferIndex = 0;
 
     if (args.length == 0) {
@@ -481,10 +470,10 @@ IStr signedToStr(long value) {
     if (value < 0) {
         auto temp = unsignedToStr(-value);
         result[0] = '-';
-        result.copy(temp, 1);
+        result.copyStr(temp, 1);
     } else {
         auto temp = unsignedToStr(value);
-        result.copy(temp, 0);
+        result.copyStr(temp, 0);
     }
     return result;
 }
@@ -571,7 +560,7 @@ Result!bool toBool(IStr str) {
     } else if (str == "true") {
         return Result!bool(true);
     } else {
-        return Result!bool(Fault.invalid);
+        return Result!bool(Fault.cantParse);
     }
 }
 
@@ -580,7 +569,7 @@ Result!ulong toUnsigned(IStr str) {
         return Result!ulong(Fault.overflow);
     } else {
         if (str.length == 1 && str[0] == '+') {
-            return Result!ulong(Fault.invalid);
+            return Result!ulong(Fault.cantParse);
         }
         ulong value = 0;
         ulong level = 1;
@@ -589,7 +578,7 @@ Result!ulong toUnsigned(IStr str) {
                 value += (c - '0') * level;
                 level *= 10;
             } else {
-                return Result!ulong(Fault.invalid);
+                return Result!ulong(Fault.cantParse);
             }
         }
         return Result!ulong(value);
@@ -600,7 +589,7 @@ Result!ulong toUnsigned(char c) {
     if (isDigit(c)) {
         return Result!ulong(c - '0');
     } else {
-        return Result!ulong(Fault.invalid);
+        return Result!ulong(Fault.cantParse);
     }
 }
 
@@ -617,7 +606,7 @@ Result!long toSigned(char c) {
     if (isDigit(c)) {
         return Result!long(c - '0');
     } else {
-        return Result!long(Fault.invalid);
+        return Result!long(Fault.cantParse);
     }
 }
 
@@ -630,9 +619,9 @@ Result!double toDouble(IStr str) {
         auto left = toSigned(str[0 .. dotIndex]);
         auto right = toSigned(str[dotIndex + 1 .. $]);
         if (left.isNone || right.isNone) {
-            return Result!double(Fault.invalid);
+            return Result!double(Fault.cantParse);
         } else if (str[dotIndex + 1] == '-' || str[dotIndex + 1] == '+') {
-            return Result!double(Fault.invalid);
+            return Result!double(Fault.cantParse);
         } else {
             auto sign = str[0] == '-' ? -1 : 1;
             auto level = 10;
@@ -648,7 +637,7 @@ Result!double toDouble(char c) {
     if (isDigit(c)) {
         return Result!double(c - '0');
     } else {
-        return Result!double(Fault.invalid);
+        return Result!double(Fault.cantParse);
     }
 }
 
@@ -657,7 +646,7 @@ Result!T toEnum(T)(IStr str) {
         static foreach (m; __traits(allMembers, T)) {
             mixin("case m: return Result!T(T.", m, ");");
         }
-        default: return Result!T(Fault.invalid);
+        default: return Result!T(Fault.cantParse);
     }
 }
 
@@ -666,7 +655,7 @@ Result!ICStr toCStr(IStr str) {
     static char[1024] buffer = void;
 
     if (buffer.length < str.length) {
-        return Result!ICStr(Fault.invalid);
+        return Result!ICStr(Fault.cantParse);
     } else {
         auto value = buffer[];
         value.copyChars(str);
@@ -699,7 +688,7 @@ unittest {
     assert(isCStr("hello\0") == true);
 
     str = buffer[];
-    str.copy("Hello");
+    str.copyStr("Hello");
     assert(str == "Hello");
     str.toUpper();
     assert(str == "HELLO");
@@ -707,13 +696,12 @@ unittest {
     assert(str == "hello");
 
     str = buffer[];
-    str.copy("Hello\0");
+    str.copyStr("Hello\0");
     assert(isCStr(str) == true);
     assert(str.ptr.length + 1 == str.length);
 
     str = buffer[];
-    str.copy("Hello");
-    assert(str.equals("HELLO") == false);
+    str.copyStr("Hello");
     assert(str.equalsNoCase("HELLO") == true);
     assert(str.startsWith("H") == true);
     assert(str.startsWith("Hell") == true);
@@ -723,15 +711,15 @@ unittest {
     assert(str.endsWith("Hello") == true);
 
     str = buffer[];
-    str.copy("hello hello world.");
-    assert(str.count("hello") == 2);
+    str.copyStr("hello hello world.");
+    assert(str.countItem"hello") == 2);
     assert(str.findStart("HELLO") == -1);
     assert(str.findStart("hello") == 0);
     assert(str.findEnd("HELLO") == -1);
     assert(str.findEnd("hello") == 6);
 
     str = buffer[];
-    str.copy(" Hello world. ");
+    str.copyStr(" Hello world. ");
     assert(str.trimStart() == "Hello world. ");
     assert(str.trimEnd() == " Hello world.");
     assert(str.trim() == "Hello world.");
@@ -739,17 +727,17 @@ unittest {
     assert(str.trim().removePrefix("Hello") == " world.");
     assert(str.removeSuffix("world.") == str);
     assert(str.trim().removeSuffix("world.") == "Hello ");
-    assert(str.advance(0) == str);
-    assert(str.advance(1) == str[1 .. $]);
-    assert(str.advance(str.length) == "");
-    assert(str.advance(str.length + 1) == "");
+    assert(str.advanceStr(0) == str);
+    assert(str.advanceStr(1) == str[1 .. $]);
+    assert(str.advanceStr(str.length) == "");
+    assert(str.advanceStr(str.length + 1) == "");
     assert(pathConcat("one", "two").pathDir() == "one");
     assert(pathConcat("one").pathDir() == ".");
     assert(pathFormat("one/two") == pathConcat("one", "two"));
     assert(pathFormat("one\\two") == pathConcat("one", "two"));
 
     str = buffer[];
-    str.copy("one, two ,three,");
+    str.copyStr("one, two ,three,");
     assert(skipValue(str, ',') == "one");
     assert(skipValue(str, ',') == " two ");
     assert(skipValue(str, ',') == "three");
