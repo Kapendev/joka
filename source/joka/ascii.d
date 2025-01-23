@@ -698,7 +698,7 @@ unittest {
     str = buffer[];
     str.copyStr("Hello\0");
     assert(isCStr(str) == true);
-    assert(str.ptr.length + 1 == str.length);
+    assert(str.ptr.cStrLength + 1 == str.length);
 
     str = buffer[];
     str.copyStr("Hello");
@@ -712,7 +712,7 @@ unittest {
 
     str = buffer[];
     str.copyStr("hello hello world.");
-    assert(str.countItem"hello") == 2);
+    assert(str.countItem("hello") == 2);
     assert(str.findStart("HELLO") == -1);
     assert(str.findStart("hello") == 0);
     assert(str.findEnd("HELLO") == -1);
@@ -861,7 +861,7 @@ unittest {
     assert(toEnum!TestEnum("two").isSome == true);
     assert(toEnum!TestEnum("two").getOr() == TestEnum.two);
 
-    assert(toCStr("Hello").getOr().length == "Hello".length);
+    assert(toCStr("Hello").getOr().cStrLength == "Hello".length);
     assert(toCStr("Hello").getOr().cStrToStr() == "Hello");
 
     // TODO: Write more tests for `format` when it is done.
