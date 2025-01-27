@@ -1347,6 +1347,9 @@ unittest {
     assert(temp2 == IVec2(10));
     assert(temp3 == IVec2(10));
     assert(temp4 == IVec2(10));
+    assert(temp2);
+    assert(temp3);
+    assert(temp4);
 }
 
 // Function test.

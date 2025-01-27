@@ -229,13 +229,13 @@ mixin template addXyzwOps(T, Sz N, IStr form = "xyzw") {
     pragma(inline, true)
     bool opCast(T: bool)() {
         static if (N == 1) {
-            return mixin(form[0], "!= 0;");
+            return mixin(form[0], "!= 0");
         } else static if (N == 2) {
-            return mixin(form[0], "!= 0 ||", form[1], "!= 0;");
+            return mixin(form[0], "!= 0 ||", form[1], "!= 0");
         } else static if (N == 3) {
-            return mixin(form[0], "!= 0 ||", form[1], "!= 0 ||", form[2], "!= 0;");
+            return mixin(form[0], "!= 0 ||", form[1], "!= 0 ||", form[2], "!= 0");
         } else static if (N == 4) {
-            return mixin(form[0], "!= 0 ||", form[1], "!= 0 ||", form[2], "!= 0 ||", form[3], "!= 0;");
+            return mixin(form[0], "!= 0 ||", form[1], "!= 0 ||", form[2], "!= 0 ||", form[3], "!= 0");
         }
     }
 }

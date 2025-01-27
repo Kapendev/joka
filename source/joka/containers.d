@@ -22,10 +22,11 @@ enum defaultGridRowCount = 256;
 enum defaultGridColCount = 256;
 enum defaultGridCapacity = defaultGridRowCount * defaultGridColCount;
 
-alias LStr   = List!char;
-alias LStr16 = List!wchar;
-alias LStr32 = List!dchar;
+alias LStr   = List!char;  /// A dynamic string of chars.
+alias LStr16 = List!wchar; /// A dynamic string of wchars.
+alias LStr32 = List!dchar; /// A dynamic string of dchars.
 
+/// A dynamic array.
 struct List(T) {
     T[] items;
     Sz capacity;
@@ -183,6 +184,7 @@ struct List(T) {
     }
 }
 
+/// A dynamic array allocated on the stack.
 struct FixedList(T, Sz N = defaultFixedListCapacity) {
     T[N] data;
     Sz length;
@@ -315,6 +317,7 @@ struct FixedList(T, Sz N = defaultFixedListCapacity) {
     }
 }
 
+/// A dynamic sparse array.
 struct SparseList(T) {
     List!T data;
     List!bool flags;
@@ -338,7 +341,7 @@ struct SparseList(T) {
 
     ref T opIndex(Sz i) {
         if (!has(i)) {
-            assert(0, "Index `{}` does not exist.".format(i));
+            assert(0, "Index `[{}]` does not exist.".format(i));
         }
         return data[i];
     }
@@ -346,7 +349,7 @@ struct SparseList(T) {
     @trusted
     void opIndexAssign(const(T) rhs, Sz i) {
         if (!has(i)) {
-            assert(0, "Index `{}` does not exist.".format(i));
+            assert(0, "Index `[{}]` does not exist.".format(i));
         }
         data[i] = cast(T) rhs;
     }
@@ -354,7 +357,7 @@ struct SparseList(T) {
     @trusted
     void opIndexOpAssign(IStr op)(const(T) rhs, Sz i) {
         if (!has(i)) {
-            assert(0, "Index `{}` does not exist.".format(i));
+            assert(0, "Index `[{}]` does not exist.".format(i));
         }
         mixin("data[i]", op, "= cast(T) rhs;");
     }
@@ -410,7 +413,7 @@ struct SparseList(T) {
 
     void remove(Sz i) {
         if (!has(i)) {
-            assert(0, "Index `{}` does not exist.".format(i));
+            assert(0, "Index `[{}]` does not exist.".format(i));
         }
         flags[i] = false;
         hotIndex = i;
@@ -526,7 +529,7 @@ struct GenerationalList(T) {
 
     ref T opIndex(GenerationalIndex i) {
         if (!has(i)) {
-            assert(0, "Index `{}` with generation `{}` does not exist.".format(i.value, i.generation));
+            assert(0, "Index `[{}]` with generation `{}` does not exist.".format(i.value, i.generation));
         }
         return data[i.value];
     }
@@ -534,7 +537,7 @@ struct GenerationalList(T) {
     @trusted
     void opIndexAssign(const(T) rhs, GenerationalIndex i) {
         if (!has(i)) {
-            assert(0, "Index `{}` with generation `{}` does not exist.".format(i.value, i.generation));
+            assert(0, "Index `[{}]` with generation `{}` does not exist.".format(i.value, i.generation));
         }
         data[i.value] = cast(T) rhs;
     }
@@ -542,7 +545,7 @@ struct GenerationalList(T) {
     @trusted
     void opIndexOpAssign(IStr op)(const(T) rhs, GenerationalIndex i) {
         if (!has(i)) {
-            assert(0, "Index `{}` with generation `{}` does not exist.".format(i.value, i.generation));
+            assert(0, "Index `[{}]` with generation `{}` does not exist.".format(i.value, i.generation));
         }
         mixin("data[i.value]", op, "= cast(T) rhs;");
     }
@@ -576,7 +579,7 @@ struct GenerationalList(T) {
 
     void remove(GenerationalIndex i) {
         if (!has(i)) {
-            assert(0, "Index `{}` with generation `{}` does not exist.".format(i.value, i.generation));
+            assert(0, "Index `[{}]` with generation `{}` does not exist.".format(i.value, i.generation));
         }
         data.remove(i.value);
         generations[data.hotIndex] += 1;
