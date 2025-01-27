@@ -24,11 +24,6 @@ If you encounter errors with BetterC, try using the `-i` flag.
 This project can be compiled to WebAssembly as it doesn't use the D standard library.
 However, since it relies on the C standard library, you will need something like Emscripten to make it work.
 
-## Note
+## Documentation
 
-I add things to Joka when I need them.
-
-## License
-
-The project is released under the terms of the MIT License.
-Please refer to the LICENSE file.
+Start with the [examples](./examples/) folder for a quick overview.
