@@ -31,12 +31,9 @@ enum Fault : ubyte {
 
 /// Represents a result of a procedure.
 struct Result(T) {
-    static if (isNumberType!T) {
-        T value = 0;
-    } else {
-        T value;              /// The value of the result.
-    }
-    Fault fault = Fault.some; /// The error value of the result.
+    static if (isNumberType!T) T value = 0;
+    else T value;             /// The value of the result.
+    Fault fault = Fault.some; /// The error of the result.
 
     @safe @nogc nothrow:
 
@@ -94,6 +91,7 @@ struct Result(T) {
     }
 }
 
+/// Converts the value to a fault.
 Fault toFault(bool value, Fault other = Fault.some) {
     return value ? other : Fault.none;
 }

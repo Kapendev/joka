@@ -778,9 +778,12 @@ Sz findListCapacity(Sz length) {
     return result;
 }
 
-// TODO: Add way to add options in the format string.
-void formatl(A...)(ref LStr text, IStr formatStr, A args) {
-    text.clear();
+/// Formats the given format string by replacing `{}` placeholders
+/// with values from the given arguments in order.
+/// Placeholders do not support options.
+/// Use a wrapper type with a `toStr` method for custom formatting.
+void formatIntoBuffer(A...)(ref LStr buffer, IStr formatStr, A args) {
+    buffer.clear();
 
     auto formatStrIndex = 0;
     auto argIndex = 0;
@@ -793,7 +796,7 @@ void formatl(A...)(ref LStr text, IStr formatStr, A args) {
                 if (i == argIndex) {
                     auto temp = toStr(arg);
                     foreach (i, c; temp) {
-                        text.append(c);
+                        buffer.append(c);
                     }
                     formatStrIndex += 2;
                     argIndex += 1;
@@ -802,7 +805,7 @@ void formatl(A...)(ref LStr text, IStr formatStr, A args) {
             }
             loopExit:
         } else {
-            text.append(c1);
+            buffer.append(c1);
             formatStrIndex += 1;
         }
     }
@@ -813,6 +816,11 @@ unittest {
     assert(findListCapacity(0) == defaultListCapacity);
     assert(findListCapacity(defaultListCapacity) == defaultListCapacity);
     assert(findListCapacity(defaultListCapacity + 1) == defaultListCapacity * 2);
+    assert(findListCapacity(defaultListCapacity + 1) == defaultListCapacity * 2);
+
+    auto temp = LStr();
+    formatIntoBuffer(temp, "{}", 69);
+    assert(temp[] == "69");
 }
 
 // List test.

@@ -36,6 +36,7 @@ enum gray4   = toRgb(0xdfdfdf);
 
 alias gray = gray2;
 
+/// A RGBA color using ubytes.
 struct Color {
     ubyte r;
     ubyte g;

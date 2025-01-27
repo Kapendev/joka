@@ -31,7 +31,7 @@ version (Windows) {
     enum pathSepOther = '\\'; /// The complementary OS path separator.
 }
 
-/// Converts the given value to its string representation.
+/// Converts the value to its string representation.
 @trusted
 IStr toStr(T)(T value) {
     static if (isCharType!T) {
@@ -57,8 +57,10 @@ IStr toStr(T)(T value) {
     }
 }
 
-/// Formats the given format string by replacing `{}` placeholders with values from the given arguments in order.
-/// Placeholders do not support options. Use a wrapper type with a `toStr` method for custom formatting.
+/// Formats the format string by replacing `{}` placeholders
+/// with values from the arguments in order.
+/// Placeholders do not support options.
+/// Use a wrapper type with a `toStr` method for custom formatting.
 @trusted
 IStr format(A...)(IStr formatStr, A args) {
     static char[1024][16] buffers = void;
@@ -100,32 +102,32 @@ IStr format(A...)(IStr formatStr, A args) {
 
 @safe @nogc nothrow:
 
-/// Returns true if the given character is a symbol (!, ", ...).
+/// Returns true if the character is a symbol (!, ", ...).
 bool isSymbol(char c) {
     return (c >= '!' && c <= '/') || (c >= ':' && c <= '@') || (c >= '[' && c <= '`') || (c >= '{' && c <= '~');
 }
 
-/// Returns true if the given character is a digit (0-9).
+/// Returns true if the character is a digit (0-9).
 bool isDigit(char c) {
     return c >= '0' && c <= '9';
 }
 
-/// Returns true if the given character is an uppercase letter (A-Z).
+/// Returns true if the character is an uppercase letter (A-Z).
 bool isUpper(char c) {
     return c >= 'A' && c <= 'Z';
 }
 
-/// Returns true the given character is a lowercase letter (a-z).
+/// Returns true the character is a lowercase letter (a-z).
 bool isLower(char c) {
     return c >= 'a' && c <= 'z';
 }
 
-/// Returns true if the given character is an alphabetic letter (A-Z or a-z).
+/// Returns true if the character is an alphabetic letter (A-Z or a-z).
 bool isAlpha(char c) {
     return isLower(c) || isUpper(c);
 }
 
-/// Returns true if the given character is a whitespace character (space, tab, ...).
+/// Returns true if the character is a whitespace character (space, tab, ...).
 bool isSpace(char c) {
     foreach (sc; spaceChars) {
         if (c == sc) return true;
@@ -133,36 +135,36 @@ bool isSpace(char c) {
     return false;
 }
 
-/// Returns true if the given string represents a C-style string.
+/// Returns true if the string represents a C string.
 bool isCStr(IStr str) {
     return str.length != 0 && str[$ - 1] == '\0';
 }
 
-/// Converts the given character to uppercase if it is a lowercase letter.
+/// Converts the character to uppercase if it is a lowercase letter.
 char toUpper(char c) {
     return isLower(c) ? cast(char) (c - 32) : c;
 }
 
-/// Converts all lowercase letters in the given string to uppercase.
+/// Converts all lowercase letters in the string to uppercase.
 void toUpper(Str str) {
     foreach (ref c; str) {
         c = toUpper(c);
     }
 }
 
-/// Converts the given character to lowercase if it is an uppercase letter.
+/// Converts the character to lowercase if it is an uppercase letter.
 char toLower(char c) {
     return isUpper(c) ? cast(char) (c + 32) : c;
 }
 
-/// Converts all uppercase letters in the given string to lowercase.
+/// Converts all uppercase letters in the string to lowercase.
 void toLower(Str str) {
     foreach (ref c; str) {
         c = toLower(c);
     }
 }
 
-/// Returns the length of the given C string.
+/// Returns the length of the C string.
 @trusted
 Sz cStrLength(ICStr str) {
     Sz result = 0;
@@ -172,7 +174,7 @@ Sz cStrLength(ICStr str) {
     return result;
 }
 
-/// Returns true if the two given strings are equal, ignoring case.
+/// Returns true if the two strings are equal, ignoring case.
 bool equalsNoCase(IStr str, IStr other) {
     if (str.length != other.length) return false;
     foreach (i; 0 .. str.length) {
@@ -181,34 +183,34 @@ bool equalsNoCase(IStr str, IStr other) {
     return true;
 }
 
-/// Returns true if the given string is equal to the specified character, ignoring case.
+/// Returns true if the string is equal to the specified character, ignoring case.
 bool equalsNoCase(IStr str, char other) {
     return equalsNoCase(str, charToStr(other));
 }
 
-/// Returns true if the given string starts with the specified substring.
+/// Returns true if the string starts with the specified substring.
 bool startsWith(IStr str, IStr start) {
     if (str.length < start.length) return false;
     return str[0 .. start.length] == start;
 }
 
-/// Returns true if the given string starts with the specified character.
+/// Returns true if the string starts with the specified character.
 bool startsWith(IStr str, char start) {
     return startsWith(str, charToStr(start));
 }
 
-/// Returns true if the given string ends with the specified substring.
+/// Returns true if the string ends with the specified substring.
 bool endsWith(IStr str, IStr end) {
     if (str.length < end.length) return false;
     return str[$ - end.length .. $] == end;
 }
 
-/// Returns true if the given string ends with the specified character.
+/// Returns true if the string ends with the specified character.
 bool endsWith(IStr str, char end) {
     return endsWith(str, charToStr(end));
 }
 
-/// Counts the number of occurrences of the specified substring in the given string.
+/// Counts the number of occurrences of the specified substring in the string.
 int countItem(IStr str, IStr item) {
     int result = 0;
     if (str.length < item.length || item.length == 0) return result;
@@ -221,12 +223,12 @@ int countItem(IStr str, IStr item) {
     return result;
 }
 
-/// Counts the number of occurrences of the specified character in the given string.
+/// Counts the number of occurrences of the specified character in the string.
 int countItem(IStr str, char item) {
     return countItem(str, charToStr(item));
 }
 
-/// Finds the starting index of the first occurrence of the specified substring in the given string, or returns -1 if not found.
+/// Finds the starting index of the first occurrence of the specified substring in the string, or returns -1 if not found.
 int findStart(IStr str, IStr item) {
     if (str.length < item.length || item.length == 0) return -1;
     foreach (i; 0 .. str.length - item.length + 1) {
@@ -235,12 +237,12 @@ int findStart(IStr str, IStr item) {
     return -1;
 }
 
-/// Finds the starting index of the first occurrence of the specified character in the given string, or returns -1 if not found.
+/// Finds the starting index of the first occurrence of the specified character in the string, or returns -1 if not found.
 int findStart(IStr str, char item) {
     return findStart(str, charToStr(item));
 }
 
-/// Finds the ending index of the first occurrence of the specified substring in the given string, or returns -1 if not found.
+/// Finds the ending index of the first occurrence of the specified substring in the string, or returns -1 if not found.
 int findEnd(IStr str, IStr item) {
     if (str.length < item.length || item.length == 0) return -1;
     foreach_reverse (i; 0 .. str.length - item.length + 1) {
@@ -249,12 +251,12 @@ int findEnd(IStr str, IStr item) {
     return -1;
 }
 
-/// Finds the ending index of the first occurrence of the specified character in the given string, or returns -1 if not found.
+/// Finds the ending index of the first occurrence of the specified character in the string, or returns -1 if not found.
 int findEnd(IStr str, char item) {
     return findEnd(str, charToStr(item));
 }
 
-/// Removes whitespace characters from the beginning of the given string.
+/// Removes whitespace characters from the beginning of the string.
 IStr trimStart(IStr str) {
     IStr result = str;
     while (result.length > 0) {
@@ -264,7 +266,7 @@ IStr trimStart(IStr str) {
     return result;
 }
 
-/// Removes whitespace characters from the end of the given string.
+/// Removes whitespace characters from the end of the string.
 IStr trimEnd(IStr str) {
     IStr result = str;
     while (result.length > 0) {
@@ -274,12 +276,12 @@ IStr trimEnd(IStr str) {
     return result;
 }
 
-/// Removes whitespace characters from both the beginning and end of the given string.
+/// Removes whitespace characters from both the beginning and end of the string.
 IStr trim(IStr str) {
     return str.trimStart().trimEnd();
 }
 
-/// Removes the specified prefix from the beginning of the given string if it exists.
+/// Removes the specified prefix from the beginning of the string if it exists.
 IStr removePrefix(IStr str, IStr prefix) {
     if (str.startsWith(prefix)) {
         return str[prefix.length .. $];
@@ -288,7 +290,7 @@ IStr removePrefix(IStr str, IStr prefix) {
     }
 }
 
-/// Removes the specified suffix from the end of the given string if it exists.
+/// Removes the specified suffix from the end of the string if it exists.
 IStr removeSuffix(IStr str, IStr suffix) {
     if (str.endsWith(suffix)) {
         return str[0 .. $ - suffix.length];
@@ -297,7 +299,7 @@ IStr removeSuffix(IStr str, IStr suffix) {
     }
 }
 
-/// Advances the given string by the specified number of characters.
+/// Advances the string by the specified number of characters.
 IStr advanceStr(IStr str, Sz amount) {
     if (str.length < amount) {
         return str[$ .. $];
@@ -320,7 +322,7 @@ Fault copyStr(ref Str str, IStr source, Sz startIndex = 0) {
     return Fault.none;
 }
 
-/// Concatenates the given strings.
+/// Concatenates the strings.
 IStr concat(IStr[] args...) {
     static char[1024][16] buffers = void;
     static byte bufferIndex = 0;
@@ -337,7 +339,7 @@ IStr concat(IStr[] args...) {
     return result;
 }
 
-/// Extracts and returns the directory part of the given path, or "." if there is no directory.
+/// Extracts and returns the directory part of the path, or "." if there is no directory.
 IStr pathDir(IStr path) {
     auto end = findEnd(path, pathSep);
     if (end == -1) {
@@ -347,7 +349,7 @@ IStr pathDir(IStr path) {
     }
 }
 
-/// Formats the given path to a standard form, normalizing separators.
+/// Formats the path to a standard form, normalizing separators.
 IStr pathFormat(IStr path) {
     static char[1024][16] buffers = void;
     static byte bufferIndex = 0;
@@ -370,7 +372,7 @@ IStr pathFormat(IStr path) {
     return result;
 }
 
-/// Concatenates the given paths, ensuring proper path separators between them.
+/// Concatenates the paths, ensuring proper path separators between them.
 IStr pathConcat(IStr[] args...) {
     static char[1024][16] buffers = void;
     static byte bufferIndex = 0;
@@ -395,7 +397,7 @@ IStr pathConcat(IStr[] args...) {
     return result;
 }
 
-/// Skips over the next occurrence of the specified separator in the given string, returning the substring before the separator and updating the input string to start after the separator.
+/// Skips over the next occurrence of the specified separator in the string, returning the substring before the separator and updating the input string to start after the separator.
 IStr skipValue(ref inout(char)[] str, IStr sep) {
     if (str.length < sep.length || sep.length == 0) {
         str = str[$ .. $];
@@ -416,22 +418,22 @@ IStr skipValue(ref inout(char)[] str, IStr sep) {
     return line;
 }
 
-/// Skips over the next occurrence of the specified separator in the given string, returning the substring before the separator and updating the input string to start after the separator.
+/// Skips over the next occurrence of the specified separator in the string, returning the substring before the separator and updating the input string to start after the separator.
 IStr skipValue(ref inout(char)[] str, char sep) {
     return skipValue(str, charToStr(sep));
 }
 
-/// Skips over the next line in the given string, returning the substring before the line break and updating the input string to start after the line break.
+/// Skips over the next line in the string, returning the substring before the line break and updating the input string to start after the line break.
 IStr skipLine(ref inout(char)[] str) {
     return skipValue(str, '\n');
 }
 
-/// Converts the given boolean value to its string representation.
+/// Converts the boolean value to its string representation.
 IStr boolToStr(bool value) {
     return value ? "true" : "false";
 }
 
-/// Converts the given character to its string representation.
+/// Converts the character to its string representation.
 IStr charToStr(char value) {
     static char[1] buffer = void;
 
@@ -441,7 +443,7 @@ IStr charToStr(char value) {
     return result;
 }
 
-/// Converts the given unsigned long value to its string representation.
+/// Converts the unsigned long value to its string representation.
 IStr unsignedToStr(ulong value) {
     static char[64] buffer = void;
 
@@ -460,7 +462,7 @@ IStr unsignedToStr(ulong value) {
     return result;
 }
 
-/// Converts the given signed long value to its string representation.
+/// Converts the signed long value to its string representation.
 IStr signedToStr(long value) {
     static char[64] buffer = void;
 
@@ -476,7 +478,7 @@ IStr signedToStr(long value) {
     return result;
 }
 
-/// Converts the given double value to its string representation with the specified precision.
+/// Converts the double value to its string representation with the specified precision.
 IStr doubleToStr(double value, ulong precision = 2) {
     static char[64] buffer = void;
 
@@ -536,13 +538,13 @@ IStr doubleToStr(double value, ulong precision = 2) {
     return result[i .. $];
 }
 
-/// Converts the given C-style string to a string.
+/// Converts the C string to a string.
 @trusted
 IStr cStrToStr(ICStr value) {
     return value[0 .. value.cStrLength];
 }
 
-/// Converts the given enum value to its string representation.
+/// Converts the enum value to its string representation.
 IStr enumToStr(T)(T value) {
     switch (value) {
         static foreach (m; __traits(allMembers, T)) {
@@ -552,7 +554,7 @@ IStr enumToStr(T)(T value) {
     }
 }
 
-/// Converts the given string to a bool.
+/// Converts the string to a bool.
 Result!bool toBool(IStr str) {
     if (str == "false") {
         return Result!bool(false);
@@ -563,7 +565,7 @@ Result!bool toBool(IStr str) {
     }
 }
 
-/// Converts the given string to a ulong.
+/// Converts the string to a ulong.
 Result!ulong toUnsigned(IStr str) {
     if (str.length == 0 || str.length >= 18) {
         return Result!ulong(Fault.overflow);
@@ -585,7 +587,7 @@ Result!ulong toUnsigned(IStr str) {
     }
 }
 
-/// Converts the given character to a ulong.
+/// Converts the character to a ulong.
 Result!ulong toUnsigned(char c) {
     if (isDigit(c)) {
         return Result!ulong(c - '0');
@@ -594,7 +596,7 @@ Result!ulong toUnsigned(char c) {
     }
 }
 
-/// Converts the given string to a long.
+/// Converts the string to a long.
 Result!long toSigned(IStr str) {
     if (str.length == 0 || str.length >= 18) {
         return Result!long(Fault.overflow);
@@ -604,7 +606,7 @@ Result!long toSigned(IStr str) {
     }
 }
 
-/// Converts the given character to a long.
+/// Converts the character to a long.
 Result!long toSigned(char c) {
     if (isDigit(c)) {
         return Result!long(c - '0');
@@ -613,7 +615,7 @@ Result!long toSigned(char c) {
     }
 }
 
-/// Converts the given string to a double.
+/// Converts the string to a double.
 Result!double toDouble(IStr str) {
     auto dotIndex = findStart(str, '.');
     if (dotIndex == -1) {
@@ -637,7 +639,7 @@ Result!double toDouble(IStr str) {
     }
 }
 
-/// Converts the given character to a double.
+/// Converts the character to a double.
 Result!double toDouble(char c) {
     if (isDigit(c)) {
         return Result!double(c - '0');
@@ -646,7 +648,7 @@ Result!double toDouble(char c) {
     }
 }
 
-/// Converts the given string to an enum value.
+/// Converts the string to an enum value.
 Result!T toEnum(T)(IStr str) {
     switch (str) {
         static foreach (m; __traits(allMembers, T)) {
@@ -656,7 +658,7 @@ Result!T toEnum(T)(IStr str) {
     }
 }
 
-/// Converts the given string to a C string.
+/// Converts the string to a C string.
 @trusted
 Result!ICStr toCStr(IStr str) {
     static char[1024] buffer = void;

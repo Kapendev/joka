@@ -16,8 +16,8 @@ import stdc = joka.stdc;
 
 @safe @nogc nothrow:
 
-enum pi      = 3.1415f;
-enum epsilon = 0.0001f;
+enum pi      = 3.1415f; /// The value of PI.
+enum epsilon = 0.0001f; /// The value of epsilon.
 
 /// A type representing relative points.
 enum Hook : ubyte {
@@ -37,8 +37,8 @@ struct IVec2 {
     int x; /// The X component of the vector.
     int y; /// The Y component of the vector.
 
-    enum length = 2;
-    enum form = "xyzw";
+    enum length = 2;    /// The component count of the vector.
+    enum form = "xyzw"; /// The form of the vector.
 
     @safe @nogc nothrow:
 
@@ -68,8 +68,8 @@ struct IVec3 {
     int y; /// The Y component of the vector.
     int z; /// The Z component of the vector.
 
-    enum length = 3;
-    enum form = "xyzw";
+    enum length = 3;    /// The component count of the vector.
+    enum form = "xyzw"; /// The form of the vector.
 
     @safe @nogc nothrow:
 
@@ -93,7 +93,6 @@ struct IVec3 {
     mixin addXyzwOps!(IVec3, length, form);
 
     /// Returns a string representation with a limited lifetime.
-    /// See `format` in the `joka.ascii` module for details about the lifetime.
     IStr toStr() {
         return "({}, {}, {})".format(x, y, z);
     }
@@ -106,8 +105,8 @@ struct IVec4 {
     int z; /// The Z component of the vector.
     int w; /// The W component of the vector.
 
-    enum length = 4;
-    enum form = "xyzw";
+    enum length = 4;    /// The component count of the vector.
+    enum form = "xyzw"; /// The form of the vector.
 
     @safe @nogc nothrow:
 
@@ -132,7 +131,6 @@ struct IVec4 {
     mixin addXyzwOps!(IVec4, length, form);
 
     /// Returns a string representation with a limited lifetime.
-    /// See `format` in the `joka.ascii` module for details about the lifetime.
     IStr toStr() {
         return "({}, {}, {}, {})".format(x, y, z, w);
     }
@@ -143,8 +141,8 @@ struct Vec2 {
     float x = 0.0f; /// The X component of the vector.
     float y = 0.0f; /// The Y component of the vector.
 
-    enum length = 2;
-    enum form = "xyzw";
+    enum length = 2;    /// The component count of the vector.
+    enum form = "xyzw"; /// The form of the vector.
 
     @safe @nogc nothrow:
 
@@ -187,7 +185,6 @@ struct Vec2 {
     }
 
     /// Returns a string representation with a limited lifetime.
-    /// See `format` in the `joka.ascii` module for details about the lifetime.
     IStr toStr() {
         return "({}, {})".format(x, y);
     }
@@ -199,8 +196,8 @@ struct Vec3 {
     float y = 0.0f; /// The Y component of the vector.
     float z = 0.0f; /// The Z component of the vector.
 
-    enum length = 3;
-    enum form = "xyzw";
+    enum length = 3;    /// The component count of the vector.
+    enum form = "xyzw"; /// The form of the vector.
 
     @safe @nogc nothrow:
 
@@ -245,7 +242,6 @@ struct Vec3 {
     }
 
     /// Returns a string representation with a limited lifetime.
-    /// See `format` in the `joka.ascii` module for details about the lifetime.
     IStr toStr() {
         return "({}, {}, {})".format(x, y, z);
     }
@@ -258,8 +254,8 @@ struct Vec4 {
     float z = 0.0f; /// The Z component of the vector.
     float w = 0.0f; /// The W component of the vector.
 
-    enum length = 4;
-    enum form = "xyzw";
+    enum length = 4;    /// The component count of the vector.
+    enum form = "xyzw"; /// The form of the vector.
 
     @safe @nogc nothrow:
 
@@ -305,7 +301,6 @@ struct Vec4 {
     }
 
     /// Returns a string representation with a limited lifetime.
-    /// See `format` in the `joka.ascii` module for details about the lifetime.
     IStr toStr() {
         return "({}, {}, {}, {})".format(x, y, z, w);
     }
@@ -624,7 +619,6 @@ struct Rect {
     }
 
     /// Returns a string representation with a limited lifetime.
-    /// See `format` in the `joka.ascii` module for details about the lifetime.
     IStr toStr() {
         return "({}, {}, {}, {})".format(position.x, position.y, size.x, size.y);
     }
@@ -649,7 +643,6 @@ struct Circ {
     }
 
     /// Returns a string representation with a limited lifetime.
-    /// See `format` in the `joka.ascii` module for details about the lifetime.
     IStr toStr() {
         return "({}, {}, {})".format(position.x, position.y, radius);
     }
@@ -684,7 +677,6 @@ struct Line {
     }
 
     /// Returns a string representation with a limited lifetime.
-    /// See `format` in the `joka.ascii` module for details about the lifetime.
     IStr toStr() {
         return "({}, {}, {}, {})".format(a.x, a.y, b.x, b.y);
     }
