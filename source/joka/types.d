@@ -12,6 +12,7 @@ module joka.types;
 @safe @nogc nothrow:
 
 alias Sz      = size_t;
+alias ISz     = ptrdiff_t;
 
 alias Str     = char[];
 alias Str16   = wchar[];

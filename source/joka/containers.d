@@ -49,7 +49,7 @@ struct List(T) {
     }
 
     T[] opIndex() {
-        return items[];
+        return items;
     }
 
     // D calls this function when the slice operator is used. Does something but I do not remember what lol.

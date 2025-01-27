@@ -9,7 +9,6 @@
 /// The `faults` module provides data structures and codes for error handling.
 module joka.faults;
 
-import joka.ascii;
 import joka.traits;
 
 @safe @nogc nothrow:
@@ -18,8 +17,10 @@ import joka.traits;
 enum Fault : ubyte {
     none,      /// Not an error.
     some,      /// A generic error.
-    invalid,   /// An invalid value error.
+    bug,       /// An implementation error.
+    invalid,   /// An invalid data error.
     overflow,  /// An overflow error.
+    assertion, /// An assertion error.
     cantParse, /// A parse error.
     cantFind,  /// A wrong path error.
     cantOpen,  /// An open permissions error.
@@ -35,7 +36,7 @@ struct Result(T) {
     } else {
         T value;              /// The value of the result.
     }
-    Fault fault = Fault.some; /// The error code of the result.
+    Fault fault = Fault.some; /// The error value of the result.
 
     @safe @nogc nothrow:
 
@@ -64,9 +65,7 @@ struct Result(T) {
 
     /// Returns the result value. Asserts when the result is an error.
     T get() {
-        if (fault) {
-            assert(0, "Fault `{}` was detected.".format(fault));
-        }
+        if (fault) assert(0, "Fault was detected.");
         return value;
     }
 

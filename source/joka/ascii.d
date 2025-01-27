@@ -11,32 +11,29 @@ module joka.ascii;
 
 import joka.traits;
 import joka.types;
+
 public import joka.faults;
 
 @safe:
 
-enum digitChars = "0123456789";
-enum upperChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-enum lowerChars = "abcdefghijklmnopqrstuvwxyz";
-enum alphaChars = upperChars ~ lowerChars;
-enum spaceChars = " \t\v\r\n\f";
-enum symbolChars = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
+enum digitChars = "0123456789";                          /// The set of digits.
+enum upperChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";          /// The set of uppercase letters.
+enum lowerChars = "abcdefghijklmnopqrstuvwxyz";          /// The set of lowercase letters.
+enum alphaChars = upperChars ~ lowerChars;               /// The set of letters.
+enum spaceChars = " \t\v\r\n\f";                         /// The set of whitespace characters.
+enum symbolChars = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"; /// The set of symbol characters.
 
 version (Windows) {
     enum pathSep = '\\';
-    enum otherPathSep = '/';
+    enum pathSepOther = '/';
 } else {
-    enum pathSep = '/';
-    enum otherPathSep = '\\';
+    enum pathSep = '/';       /// The primary OS path separator.
+    enum pathSepOther = '\\'; /// The complementary OS path separator.
 }
 
-struct ToStrOptions {
-    ubyte doublePrecision = 2;
-}
-
-/// Converts the given value to its string representation using the specified options.
+/// Converts the given value to its string representation.
 @trusted
-IStr toStr(T)(T value, ToStrOptions options = ToStrOptions()) {
+IStr toStr(T)(T value) {
     static if (isCharType!T) {
         return charToStr(value);
     } else static if (isBoolType!T) {
@@ -46,7 +43,7 @@ IStr toStr(T)(T value, ToStrOptions options = ToStrOptions()) {
     } else static if (isSignedType!T) {
         return signedToStr(value);
     } else static if (isFloatingType!T) {
-        return doubleToStr(value, options.doublePrecision);
+        return doubleToStr(value, 2);
     } else static if (isStrType!T) {
         return value;
     } else static if (isCStrType!T) {
@@ -60,7 +57,8 @@ IStr toStr(T)(T value, ToStrOptions options = ToStrOptions()) {
     }
 }
 
-// TODO: Add way to add options in the format string.
+/// Formats the given format string by replacing `{}` placeholders with values from the given arguments in order.
+/// Placeholders do not support options. Use a wrapper type with a `toStr` method for custom formatting.
 @trusted
 IStr format(A...)(IStr formatStr, A args) {
     static char[1024][16] buffers = void;
@@ -164,7 +162,7 @@ void toLower(Str str) {
     }
 }
 
-/// Returns the length of the given C-style string.
+/// Returns the length of the given C string.
 @trusted
 Sz cStrLength(ICStr str) {
     Sz result = 0;
@@ -362,7 +360,7 @@ IStr pathFormat(IStr path) {
 
     auto result = buffers[bufferIndex][];
     foreach (i, c; path) {
-        if (c == otherPathSep) {
+        if (c == pathSepOther) {
             result[i] = pathSep;
         } else {
             result[i] = c;
@@ -554,6 +552,7 @@ IStr enumToStr(T)(T value) {
     }
 }
 
+/// Converts the given string to a bool.
 Result!bool toBool(IStr str) {
     if (str == "false") {
         return Result!bool(false);
@@ -564,6 +563,7 @@ Result!bool toBool(IStr str) {
     }
 }
 
+/// Converts the given string to a ulong.
 Result!ulong toUnsigned(IStr str) {
     if (str.length == 0 || str.length >= 18) {
         return Result!ulong(Fault.overflow);
@@ -585,6 +585,7 @@ Result!ulong toUnsigned(IStr str) {
     }
 }
 
+/// Converts the given character to a ulong.
 Result!ulong toUnsigned(char c) {
     if (isDigit(c)) {
         return Result!ulong(c - '0');
@@ -593,6 +594,7 @@ Result!ulong toUnsigned(char c) {
     }
 }
 
+/// Converts the given string to a long.
 Result!long toSigned(IStr str) {
     if (str.length == 0 || str.length >= 18) {
         return Result!long(Fault.overflow);
@@ -602,6 +604,7 @@ Result!long toSigned(IStr str) {
     }
 }
 
+/// Converts the given character to a long.
 Result!long toSigned(char c) {
     if (isDigit(c)) {
         return Result!long(c - '0');
@@ -610,6 +613,7 @@ Result!long toSigned(char c) {
     }
 }
 
+/// Converts the given string to a double.
 Result!double toDouble(IStr str) {
     auto dotIndex = findStart(str, '.');
     if (dotIndex == -1) {
@@ -633,6 +637,7 @@ Result!double toDouble(IStr str) {
     }
 }
 
+/// Converts the given character to a double.
 Result!double toDouble(char c) {
     if (isDigit(c)) {
         return Result!double(c - '0');
@@ -641,6 +646,7 @@ Result!double toDouble(char c) {
     }
 }
 
+/// Converts the given string to an enum value.
 Result!T toEnum(T)(IStr str) {
     switch (str) {
         static foreach (m; __traits(allMembers, T)) {
@@ -650,6 +656,7 @@ Result!T toEnum(T)(IStr str) {
     }
 }
 
+/// Converts the given string to a C string.
 @trusted
 Result!ICStr toCStr(IStr str) {
     static char[1024] buffer = void;

@@ -16,10 +16,8 @@ import joka.types;
 
 @safe @nogc nothrow:
 
-enum blank   = Color();
 enum black   = Color(0);
 enum white   = Color(255);
-
 enum red     = Color(255, 0, 0);
 enum green   = Color(0, 255, 0);
 enum blue    = Color(0, 0, 255);
@@ -31,7 +29,6 @@ enum orange  = Color(255, 165, 0);
 enum beige   = Color(240, 235, 210);
 enum brown   = Color(165, 72, 42);
 enum maroon  = Color(128, 0, 0);
-
 enum gray1   = toRgb(0x202020);
 enum gray2   = toRgb(0x606060);
 enum gray3   = toRgb(0x9f9f9f);
@@ -46,8 +43,7 @@ struct Color {
     ubyte a;
 
     enum length = 4;
-    enum zero = Color(0, 0, 0, 0);
-    enum one = Color(1, 1, 1, 1);
+    enum form = "rgba";
 
     @safe @nogc nothrow:
 
@@ -64,7 +60,7 @@ struct Color {
         this(r, r, r, 255);
     }
 
-    mixin addRgbaOps!(Color, length);
+    mixin addXyzwOps!(Color, length, form);
 
     Color alpha(ubyte a) {
         return Color(r, g, b, a);
@@ -114,6 +110,7 @@ Vec4 toVec(Color color) {
     return Vec4(color.r, color.g, color.b, color.a);
 }
 
+// Function test.
 unittest {
     assert(toRgb(0xff0000) == red);
     assert(toRgb(0x00ff00) == green);

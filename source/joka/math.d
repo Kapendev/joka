@@ -38,8 +38,7 @@ struct IVec2 {
     int y; /// The Y component of the vector.
 
     enum length = 2;
-    enum zero = IVec2(0, 0);
-    enum one = IVec2(1, 1);
+    enum form = "xyzw";
 
     @safe @nogc nothrow:
 
@@ -54,7 +53,7 @@ struct IVec2 {
         this(x, x);
     }
 
-    mixin addXyzwOps!(IVec2, length);
+    mixin addXyzwOps!(IVec2, length, form);
 
     /// Returns a string representation with a limited lifetime.
     /// See `format` in the `joka.ascii` module for details about the lifetime.
@@ -70,8 +69,7 @@ struct IVec3 {
     int z; /// The Z component of the vector.
 
     enum length = 3;
-    enum zero = IVec3(0, 0, 0);
-    enum one = IVec3(1, 1, 1);
+    enum form = "xyzw";
 
     @safe @nogc nothrow:
 
@@ -92,7 +90,7 @@ struct IVec3 {
         this(xy.x, xy.y, z);
     }
 
-    mixin addXyzwOps!(IVec3, length);
+    mixin addXyzwOps!(IVec3, length, form);
 
     /// Returns a string representation with a limited lifetime.
     /// See `format` in the `joka.ascii` module for details about the lifetime.
@@ -109,8 +107,7 @@ struct IVec4 {
     int w; /// The W component of the vector.
 
     enum length = 4;
-    enum zero = IVec4(0, 0, 0, 0);
-    enum one = IVec4(1, 1, 1, 1);
+    enum form = "xyzw";
 
     @safe @nogc nothrow:
 
@@ -132,7 +129,7 @@ struct IVec4 {
         this(xy.x, xy.y, zw.x, zw.y);
     }
 
-    mixin addXyzwOps!(IVec4, length);
+    mixin addXyzwOps!(IVec4, length, form);
 
     /// Returns a string representation with a limited lifetime.
     /// See `format` in the `joka.ascii` module for details about the lifetime.
@@ -147,8 +144,7 @@ struct Vec2 {
     float y = 0.0f; /// The Y component of the vector.
 
     enum length = 2;
-    enum zero = Vec2(0.0f, 0.0f);
-    enum one = Vec2(1.0f, 1.0f);
+    enum form = "xyzw";
 
     @safe @nogc nothrow:
 
@@ -163,7 +159,7 @@ struct Vec2 {
         this(x, x);
     }
 
-    mixin addXyzwOps!(Vec2, length);
+    mixin addXyzwOps!(Vec2, length, form);
 
     float angle() {
         return atan2(y, x);
@@ -204,8 +200,7 @@ struct Vec3 {
     float z = 0.0f; /// The Z component of the vector.
 
     enum length = 3;
-    enum zero = Vec3(0.0f, 0.0f, 0.0f);
-    enum one = Vec3(1.0f, 1.0f, 1.0f);
+    enum form = "xyzw";
 
     @safe @nogc nothrow:
 
@@ -226,7 +221,7 @@ struct Vec3 {
         this(xy.x, xy.y, z);
     }
 
-    mixin addXyzwOps!(Vec3, length);
+    mixin addXyzwOps!(Vec3, length, form);
 
     float magnitude() {
         return sqrt(x * x + y * y + z * z);
@@ -264,8 +259,7 @@ struct Vec4 {
     float w = 0.0f; /// The W component of the vector.
 
     enum length = 4;
-    enum zero = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
-    enum one = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    enum form = "xyzw";
 
     @safe @nogc nothrow:
 
@@ -287,7 +281,7 @@ struct Vec4 {
         this(xy.x, xy.y, zw.x, zw.y);
     }
 
-    mixin addXyzwOps!(Vec4, length);
+    mixin addXyzwOps!(Vec4, length, form);
 
     float magnitude() {
         return sqrt(x * x + y * y + z * z + w * w);
@@ -321,9 +315,6 @@ struct Vec4 {
 struct Rect {
     Vec2 position; /// The position of the rectangle.
     Vec2 size;     /// The size of the rectangle.
-
-    enum zero = Rect(0.0f, 0.0f, 0.0f, 0.0f);
-    enum one = Rect(1.0f, 1.0f, 1.0f, 1.0f);
 
     @safe @nogc nothrow:
 
@@ -644,9 +635,6 @@ struct Circ {
     Vec2 position;       /// The position of the circle.
     float radius = 0.0f; /// The radius of the circle.
 
-    enum zero = Circ(0.0f, 0.0f, 0.0f);
-    enum one = Circ(1.0f, 1.0f, 1.0f);
-
     @safe @nogc nothrow:
 
     pragma(inline, true)
@@ -671,9 +659,6 @@ struct Circ {
 struct Line {
     Vec2 a; /// The start point of the line.
     Vec2 b; /// The end point of the line.
-
-    enum zero = Line(0.0f, 0.0f, 0.0f, 0.0f);
-    enum one = Line(1.0f, 1.0f, 1.0f, 1.0f);
 
     @safe @nogc nothrow:
 
@@ -1353,6 +1338,23 @@ Vec3 toVec(IVec3 vec) {
 
 Vec4 toVec(IVec4 vec) {
     return Vec4(vec.x, vec.y, vec.z, vec.w);
+}
+
+// Vec test.
+unittest {
+    assert(IVec2(6) + IVec2(4) == IVec2(10));
+    assert(IVec3(6) + IVec3(4) == IVec3(10));
+    assert(IVec4(6) + IVec4(4) == IVec4(10));
+
+    auto temp2 = IVec2(6);
+    auto temp3 = IVec2(6);
+    auto temp4 = IVec2(6);
+    temp2 += IVec2(4);
+    temp3 += IVec2(4);
+    temp4 += IVec2(4);
+    assert(temp2 == IVec2(10));
+    assert(temp3 == IVec2(10));
+    assert(temp4 == IVec2(10));
 }
 
 // Function test.

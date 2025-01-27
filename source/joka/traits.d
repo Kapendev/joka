@@ -149,32 +149,32 @@ template toStaticArray(alias slice) {
     auto toStaticArray = cast(typeof(slice[0])[slice.length]) slice;
 }
 
-mixin template addXyzwOps(T, Sz N) {
+mixin template addXyzwOps(T, Sz N, IStr form = "xyzw") {
     static assert(N >= 1 && N <= 4, "Vector `" ~ T.stringof ~ "`  must have a dimension between 1 and 4.");
 
     pragma(inline, true)
     T opUnary(IStr op)() {
         static if (N == 1) {
             return T(
-                mixin(op, "x"),
+                mixin(op, form[0]),
             );
         } else static if (N == 2) {
             return T(
-                mixin(op, "x"),
-                mixin(op, "y"),
+                mixin(op, form[0]),
+                mixin(op, form[1]),
             );
         } else static if (N == 3) {
             return T(
-                mixin(op, "x"),
-                mixin(op, "y"),
-                mixin(op, "z"),
+                mixin(op, form[0]),
+                mixin(op, form[1]),
+                mixin(op, form[2]),
             );
         } else static if (N == 4) {
             return T(
-                mixin(op, "x"),
-                mixin(op, "y"),
-                mixin(op, "z"),
-                mixin(op, "w"),
+                mixin(op, form[0]),
+                mixin(op, form[1]),
+                mixin(op, form[2]),
+                mixin(op, form[3]),
             );
         }
     }
@@ -183,25 +183,25 @@ mixin template addXyzwOps(T, Sz N) {
     T opBinary(IStr op)(T rhs) {
         static if (N == 1) {
             return T(
-                mixin("x", op, "rhs.x"),
+                mixin(form[0], op, "rhs.", form[0]),
             );
         } else static if (N == 2) {
             return T(
-                mixin("x", op, "rhs.x"),
-                mixin("y", op, "rhs.y"),
+                mixin(form[0], op, "rhs.", form[0]),
+                mixin(form[1], op, "rhs.", form[1]),
             );
         } else static if (N == 3) {
             return T(
-                mixin("x", op, "rhs.x"),
-                mixin("y", op, "rhs.y"),
-                mixin("z", op, "rhs.z"),
+                mixin(form[0], op, "rhs.", form[0]),
+                mixin(form[1], op, "rhs.", form[1]),
+                mixin(form[2], op, "rhs.", form[2]),
             );
         } else static if (N == 4) {
             return T(
-                mixin("x", op, "rhs.x"),
-                mixin("y", op, "rhs.y"),
-                mixin("z", op, "rhs.z"),
-                mixin("w", op, "rhs.w"),
+                mixin(form[0], op, "rhs.", form[0]),
+                mixin(form[1], op, "rhs.", form[1]),
+                mixin(form[2], op, "rhs.", form[2]),
+                mixin(form[3], op, "rhs.", form[3]),
             );
         }
     }
@@ -210,121 +210,32 @@ mixin template addXyzwOps(T, Sz N) {
     void opOpAssign(IStr op)(T rhs) {
         static if (N == 1) {
             mixin("x", op, "=rhs.x;");
+            mixin(form[0], op, "=rhs.", form[0], ";");
         } else static if (N == 2) {
-            mixin("x", op, "=rhs.x;");
-            mixin("y", op, "=rhs.y;");
+            mixin(form[0], op, "=rhs.", form[0], ";");
+            mixin(form[1], op, "=rhs.", form[1], ";");
         } else static if (N == 3) {
-            mixin("x", op, "=rhs.x;");
-            mixin("y", op, "=rhs.y;");
-            mixin("z", op, "=rhs.z;");
+            mixin(form[0], op, "=rhs.", form[0], ";");
+            mixin(form[1], op, "=rhs.", form[1], ";");
+            mixin(form[2], op, "=rhs.", form[2], ";");
         } else static if (N == 4) {
-            mixin("x", op, "=rhs.x;");
-            mixin("y", op, "=rhs.y;");
-            mixin("z", op, "=rhs.z;");
-            mixin("w", op, "=rhs.w;");
+            mixin(form[0], op, "=rhs.", form[0], ";");
+            mixin(form[1], op, "=rhs.", form[1], ";");
+            mixin(form[2], op, "=rhs.", form[2], ";");
+            mixin(form[3], op, "=rhs.", form[3], ";");
         }
     }
 
     pragma(inline, true)
     bool opCast(T: bool)() {
         static if (N == 1) {
-            return x != 0;
+            return mixin(form[0], "!= 0;");
         } else static if (N == 2) {
-            return x != 0 || y != 0;
+            return mixin(form[0], "!= 0 ||", form[1], "!= 0;");
         } else static if (N == 3) {
-            return x != 0 || y != 0 || z != 0;
+            return mixin(form[0], "!= 0 ||", form[1], "!= 0 ||", form[2], "!= 0;");
         } else static if (N == 4) {
-            return x != 0 || y != 0 || z != 0 || w != 0;
-        }
-    }
-}
-
-mixin template addRgbaOps(T, Sz N) {
-    static assert(N >= 1 && N <= 4, "Color `" ~ T.stringof ~ "`  must have a dimension between 1 and 4.");
-
-    pragma(inline, true)
-    T opUnary(IStr op)() {
-        static if (N == 1) {
-            return T(
-                mixin(op, "r"),
-            );
-        } else static if (N == 2) {
-            return T(
-                mixin(op, "r"),
-                mixin(op, "g"),
-            );
-        } else static if (N == 3) {
-            return T(
-                mixin(op, "r"),
-                mixin(op, "g"),
-                mixin(op, "b"),
-            );
-        } else static if (N == 4) {
-            return T(
-                mixin(op, "r"),
-                mixin(op, "g"),
-                mixin(op, "b"),
-                mixin(op, "a"),
-            );
-        }
-    }
-
-    pragma(inline, true)
-    T opBinary(IStr op)(T rhs) {
-        static if (N == 1) {
-            return T(
-                mixin("r", op, "rhs.r"),
-            );
-        } else static if (N == 2) {
-            return T(
-                mixin("r", op, "rhs.r"),
-                mixin("g", op, "rhs.g"),
-            );
-        } else static if (N == 3) {
-            return T(
-                mixin("r", op, "rhs.r"),
-                mixin("g", op, "rhs.g"),
-                mixin("b", op, "rhs.b"),
-            );
-        } else static if (N == 4) {
-            return T(
-                mixin("r", op, "rhs.r"),
-                mixin("g", op, "rhs.g"),
-                mixin("b", op, "rhs.b"),
-                mixin("a", op, "rhs.a"),
-            );
-        }
-    }
-
-    pragma(inline, true)
-    void opOpAssign(IStr op)(T rhs) {
-        static if (N == 1) {
-            mixin("r", op, "=rhs.r;");
-        } else static if (N == 2) {
-            mixin("r", op, "=rhs.r;");
-            mixin("g", op, "=rhs.g;");
-        } else static if (N == 3) {
-            mixin("r", op, "=rhs.r;");
-            mixin("g", op, "=rhs.g;");
-            mixin("b", op, "=rhs.b;");
-        } else static if (N == 4) {
-            mixin("r", op, "=rhs.r;");
-            mixin("g", op, "=rhs.g;");
-            mixin("b", op, "=rhs.b;");
-            mixin("a", op, "=rhs.a;");
-        }
-    }
-
-    pragma(inline, true)
-    bool opCast(T: bool)() {
-        static if (N == 1) {
-            return r != 0;
-        } else static if (N == 2) {
-            return r != 0 || g != 0;
-        } else static if (N == 3) {
-            return r != 0 || g != 0 || b != 0;
-        } else static if (N == 4) {
-            return r != 0 || g != 0 || b != 0 || a != 0;
+            return mixin(form[0], "!= 0 ||", form[1], "!= 0 ||", form[2], "!= 0 ||", form[3], "!= 0;");
         }
     }
 }
