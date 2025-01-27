@@ -15,8 +15,8 @@ extern(C)
 void main() {
     println("Hello Ghadius!");
     println(Person("Joka"), " Hee hee!");
-
-    printfln("Number:    {}", toStr(9));
-    printfln("Vector:    {}", Vec2(1));
-    printfln("Rectangle: {}", Rect(160, 144));
+    println(doubleToStr(69.12345, 0));
+    println(doubleToStr(69.12345, 10));
+    printfln("Number: {}", toStr(9));
+    printfln("Vector: {}", Vec2(1));
 }

@@ -5,9 +5,10 @@ extern(C)
 void main() {
     // Simple array example.
     auto numbers = List!int(2, 4, 6);
-    println("Items:");
+    print("Items: [");
     foreach (i, number; numbers) {
-        printfln("  [{}] {}", i, number);
+        if (i != numbers.length - 1) printf("{}, ", i, number);
+        else printfln("{}]", i, number);
     }
     println("Length: ", numbers.length);
     println("Capacity: ", numbers.capacity);

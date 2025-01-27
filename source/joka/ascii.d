@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.18
+// Version: v0.0.19
 // ---
 
 /// The `ascii` module provides functions designed to assist with ascii strings.
@@ -503,7 +503,7 @@ IStr doubleToStr(double value, ulong precision = 2) {
 
     // Digits go in the buffer from right to left.
     auto cleanNumberStr = signedToStr(cast(long) cleanNumber);
-    auto i = result.length; 
+    auto i = result.length;
     // Check two cases: 0.NN, N.NN
     if (cast(long) value == 0) {
         if (value < 0.0) {
