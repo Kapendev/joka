@@ -37,8 +37,10 @@ struct IVec2 {
     int x; /// The X component of the vector.
     int y; /// The Y component of the vector.
 
-    enum length = 2;    /// The component count of the vector.
-    enum form = "xyzw"; /// The form of the vector.
+    enum length = 2;      /// The component count of the vector.
+    enum form = "xyzw";   /// The form of the vector.
+    enum zero = IVec2(0); /// The zero value of the vector.
+    enum one = IVec2(1);  /// The one value of the vector.
 
     @safe @nogc nothrow:
 
@@ -68,8 +70,10 @@ struct IVec3 {
     int y; /// The Y component of the vector.
     int z; /// The Z component of the vector.
 
-    enum length = 3;    /// The component count of the vector.
-    enum form = "xyzw"; /// The form of the vector.
+    enum length = 3;      /// The component count of the vector.
+    enum form = "xyzw";   /// The form of the vector.
+    enum zero = IVec3(0); /// The zero value of the vector.
+    enum one = IVec3(1);  /// The one value of the vector.
 
     @safe @nogc nothrow:
 
@@ -105,8 +109,10 @@ struct IVec4 {
     int z; /// The Z component of the vector.
     int w; /// The W component of the vector.
 
-    enum length = 4;    /// The component count of the vector.
-    enum form = "xyzw"; /// The form of the vector.
+    enum length = 4;      /// The component count of the vector.
+    enum form = "xyzw";   /// The form of the vector.
+    enum zero = IVec4(0); /// The zero value of the vector.
+    enum one = IVec4(1);  /// The one value of the vector.
 
     @safe @nogc nothrow:
 
@@ -141,8 +147,10 @@ struct Vec2 {
     float x = 0.0f; /// The X component of the vector.
     float y = 0.0f; /// The Y component of the vector.
 
-    enum length = 2;    /// The component count of the vector.
-    enum form = "xyzw"; /// The form of the vector.
+    enum length = 2;     /// The component count of the vector.
+    enum form = "xyzw";  /// The form of the vector.
+    enum zero = Vec2(0); /// The zero value of the vector.
+    enum one = Vec2(1);  /// The one value of the vector.
 
     @safe @nogc nothrow:
 
@@ -196,8 +204,10 @@ struct Vec3 {
     float y = 0.0f; /// The Y component of the vector.
     float z = 0.0f; /// The Z component of the vector.
 
-    enum length = 3;    /// The component count of the vector.
-    enum form = "xyzw"; /// The form of the vector.
+    enum length = 3;     /// The component count of the vector.
+    enum form = "xyzw";  /// The form of the vector.
+    enum zero = Vec3(0); /// The zero value of the vector.
+    enum one = Vec3(1);  /// The one value of the vector.
 
     @safe @nogc nothrow:
 
@@ -254,8 +264,10 @@ struct Vec4 {
     float z = 0.0f; /// The Z component of the vector.
     float w = 0.0f; /// The W component of the vector.
 
-    enum length = 4;    /// The component count of the vector.
-    enum form = "xyzw"; /// The form of the vector.
+    enum length = 4;     /// The component count of the vector.
+    enum form = "xyzw";  /// The form of the vector.
+    enum zero = Vec4(0); /// The zero value of the vector.
+    enum one = Vec4(1);  /// The one value of the vector.
 
     @safe @nogc nothrow:
 

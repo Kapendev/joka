@@ -45,6 +45,8 @@ struct Color {
 
     enum length = 4;
     enum form = "rgba";
+    enum zero = Color(0, 0, 0, 0);
+    enum one = Color(1, 1, 1, 1);
 
     @safe @nogc nothrow:
 
