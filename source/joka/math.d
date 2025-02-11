@@ -16,8 +16,19 @@ import stdc = joka.stdc;
 
 @safe @nogc nothrow:
 
-enum pi      = 3.1415f; /// The value of PI.
-enum epsilon = 0.0001f; /// The value of epsilon.
+enum epsilon = 0.000100f;   /// The value of epsilon.
+enum euler   = 2.718281f;   /// The value of Euler's number.
+enum log2e   = 1.442695f;   /// The value of log2(e).
+enum log10e  = 0.434294f;   /// The value of log10(e).
+enum ln2     = 0.693147f;   /// The value of ln(2).
+enum ln10    = 2.302585f;   /// The value of ln(10).
+enum pi      = 3.141592f;   /// The value of PI.
+enum pi2     = pi / 2.0f;   /// The value of PI / 2.
+enum pi4     = pi / 4.0f;   /// The value of PI / 4.
+enum pi180   = pi / 180.0f; /// The value of PI / 180.
+enum dpi     = 1.0f / pi;   /// The value of 1 / PI.
+enum dpi2    = 2.0f / pi;   /// The value of 2 / PI.
+enum dpi180  = 180.0f / pi; /// The value of 180 / PI.
 
 /// A type representing relative points.
 enum Hook : ubyte {
@@ -1305,19 +1316,19 @@ bool equals(Vec4 a, Vec4 b, float localEpsilon = epsilon) {
 }
 
 float toRadians(float degrees) {
-    return degrees * (pi / 180.0f);
+    return degrees * pi180;
 }
 
 double toRadians(double degrees) {
-    return degrees * (pi / 180.0);
+    return degrees * pi180;
 }
 
 float toDegrees(float radians) {
-    return radians * (180.0f / pi);
+    return radians * dpi180;
 }
 
 double toDegrees(double radians) {
-    return radians * (180.0 / pi);
+    return radians * dpi180;
 }
 
 IVec2 toIVec(Vec2 vec) {
