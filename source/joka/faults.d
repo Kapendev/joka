@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.19
+// Version: v0.0.20
 // ---
 
 /// The `faults` module provides data structures and codes for error handling.
