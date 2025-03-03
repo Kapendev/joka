@@ -10,7 +10,6 @@
 module joka.ascii;
 
 import joka.types;
-public import joka.faults;
 
 @safe:
 

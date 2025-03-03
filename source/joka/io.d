@@ -10,10 +10,9 @@
 module joka.io;
 
 import joka.ascii;
+import joka.containers;
 import joka.types;
 import stdc = joka.stdc;
-public import joka.containers;
-public import joka.faults;
 
 @trusted
 void printf(A...)(IStr text, A args) {

@@ -6,7 +6,7 @@
 // Version: v0.0.20
 // ---
 
-/// The `types` module provides type definitions and compile-time functions such as type checking.
+/// The `types` module provides basic type definitions and compile-time functions such as type checking.
 module joka.types;
 
 @safe @nogc nothrow:
@@ -30,6 +30,222 @@ alias ICStr16 = const(wchar)*;  /// A C string of constant wchars.
 alias ICStr32 = const(dchar)*;  /// A C string of constant dchars.
 
 alias AliasArgs(A...) = A;
+alias VariantType = ubyte;
+
+/// A type representing error values.
+enum Fault : ubyte {
+    none,      /// Not an error.
+    some,      /// A generic error.
+    bug,       /// An implementation error.
+    invalid,   /// An invalid data error.
+    overflow,  /// An overflow error.
+    assertion, /// An assertion error.
+    cantParse, /// A parse error.
+    cantFind,  /// A wrong path error.
+    cantOpen,  /// An open permissions error.
+    cantClose, /// A close permissions error.
+    cantRead,  /// A read permissions error.
+    cantWrite, /// A write permissions error.
+}
+
+/// Represents a result of a procedure.
+struct Result(T) {
+    static if (isNumberType!T) T value = 0;
+    else T value;             /// The value of the result.
+    Fault fault = Fault.some; /// The error of the result.
+
+    @safe @nogc nothrow:
+
+    this(T value) {
+        this.value = value;
+        this.fault = Fault.none;
+    }
+
+    this(Fault fault) {
+        this.fault = fault;
+    }
+
+    this(T value, Fault fault) {
+        if (fault) {
+            this.fault = fault;
+        } else {
+            this.value = value;
+            this.fault = Fault.none;
+        }
+    }
+
+    pragma(inline, true)
+    bool opCast(T: bool)() {
+        return isSome;
+    }
+
+    /// Returns the result value. Asserts when the result is an error.
+    T get() {
+        if (fault) assert(0, "Fault was detected.");
+        return value;
+    }
+
+    /// Returns the result value. Returns a default value when the result is an error.
+    T getOr(T other) {
+        if (fault) {
+            return other;
+        } else {
+            return value;
+        }
+    }
+
+    /// Returns the result value. Returns a default value when the result is an error.
+    T getOr() {
+        return value;
+    }
+
+    /// Returns true when the result is an error.
+    bool isNone() {
+        return fault != 0;
+    }
+
+    /// Returns true when the result is a value.
+    bool isSome() {
+        return fault == 0;
+    }
+}
+
+union VariantValue(A...) {
+    static assert(A.length != 0, "Arguments must contain at least one element.");
+
+    static foreach (i, T; A) {
+        static if (i == 0 && isNumberType!T) {
+            mixin("T m", toCleanNumber!i, "= 0;");
+        }  else {
+            mixin("T m", toCleanNumber!i, ";");
+        }
+    }
+
+    alias Types = A;
+}
+
+struct Variant(A...) {
+    VariantValue!A value;
+    VariantType type;
+
+    alias Types = A;
+
+    @safe @nogc nothrow:
+
+    static foreach (i, T; A) {
+        @trusted
+        this(T value) {
+            auto temp = VariantValue!A();
+            *(cast(T*) &temp) = value;
+            this.value = temp;
+            this.type = i;
+        }
+    }
+
+    static foreach (i, T; A) {
+        @trusted
+        void opAssign(T rhs) {
+            auto temp = VariantValue!A();
+            *(cast(T*) &temp) = rhs;
+            value = temp;
+            type = i;
+        }
+    }
+
+    IStr typeName() {
+        static foreach (i, T; A) {
+            if (type == i) {
+                return T.stringof;
+            }
+        }
+        assert(0, "WTF!");
+    }
+
+    bool isType(T)() {
+        static assert(isInAliasArgs!(T, A), "Type `" ~ T.stringof ~ "` is not part of the variant.");
+        return type == findInAliasArgs!(T, A);
+    }
+
+    @trusted
+    ref T get(T)() {
+        if (isType!T) {
+            mixin("return value.m", findInAliasArgs!(T, A), ";");
+        } else {
+            static foreach (i, TT; A) {
+                if (i == type) {
+                    assert(0, "Value is `" ~ A[i].stringof ~ "` and not `" ~ T.stringof ~ "`.");
+                }
+            }
+            assert(0, "WTF!");
+        }
+    }
+
+    @trusted
+    auto call(IStr func, AA...)(AA args) {
+        switch (type) {
+            static foreach (i, T; A) {
+                static assert(hasMember!(T, func), funcImplementationErrorMessage!(T, func));
+                mixin("case ", i, ": return value.m", toCleanNumber!i, ".", func, "(args);");
+            }
+            default: assert(0, "WTF!");
+        }
+    }
+
+    template typeOf(T) {
+        static assert(isInAliasArgs!(T, A), "Type `" ~ T.stringof ~ "` is not part of the variant.");
+        enum typeOf = findInAliasArgs!(T, A);
+    }
+
+    template typeNameOf(T) {
+        static assert(isInAliasArgs!(T, A), "Type `" ~ T.stringof ~ "` is not part of the variant.");
+        enum typeNameOf = T.stringof;
+    }
+}
+
+/// Converts the value to a fault.
+Fault toFault(bool value, Fault other = Fault.some) {
+    return value ? other : Fault.none;
+}
+
+T toVariant(T)(VariantType type) {
+    static assert(isVariantType!T, "Type `" ~ T.stringof  ~ "` is not a variant.");
+
+    T result;
+    static foreach (i, Type; T.Types) {
+        if (i == type) {
+            static if (isNumberType!Type) {
+                result = cast(Type) 0;
+            } else {
+                result = Type.init;
+            }
+            goto loopExit;
+        }
+    }
+    loopExit:
+    return result;
+}
+
+T toVariant(T)(IStr typeName) {
+    static assert(isVariantType!T, "Type `" ~ T.stringof  ~ "` is not a variant.");
+
+    T result;
+    static foreach (i, Type; T.Types) {
+        if (Type.stringof == typeName) {
+            static if (isNumberType!Type) {
+                result = cast(Type) 0;
+            } else {
+                result = Type.init;
+            }
+            goto loopExit;
+        }
+    }
+    loopExit:
+    return result;
+}
+
+bool isVariantType(T)() {
+    return is(T : Variant!A, A...);
+}
 
 bool isBoolType(T)() {
     return is(T == bool) ||
@@ -258,8 +474,79 @@ mixin template addXyzwOps(T, Sz N, IStr form = "xyzw") {
 
 // Function test.
 unittest {
+    alias Number = Variant!(float, double);
+
+    assert(toFault(false) == Fault.none);
+    assert(toFault(true) == Fault.some);
+    assert(toFault(false, Fault.invalid) == Fault.none);
+    assert(toFault(true, Fault.invalid) == Fault.invalid);
+
     assert(isInAliasArgs!(int, AliasArgs!(float)) == false);
     assert(isInAliasArgs!(int, AliasArgs!(float, int)) == true);
     assert(isArrayType!(int[3]) == true);
     assert(isArrayType!(typeof(toStaticArray!([1, 2, 3]))));
+
+    assert(toVariant!Number(Number.typeOf!float).get!float() == 0);
+    assert(toVariant!Number(Number.typeOf!double).get!double() == 0);
+    assert(toVariant!Number(Number.typeNameOf!float).get!float() == 0);
+    assert(toVariant!Number(Number.typeNameOf!double).get!double() == 0);
+}
+
+// Result test.
+unittest {
+    assert(Result!int().isNone == true);
+    assert(Result!int().isSome == false);
+    assert(Result!int().getOr() == 0);
+    assert(Result!int(0).isNone == false);
+    assert(Result!int(0).isSome == true);
+    assert(Result!int(0).getOr() == 0);
+    assert(Result!int(69).isNone == false);
+    assert(Result!int(69).isSome == true);
+    assert(Result!int(69).getOr() == 69);
+    assert(Result!int(Fault.none).isNone == false);
+    assert(Result!int(Fault.none).isSome == true);
+    assert(Result!int(Fault.none).getOr() == 0);
+    assert(Result!int(Fault.some).isNone == true);
+    assert(Result!int(Fault.some).isSome == false);
+    assert(Result!int(Fault.some).getOr() == 0);
+    assert(Result!int(69, Fault.none).isNone == false);
+    assert(Result!int(69, Fault.none).isSome == true);
+    assert(Result!int(69, Fault.none).getOr() == 69);
+    assert(Result!int(69, Fault.some).isNone == true);
+    assert(Result!int(69, Fault.some).isSome == false);
+    assert(Result!int(69, Fault.some).getOr() == 0);
+}
+
+// Variant test.
+unittest {
+    alias Number = Variant!(float, double);
+
+    assert(Number().typeName == "float");
+    assert(Number().isType!float == true);
+    assert(Number().isType!double == false);
+    assert(Number().get!float() == 0);
+    assert(Number(0.0f).typeName == "float");
+    assert(Number(0.0f).isType!float == true);
+    assert(Number(0.0f).isType!double == false);
+    assert(Number(0.0f).get!float() == 0);
+    assert(Number(0.0).isType!float == false);
+    assert(Number(0.0).isType!double == true);
+    assert(Number(0.0).typeName == "double");
+    assert(Number(0.0).get!double() == 0);
+    assert(Number.typeOf!float == 0);
+    assert(Number.typeOf!double == 1);
+    assert(Number.typeNameOf!float == "float");
+    assert(Number.typeNameOf!double == "double");
+
+    auto number = Number();
+    number = 0.0;
+    assert(number.get!double() == 0);
+    number = 0.0f;
+    assert(number.get!float() == 0);
+    number.get!float() += 69.0f;
+    assert(number.get!float() == 69);
+
+    auto numberPtr = &number.get!float();
+    *numberPtr *= 10;
+    assert(number.get!float() == 690);
 }

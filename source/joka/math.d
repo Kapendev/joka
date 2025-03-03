@@ -28,24 +28,24 @@ enum dpi     = 1.0f / pi;   /// The value of 1 / PI.
 enum dpi2    = 2.0f / pi;   /// The value of 2 / PI.
 enum dpi180  = 180.0f / pi; /// The value of 180 / PI.
 
-enum black   = Color(0);
-enum white   = Color(255);
-enum red     = Color(255, 0, 0);
-enum green   = Color(0, 255, 0);
-enum blue    = Color(0, 0, 255);
-enum yellow  = Color(255, 255, 0);
-enum magenta = Color(255, 0, 255);
-enum pink    = Color(255, 192, 204);
-enum cyan    = Color(0, 255, 255);
-enum orange  = Color(255, 165, 0);
-enum beige   = Color(240, 235, 210);
-enum brown   = Color(165, 72, 42);
-enum maroon  = Color(128, 0, 0);
-enum gray1   = toRgb(0x202020);
-enum gray2   = toRgb(0x606060);
-enum gray3   = toRgb(0x9f9f9f);
-enum gray4   = toRgb(0xdfdfdf);
-enum gray    = gray2;
+enum black   = Color(0);             /// Black black.
+enum white   = Color(255);           /// White white.
+enum red     = Color(255, 0, 0);     /// Red red.
+enum green   = Color(0, 255, 0);     /// Green green.
+enum blue    = Color(0, 0, 255);     /// Blue blue.
+enum yellow  = Color(255, 255, 0);   /// Yellow yellow.
+enum magenta = Color(255, 0, 255);   /// Magenta magenta.
+enum pink    = Color(255, 192, 204); /// Pink pink.
+enum cyan    = Color(0, 255, 255);   /// Cyan cyan.
+enum orange  = Color(255, 165, 0);   /// Orange orange.
+enum beige   = Color(240, 235, 210); /// Beige beige.
+enum brown   = Color(165, 72, 42);   /// Brown brown.
+enum maroon  = Color(128, 0, 0);     /// Maroon maroon.
+enum gray1   = Color(32, 32, 32);    /// Gray 1.
+enum gray2   = Color(96, 96, 96);    /// Gray 22.
+enum gray3   = Color(159, 159, 159); /// Gray 333.
+enum gray4   = Color(223, 223, 223); /// Gray 4444.
+enum gray    = gray2;                /// Gray gray.
 
 /// A type representing relative points.
 enum Hook : ubyte {
@@ -219,6 +219,10 @@ struct Vec2 {
 
     float magnitude() {
         return sqrt(x * x + y * y);
+    }
+
+    float magnitudeSquared() {
+        return x * x + y * y;
     }
 
     Vec2 normalize() {
@@ -710,14 +714,17 @@ struct Line {
     }
 }
 
+pragma(inline, true)
 T min(T)(T a, T b) {
     return a < b ? a : b;
 }
 
+pragma(inline, true)
 T max(T)(T a, T b) {
     return a < b ? b : a;
 }
 
+pragma(inline, true)
 T sign(T)(T x) {
     return x < 0 ? -1 : 1;
 }

@@ -4,12 +4,19 @@ Joka is a simple nogc utility library for the D programming language.
 It provides data structures and functions that work without garbage collection, offering precise memory control and minimal runtime overhead.
 The code is rather C-like, so be prepared for that.
 
-## Some Data Structures
+## Modules
+
+* joka.ascii: ASCII string utilities
+* joka.containers: Heap-allocated data structures
+* joka.io: Input and output functions
+* joka.math: Mathematical data structures and functions
+* joka.types: Type definitions and compile-time utilities
+
+## Basic Data Structures
 
 * Dynamic Array (`List`)
 * Dynamic Stack Array (`FixedList`)
 * Sparse Array (`SparseList`)
-* Generational Array (`GenerationalList`)
 * Flattened 2D Array (`Grid`)
 * Tagged Union (`Variant`)
 
