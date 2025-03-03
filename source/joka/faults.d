@@ -9,7 +9,7 @@
 /// The `faults` module provides data structures and codes for error handling.
 module joka.faults;
 
-import joka.traits;
+import joka.types;
 
 @safe @nogc nothrow:
 

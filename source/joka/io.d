@@ -10,10 +10,8 @@
 module joka.io;
 
 import joka.ascii;
-import joka.traits;
 import joka.types;
 import stdc = joka.stdc;
-
 public import joka.containers;
 public import joka.faults;
 
@@ -24,7 +22,8 @@ void printf(A...)(IStr text, A args) {
 
 @trusted
 void printfln(A...)(IStr text, A args) {
-    stdc.fputs(format("{}\n\0", format(text, args)).ptr, stdc.stdout);
+    printf(text, args);
+    printf("\n");
 }
 
 @safe
@@ -36,10 +35,8 @@ void print(A...)(A args) {
 
 @safe
 void println(A...)(A args) {
-    static foreach (arg; args) {
-        printf("{}", arg);
-    }
-    printf("\n");
+    print(args);
+    print("\n");
 }
 
 @safe @nogc nothrow:

@@ -18,5 +18,4 @@ void main() {
     println(doubleToStr(69.12345, 0));
     println(doubleToStr(69.12345, 10));
     printfln("Number: {}", toStr(9));
-    printfln("Vector: {}", Vec2(1));
 }

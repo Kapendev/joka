@@ -10,7 +10,6 @@
 module joka.unions;
 
 import joka.types;
-import joka.traits;
 
 @safe @nogc nothrow:
 

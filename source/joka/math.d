@@ -9,8 +9,6 @@
 /// The `math` module provides mathematical data structures and functions.
 module joka.math;
 
-import joka.ascii;
-import joka.traits;
 import joka.types;
 import stdc = joka.stdc;
 
@@ -30,6 +28,25 @@ enum dpi     = 1.0f / pi;   /// The value of 1 / PI.
 enum dpi2    = 2.0f / pi;   /// The value of 2 / PI.
 enum dpi180  = 180.0f / pi; /// The value of 180 / PI.
 
+enum black   = Color(0);
+enum white   = Color(255);
+enum red     = Color(255, 0, 0);
+enum green   = Color(0, 255, 0);
+enum blue    = Color(0, 0, 255);
+enum yellow  = Color(255, 255, 0);
+enum magenta = Color(255, 0, 255);
+enum pink    = Color(255, 192, 204);
+enum cyan    = Color(0, 255, 255);
+enum orange  = Color(255, 165, 0);
+enum beige   = Color(240, 235, 210);
+enum brown   = Color(165, 72, 42);
+enum maroon  = Color(128, 0, 0);
+enum gray1   = toRgb(0x202020);
+enum gray2   = toRgb(0x606060);
+enum gray3   = toRgb(0x9f9f9f);
+enum gray4   = toRgb(0xdfdfdf);
+enum gray    = gray2;
+
 /// A type representing relative points.
 enum Hook : ubyte {
     topLeft,     /// The top left point.
@@ -41,6 +58,40 @@ enum Hook : ubyte {
     bottomLeft,  /// The bottom left point.
     bottom,      /// The bottom point.
     bottomRight, /// The bottom right point.
+}
+
+/// A RGBA color using ubytes.
+struct Color {
+    ubyte r;
+    ubyte g;
+    ubyte b;
+    ubyte a;
+
+    enum length = 4;
+    enum form = "rgba";
+    enum zero = Color(0, 0, 0, 0);
+    enum one = Color(1, 1, 1, 1);
+
+    @safe @nogc nothrow:
+
+    pragma(inline, true)
+    this(ubyte r, ubyte g, ubyte b, ubyte a = 255) {
+        this.r = r;
+        this.g = g;
+        this.b = b;
+        this.a = a;
+    }
+
+    pragma(inline, true)
+    this(ubyte r) {
+        this(r, r, r, 255);
+    }
+
+    mixin addXyzwOps!(Color, length, form);
+
+    Color alpha(ubyte a) {
+        return Color(r, g, b, a);
+    }
 }
 
 /// A 2D vector using ints.
@@ -67,12 +118,6 @@ struct IVec2 {
     }
 
     mixin addXyzwOps!(IVec2, length, form);
-
-    /// Returns a string representation with a limited lifetime.
-    /// See `format` in the `joka.ascii` module for details about the lifetime.
-    IStr toStr() {
-        return "({}, {})".format(x, y);
-    }
 }
 
 /// A 3D vector using ints.
@@ -106,11 +151,6 @@ struct IVec3 {
     }
 
     mixin addXyzwOps!(IVec3, length, form);
-
-    /// Returns a string representation with a limited lifetime.
-    IStr toStr() {
-        return "({}, {}, {})".format(x, y, z);
-    }
 }
 
 /// A 4D vector using ints.
@@ -146,11 +186,6 @@ struct IVec4 {
     }
 
     mixin addXyzwOps!(IVec4, length, form);
-
-    /// Returns a string representation with a limited lifetime.
-    IStr toStr() {
-        return "({}, {}, {}, {})".format(x, y, z, w);
-    }
 }
 
 /// A 2D vector using floats.
@@ -201,11 +236,6 @@ struct Vec2 {
 
     Vec2 directionTo(Vec2 to) {
         return (to - this).normalize();
-    }
-
-    /// Returns a string representation with a limited lifetime.
-    IStr toStr() {
-        return "({}, {})".format(x, y);
     }
 }
 
@@ -260,11 +290,6 @@ struct Vec3 {
 
     Vec3 directionTo(Vec3 to) {
         return (to - this).normalize();
-    }
-
-    /// Returns a string representation with a limited lifetime.
-    IStr toStr() {
-        return "({}, {}, {})".format(x, y, z);
     }
 }
 
@@ -321,11 +346,6 @@ struct Vec4 {
 
     Vec4 directionTo(Vec4 to) {
         return (to - this).normalize();
-    }
-
-    /// Returns a string representation with a limited lifetime.
-    IStr toStr() {
-        return "({}, {}, {}, {})".format(x, y, z, w);
     }
 }
 
@@ -640,11 +660,6 @@ struct Rect {
         Rect temp = this;
         return temp.subBottom(amount);
     }
-
-    /// Returns a string representation with a limited lifetime.
-    IStr toStr() {
-        return "({}, {}, {}, {})".format(position.x, position.y, size.x, size.y);
-    }
 }
 
 /// A 2D Circle using floats.
@@ -663,11 +678,6 @@ struct Circ {
     pragma(inline, true)
     this(float x, float y, float radius) {
         this(Vec2(x, y), radius);
-    }
-
-    /// Returns a string representation with a limited lifetime.
-    IStr toStr() {
-        return "({}, {}, {})".format(position.x, position.y, radius);
     }
 }
 
@@ -697,11 +707,6 @@ struct Line {
     pragma(inline, true)
     this(float ax, float ay, Vec2 b) {
         this(Vec2(ax, ay), b);
-    }
-
-    /// Returns a string representation with a limited lifetime.
-    IStr toStr() {
-        return "({}, {}, {}, {})".format(a.x, a.y, b.x, b.y);
     }
 }
 
@@ -1331,6 +1336,41 @@ double toDegrees(double radians) {
     return radians * dpi180;
 }
 
+Color toRgb(uint rgb) {
+    return Color(
+        (rgb & 0xFF0000) >> 16,
+        (rgb & 0xFF00) >> 8,
+        (rgb & 0xFF),
+    );
+}
+
+Color toRgba(uint rgba) {
+    return Color(
+        (rgba & 0xFF000000) >> 24,
+        (rgba & 0xFF0000) >> 16,
+        (rgba & 0xFF00) >> 8,
+        (rgba & 0xFF),
+    );
+}
+
+Color toColor(Vec3 vec) {
+    return Color(
+        cast(ubyte) clamp(vec.x, 0.0f, 255.0f),
+        cast(ubyte) clamp(vec.y, 0.0f, 255.0f),
+        cast(ubyte) clamp(vec.z, 0.0f, 255.0f),
+        255,
+    );
+}
+
+Color toColor(Vec4 vec) {
+    return Color(
+        cast(ubyte) clamp(vec.x, 0.0f, 255.0f),
+        cast(ubyte) clamp(vec.y, 0.0f, 255.0f),
+        cast(ubyte) clamp(vec.z, 0.0f, 255.0f),
+        cast(ubyte) clamp(vec.w, 0.0f, 255.0f),
+    );
+}
+
 IVec2 toIVec(Vec2 vec) {
     return IVec2(cast(int) vec.x, cast(int) vec.y);
 }
@@ -1353,6 +1393,10 @@ Vec3 toVec(IVec3 vec) {
 
 Vec4 toVec(IVec4 vec) {
     return Vec4(vec.x, vec.y, vec.z, vec.w);
+}
+
+Vec4 toVec(Color color) {
+    return Vec4(color.r, color.g, color.b, color.a);
 }
 
 // Vec test.
@@ -1425,4 +1469,11 @@ unittest {
     assert(cast(int) round(snap!float(-32, 32)) == -32);
     assert(cast(int) round(snap!float(31, 32)) == 32);
     assert(cast(int) round(snap!float(32, 32)) == 32);
+
+    assert(toRgb(0xff0000) == red);
+    assert(toRgb(0x00ff00) == green);
+    assert(toRgb(0x0000ff) == blue);
+    assert(toRgba(0xff0000ff) == red);
+    assert(toRgba(0x00ff00ff) == green);
+    assert(toRgba(0x0000ffff) == blue);
 }

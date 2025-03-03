@@ -790,7 +790,6 @@ void formatIntoBuffer(A...)(ref LStr buffer, IStr formatStr, A args) {
 
     auto formatStrIndex = 0;
     auto argIndex = 0;
-
     while (formatStrIndex < formatStr.length) {
         auto c1 = formatStr[formatStrIndex];
         auto c2 = formatStrIndex + 1 >= formatStr.length ? '+' : formatStr[formatStrIndex + 1];
@@ -820,10 +819,6 @@ unittest {
     assert(findListCapacity(defaultListCapacity) == defaultListCapacity);
     assert(findListCapacity(defaultListCapacity + 1) == defaultListCapacity * 2);
     assert(findListCapacity(defaultListCapacity + 1) == defaultListCapacity * 2);
-
-    auto temp = LStr();
-    formatIntoBuffer(temp, "{}", 69);
-    assert(temp[] == "69");
 }
 
 // List test.

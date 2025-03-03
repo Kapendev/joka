@@ -9,9 +9,7 @@
 /// The `ascii` module provides functions designed to assist with ascii strings.
 module joka.ascii;
 
-import joka.traits;
 import joka.types;
-
 public import joka.faults;
 
 @safe:
@@ -63,7 +61,7 @@ IStr toStr(T)(T value) {
 /// Use a wrapper type with a `toStr` method for custom formatting.
 @trusted
 IStr format(A...)(IStr formatStr, A args) {
-    static char[1024][16] buffers = void;
+    static char[1024][8] buffers = void;
     static byte bufferIndex = 0;
 
     bufferIndex = (bufferIndex + 1) % buffers.length;
@@ -324,7 +322,7 @@ Fault copyStr(ref Str str, IStr source, Sz startIndex = 0) {
 
 /// Concatenates the strings.
 IStr concat(IStr[] args...) {
-    static char[1024][16] buffers = void;
+    static char[1024][8] buffers = void;
     static byte bufferIndex = 0;
 
     if (args.length == 0) return ".";
@@ -351,7 +349,7 @@ IStr pathDir(IStr path) {
 
 /// Formats the path to a standard form, normalizing separators.
 IStr pathFormat(IStr path) {
-    static char[1024][16] buffers = void;
+    static char[1024][8] buffers = void;
     static byte bufferIndex = 0;
 
     if (path.length == 0) {
@@ -374,7 +372,7 @@ IStr pathFormat(IStr path) {
 
 /// Concatenates the paths, ensuring proper path separators between them.
 IStr pathConcat(IStr[] args...) {
-    static char[1024][16] buffers = void;
+    static char[1024][8] buffers = void;
     static byte bufferIndex = 0;
 
     if (args.length == 0) {
