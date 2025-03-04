@@ -188,6 +188,91 @@ struct IVec4 {
     mixin addXyzwOps!(IVec4, length, form);
 }
 
+struct IRect {
+    IVec2 position;
+    IVec2 size;
+
+    @safe @nogc nothrow:
+
+    pragma(inline, true)
+    this(IVec2 position, IVec2 size) {
+        this.position = position;
+        this.size = size;
+    }
+
+    pragma(inline, true)
+    this(IVec2 size) {
+        this(IVec2(), size);
+    }
+
+    pragma(inline, true)
+    this(int x, int y, int w, int h) {
+        this(IVec2(x, y), IVec2(w, h));
+    }
+
+    pragma(inline, true)
+    this(int w, int h) {
+        this(IVec2(), IVec2(w, h));
+    }
+
+    pragma(inline, true)
+    this(IVec2 position, int w, int h) {
+        this(position, IVec2(w, h));
+    }
+
+    pragma(inline, true)
+    this(int x, int y, IVec2 size) {
+        this(IVec2(x, y), size);
+    }
+
+    void fix() {
+        if (size.x < 0) {
+            position.x = position.x + size.x;
+            size.x = -size.x;
+        }
+        if (size.y < 0) {
+            position.y = position.y + size.y;
+            size.y = -size.y;
+        }
+    }
+
+    bool hasPoint(IVec2 point) {
+        return (
+            point.x > position.x &&
+            point.x < position.x + size.x &&
+            point.y > position.y &&
+            point.y < position.y + size.y
+        );
+    }
+
+    bool hasPointInclusive(IVec2 point) {
+        return (
+            point.x >= position.x &&
+            point.x < position.x + size.x &&
+            point.y >= position.y &&
+            point.y < position.y + size.y
+        );
+    }
+
+    bool hasIntersection(IRect area) {
+        return (
+            position.x + size.x > area.position.x &&
+            position.x < area.position.x + area.size.x &&
+            position.y + size.y > area.position.y &&
+            position.y < area.position.y + area.size.y
+        );
+    }
+
+    bool hasIntersectionInclusive(IRect area) {
+        return (
+            position.x + size.x >= area.position.x &&
+            position.x < area.position.x + area.size.x &&
+            position.y + size.y >= area.position.y &&
+            position.y < area.position.y + area.size.y
+        );
+    }
+}
+
 /// A 2D vector using floats.
 struct Vec2 {
     float x = 0.0f; /// The X component of the vector.
@@ -1404,6 +1489,14 @@ Vec4 toVec(IVec4 vec) {
 
 Vec4 toVec(Color color) {
     return Vec4(color.r, color.g, color.b, color.a);
+}
+
+IRect toIRect(Rect rect) {
+    return IRect(rect.position.toIVec(), rect.size.toIVec());
+}
+
+Rect toRect(IRect rect) {
+    return Rect(rect.position.toVec(), rect.size.toVec());
 }
 
 // Vec test.
