@@ -10,7 +10,6 @@
 module joka.containers;
 
 import joka.ascii;
-import joka.math;
 import joka.types;
 import stdc = joka.stdc;
 
@@ -147,11 +146,11 @@ struct List(T) {
     }
 
     @trusted
-    void reserve(Sz capacity) {
-        auto targetCapacity = findListCapacity(capacity);
-        if (targetCapacity > this.capacity) {
-            this.capacity = targetCapacity;
-            items = (cast(T*) stdc.realloc(items.ptr, this.capacity * T.sizeof))[0 .. length];
+    void reserve(Sz newCapacity) {
+        auto targetCapacity = findListCapacity(newCapacity);
+        if (targetCapacity > capacity) {
+            capacity = targetCapacity;
+            items = (cast(T*) stdc.realloc(items.ptr, capacity * T.sizeof))[0 .. length];
         }
     }
 
@@ -693,10 +692,6 @@ struct Grid(T, Sz H = defaultGridRowCount, Sz W = defaultGridColCount) {
         return tiles[colCount * row + col];
     }
 
-    ref T opIndex(IVec2 position) {
-        return opIndex(position.y, position.x);
-    }
-
     void opIndexAssign(T rhs, Sz row, Sz col) {
         if (!has(row, col)) {
             assert(0, "Tile `[{}, {}]` does not exist.".format(row, col));
@@ -704,19 +699,11 @@ struct Grid(T, Sz H = defaultGridRowCount, Sz W = defaultGridColCount) {
         tiles[colCount * row + col] = rhs;
     }
 
-    void opIndexAssign(T rhs, IVec2 position) {
-        return opIndexAssign(rhs, position.y, position.x);
-    }
-
     void opIndexOpAssign(IStr op)(T rhs, Sz row, Sz col) {
         if (!has(row, col)) {
             assert(0, "Tile `[{}, {}]` does not exist.".format(row, col));
         }
         mixin("tiles[colCount * row + col]", op, "= rhs;");
-    }
-
-    void opIndexOpAssign(IStr op)(T rhs, IVec2 position) {
-        return opIndexOpAssign!(op)(rhs, position.y, position.x);
     }
 
     Sz opDollar(Sz dim)() {
@@ -758,10 +745,6 @@ struct Grid(T, Sz H = defaultGridRowCount, Sz W = defaultGridColCount) {
         return row < rowCount && col < colCount;
     }
 
-    bool has(IVec2 position) {
-        return has(position.y, position.x);
-    }
-
     @trusted
     void fillBlank() {
         if (tiles.ptr == null) {
@@ -790,6 +773,52 @@ Sz findListCapacity(Sz length) {
         result *= 2;
     }
     return result;
+}
+
+// TODO: Needs testing.
+struct Arena {
+    ubyte* data;
+    Sz capacity;
+    Sz offset;
+
+    @safe @nogc nothrow:
+
+    this(Sz capacity) {
+        resize(capacity);
+    }
+
+    @trusted
+    void* alloc(Sz size, Sz alignment) {
+        Sz alignedOffset = void;
+        if (offset == 0) {
+            auto ptr = cast(Sz) data;
+            alignedOffset = ((ptr + (alignment - 1)) & ~(alignment - 1)) - ptr;
+        } else {
+            alignedOffset = (offset + (alignment - 1)) & ~(alignment - 1);
+        }
+        if (alignedOffset + size > capacity) return null;
+        offset = alignedOffset + size;
+        return cast(void*) (data + alignedOffset);
+    }
+
+    @trusted
+    void resize(Sz newCapacity) {
+        data = cast(ubyte*) stdc.realloc(data, newCapacity);
+        capacity = newCapacity;
+        offset = 0;
+    }
+
+    void clear() {
+        offset = 0;
+    }
+
+    @trusted
+    free() {
+        stdc.free(data);
+        data = null;
+        capacity = 0;
+        offset = 0;
+    }
 }
 
 /// Formats the given format string by replacing `{}` placeholders

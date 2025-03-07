@@ -14,11 +14,11 @@ The code is rather C-like, so be prepared for that.
 
 ## Basic Data Structures
 
-* Dynamic Array (`List`)
-* Dynamic Stack Array (`FixedList`)
-* Sparse Array (`SparseList`)
-* Flattened 2D Array (`Grid`)
-* Tagged Union (`Variant`)
+* Dynamic Array: `List`
+* Sparse Array: `SparseList`
+* Flattened 2D Array: `Grid`
+* Tagged Union: `Variant`
+* Arena Allocator: `Arena`
 
 ## Attributes and BetterC Support
 
