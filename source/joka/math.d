@@ -924,6 +924,7 @@ double atan2(double y, double x) {
     return stdc.atan2(y, x);
 }
 
+pragma(inline, true)
 T abs(T)(T x) {
     return x < 0 ? -x : x;
 }
@@ -956,11 +957,13 @@ Rect abs(Rect rect) {
     return Rect(rect.position.abs, rect.size.abs);
 }
 
+pragma(inline, true)
 float floor(float x) {
     auto xx = cast(float) cast(int) x;
     return (x <= 0.0f && xx != x) ? xx - 1.0f : xx;
 }
 
+pragma(inline, true)
 double floor(double x) {
     auto xx = cast(double) cast(long) x;
     return (x <= 0.0 && xx != x) ? xx - 1.0 : xx;
@@ -982,11 +985,13 @@ Rect floor(Rect rect) {
     return Rect(rect.position.floor, rect.size.floor);
 }
 
+pragma(inline, true)
 float ceil(float x) {
     auto xx = cast(float) cast(int) x;
     return (x <= 0.0f || xx == x) ? xx : xx + 1.0f;
 }
 
+pragma(inline, true)
 double ceil(double x) {
     auto xx = cast(double) cast(long) x;
     return (x <= 0.0 || xx == x) ? xx : xx + 1.0;
@@ -1008,10 +1013,12 @@ Rect ceil(Rect rect) {
     return Rect(rect.position.ceil, rect.size.ceil);
 }
 
+pragma(inline, true)
 float round(float x) {
     return x <= 0.0f ? cast(float) cast(int) (x - 0.5f) : cast(float) cast(int) (x + 0.5f);
 }
 
+pragma(inline, true)
 double round(double x) {
     return x <= 0.0 ? cast(double) cast(long) (x - 0.5) : cast(double) cast(long) (x + 0.5);
 }

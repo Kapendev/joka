@@ -33,15 +33,11 @@ struct List(T) {
 
     @safe @nogc nothrow:
 
+    @trusted
     this(const(T)[] args...) {
-        foreach (arg; args) {
-            append(arg);
-        }
-    }
-
-    this(List!T list) {
-        foreach (item; list.items) {
-            append(item);
+        resizeBlank(args.length);
+        foreach (i, ref item; items) {
+            item = cast(T) args[i];
         }
     }
 
@@ -100,15 +96,20 @@ struct List(T) {
     }
 
     @trusted
+    void appendBlank() {
+        Sz newLength = length + 1;
+        if (newLength > capacity) {
+            capacity = findListCapacity(newLength);
+            items = (cast(T*) stdc.realloc(items.ptr, capacity * T.sizeof))[0 .. newLength];
+        } else {
+            items = items.ptr[0 .. newLength];
+        }
+    }
+
+    @trusted
     void append(const(T)[] args...) {
         foreach (arg; args) {
-            Sz newLength = length + 1;
-            if (newLength > capacity) {
-                capacity = findListCapacity(newLength);
-                items = (cast(T*) stdc.realloc(items.ptr, capacity * T.sizeof))[0 .. newLength];
-            } else {
-                items = items.ptr[0 .. newLength];
-            }
+            appendBlank();
             items[$ - 1] = cast(T) arg;
         }
     }
@@ -154,13 +155,22 @@ struct List(T) {
         }
     }
 
-    void resize(Sz length) {
-        if (length <= this.length) {
-            items = items[0 .. length];
+    @trusted
+    void resizeBlank(Sz newLength) {
+        if (newLength <= length) {
+            items = items[0 .. newLength];
         } else {
-            reserve(length);
-            foreach (i; 0 .. length - this.length) {
-                append(T.init);
+            reserve(newLength);
+            items = items.ptr[0 .. newLength];
+        }
+    }
+
+    void resize(Sz newLength) {
+        auto oldLength = length;
+        resizeBlank(newLength);
+        if (newLength > oldLength) {
+            foreach (i; 0 .. newLength - oldLength) {
+                items[$ - i - 1] = T.init;
             }
         }
     }
@@ -191,9 +201,11 @@ struct FixedList(T, Sz N = defaultFixedListCapacity) {
 
     @safe @nogc nothrow:
 
+    @trusted
     this(const(T)[] args...) {
-        foreach (arg; args) {
-            append(arg);
+        length = args.length;
+        foreach (i, ref item; data[0 .. length]) {
+            item = cast(T) args[i];
         }
     }
 
@@ -330,12 +342,6 @@ struct SparseList(T) {
     this(const(T)[] args...) {
         foreach (arg; args) {
             append(arg);
-        }
-    }
-
-    this(List!T list) {
-        foreach (item; list.items) {
-            append(item);
         }
     }
 
@@ -757,12 +763,17 @@ struct Grid(T, Sz H = defaultGridRowCount, Sz W = defaultGridColCount) {
     }
 
     @trusted
-    void fill(T value) {
+    void fillBlank() {
         if (tiles.ptr == null) {
             tiles = (cast(T*) stdc.malloc(maxCapacity * T.sizeof))[0 .. maxCapacity];
         }
-        foreach (i; 0 .. tiles.length) {
-            tiles[i] = value;
+    }
+
+    @trusted
+    void fill(T value) {
+        fillBlank();
+        foreach (ref tile; tiles) {
+            tile = value;
         }
     }
 
