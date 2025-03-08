@@ -118,7 +118,7 @@ struct List(T) {
         items = items[0 .. $ - 1];
     }
 
-    void removeAndShift(Sz i) {
+    void removeShift(Sz i) {
         foreach (j; i .. items.length - 1) {
             items[j] = items[j + 1];
         }
@@ -138,7 +138,7 @@ struct List(T) {
     T popFront() {
         if (length > 0) {
             T temp = items[0];
-            removeAndShift(0);
+            removeShift(0);
             return temp;
         } else {
             return T.init;
@@ -279,7 +279,7 @@ struct FixedList(T, Sz N = defaultFixedListCapacity) {
         length -= 1;
     }
 
-    void removeAndShift(Sz i) {
+    void removeShift(Sz i) {
         foreach (j; i .. items.length - 1) {
             items[j] = items[j + 1];
         }
@@ -299,7 +299,7 @@ struct FixedList(T, Sz N = defaultFixedListCapacity) {
     T popFront() {
         if (length > 0) {
             T temp = items[0];
-            removeAndShift(0);
+            removeShift(0);
             return temp;
         } else {
             return T.init;
@@ -775,7 +775,6 @@ Sz findListCapacity(Sz length) {
     return result;
 }
 
-// TODO: Needs testing.
 struct Arena {
     ubyte* data;
     Sz capacity;
@@ -784,11 +783,22 @@ struct Arena {
     @safe @nogc nothrow:
 
     this(Sz capacity) {
-        resize(capacity);
+        allocSelf(capacity);
+    }
+
+    @trusted
+    void allocSelf(Sz newCapacity) {
+        free();
+        data = cast(ubyte*) stdc.malloc(newCapacity);
+        capacity = newCapacity;
+        offset = 0;
     }
 
     @trusted
     void* alloc(Sz size, Sz alignment) {
+        if (size == 0 || alignment == 0) {
+            assert(0, "Size or alignment is zero.");
+        }
         Sz alignedOffset = void;
         if (offset == 0) {
             auto ptr = cast(Sz) data;
@@ -802,10 +812,43 @@ struct Arena {
     }
 
     @trusted
-    void resize(Sz newCapacity) {
-        data = cast(ubyte*) stdc.realloc(data, newCapacity);
-        capacity = newCapacity;
-        offset = 0;
+    T* makeBlank(T)() {
+        return cast(T*) alloc(T.sizeof, T.alignof);
+    }
+
+    T* make(T)() {
+        auto result = makeBlank!T();
+        *result = T.init;
+        return result;
+    }
+
+    @trusted
+    T* makeClone(T)(const(T) value) {
+        auto result = makeBlank!T();
+        *result = cast(T) value;
+        return result;
+    }
+
+    @trusted
+    T[] makeSliceBlank(T)(Sz length) {
+        return (cast(T*) alloc(T.sizeof * length, T.alignof))[0 .. length];
+    }
+
+    T[] makeSlice(T)(Sz length) {
+        auto result = makeSliceBlank!T(length);
+        foreach (ref item; result) {
+            item = T.init;
+        }
+        return result;
+    }
+
+    @trusted
+    T[] makeSliceClone(T)(const(T)[] value) {
+        auto result = makeSliceBlank!T(value.length);
+        foreach (i, ref item; result) {
+            item = cast(T) value[i];
+        }
+        return result;
     }
 
     void clear() {
@@ -821,13 +864,11 @@ struct Arena {
     }
 }
 
-/// Formats the given format string by replacing `{}` placeholders
-/// with values from the given arguments in order.
-/// Placeholders do not support options.
-/// Use a wrapper type with a `toStr` method for custom formatting.
-void formatIntoBuffer(A...)(ref LStr buffer, IStr formatStr, A args) {
+/// Formats a string using a list and returns the resulting formatted string.
+/// The list is cleared before writing.
+/// For details on formatting behavior, see the `formatIntoBuffer` function in the `ascii` module.
+IStr formatIntoList(A...)(ref LStr buffer, IStr formatStr, A args) {
     buffer.clear();
-
     auto formatStrIndex = 0;
     auto argIndex = 0;
     while (formatStrIndex < formatStr.length) {
@@ -851,6 +892,7 @@ void formatIntoBuffer(A...)(ref LStr buffer, IStr formatStr, A args) {
             formatStrIndex += 1;
         }
     }
+    return buffer[];
 }
 
 // Function test.
@@ -1116,4 +1158,32 @@ unittest {
     assert(numbers.ptr == null);
     assert(numbers.rowCount == 0);
     assert(numbers.colCount == 0);
+}
+
+// Arena test
+@trusted
+unittest {
+    Arena arena;
+    IStr text;
+    int* number;
+
+    arena = Arena(1024);
+    assert(arena.capacity == 1024);
+    assert(arena.offset == 0);
+    assert(arena.data != null);
+    number = arena.makeClone(69);
+    assert(*number == 69);
+    text = arena.makeSliceClone("Hello world!");
+    assert(text == "Hello world!");
+    assert(cast(Sz) text.ptr != cast(Sz) number);
+    assert(arena.offset != 0);
+    arena.clear();
+    assert(arena.offset == 0);
+    assert(arena.data != null);
+    assert(arena.alloc(1024, 1) != null);
+    assert(arena.alloc(1024, 1) == null);
+    arena.free();
+    assert(arena.capacity == 0);
+    assert(arena.offset == 0);
+    assert(arena.data == null);
 }

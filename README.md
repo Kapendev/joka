@@ -12,13 +12,20 @@ The code is rather C-like, so be prepared for that.
 * joka.math: Mathematical data structures and functions
 * joka.types: Type definitions and compile-time utilities
 
-## Basic Data Structures
+## Data Structures
 
 * Dynamic Array: `List`
-* Sparse Array: `SparseList`
 * Flattened 2D Array: `Grid`
 * Tagged Union: `Variant`
 * Arena Allocator: `Arena`
+* ...and more!
+
+## Helper Functions
+
+* String Formatting: `format`
+* String Concatenation: `concat`
+* Printing: `println`
+* ...and more!
 
 ## Attributes and BetterC Support
 

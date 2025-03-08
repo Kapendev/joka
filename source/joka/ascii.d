@@ -54,18 +54,13 @@ IStr toStr(T)(T value) {
     }
 }
 
-/// Formats the format string by replacing `{}` placeholders
-/// with values from the arguments in order.
-/// Placeholders do not support options.
-/// Use a wrapper type with a `toStr` method for custom formatting.
+/// Formats the given string by replacing `{}` placeholders with argument values in order.
+/// Options within placeholders are not supported.
+/// For custom formatting use a wrapper type with a `toStr` method.
+/// Writes into the buffer and returns the formatted string.
 @trusted
-IStr format(A...)(IStr formatStr, A args) {
-    static char[1024][8] buffers = void;
-    static byte bufferIndex = 0;
-
-    bufferIndex = (bufferIndex + 1) % buffers.length;
-
-    auto result = buffers[bufferIndex][];
+IStr formatIntoBuffer(A...)(Str buffer, IStr formatStr, A args) {
+    auto result = buffer;
     auto resultIndex = 0;
     auto formatStrIndex = 0;
     auto argIndex = 0;
@@ -95,6 +90,17 @@ IStr format(A...)(IStr formatStr, A args) {
     }
     result = result[0 .. resultIndex];
     return result;
+}
+
+/// Formats a string using a static buffer and returns the result.
+/// For details on formatting, see the `formatIntoBuffer` function.
+@trusted
+IStr format(A...)(IStr formatStr, A args) {
+    static char[1024][8] buffers = void;
+    static byte bufferIndex = 0;
+
+    bufferIndex = (bufferIndex + 1) % buffers.length;
+    return formatIntoBuffer(buffers[bufferIndex][], formatStr, args);
 }
 
 @safe @nogc nothrow:
@@ -320,13 +326,10 @@ Fault copyStr(ref Str str, IStr source, Sz startIndex = 0) {
 }
 
 /// Concatenates the strings.
-IStr concat(IStr[] args...) {
-    static char[1024][8] buffers = void;
-    static byte bufferIndex = 0;
-
+/// Writes into the buffer and returns the result.
+IStr concatIntoBuffer(Str buffer, IStr[] args...) {
     if (args.length == 0) return ".";
-    bufferIndex = (bufferIndex + 1) % buffers.length;
-    auto result = buffers[bufferIndex][];
+    auto result = buffer;
     auto length = 0;
     foreach (i, arg; args) {
         result.copyChars(arg, length);
@@ -336,14 +339,21 @@ IStr concat(IStr[] args...) {
     return result;
 }
 
+/// Concatenates the strings using a static buffer and returns the result.
+IStr concat(IStr[] args...) {
+    static char[1024][8] buffers = void;
+    static byte bufferIndex = 0;
+
+    if (args.length == 0) return ".";
+    bufferIndex = (bufferIndex + 1) % buffers.length;
+    return concatIntoBuffer(buffers[bufferIndex][], args);
+}
+
 /// Extracts and returns the directory part of the path, or "." if there is no directory.
 IStr pathDir(IStr path) {
     auto end = findEnd(path, pathSep);
-    if (end == -1) {
-        return ".";
-    } else {
-        return path[0 .. end];
-    }
+    if (end == -1) return ".";
+    else return path[0 .. end];
 }
 
 /// Formats the path to a standard form, normalizing separators.
@@ -351,12 +361,8 @@ IStr pathFormat(IStr path) {
     static char[1024][8] buffers = void;
     static byte bufferIndex = 0;
 
-    if (path.length == 0) {
-        return ".";
-    }
-
+    if (path.length == 0) return ".";
     bufferIndex = (bufferIndex + 1) % buffers.length;
-
     auto result = buffers[bufferIndex][];
     foreach (i, c; path) {
         if (c == pathSepOther) {
@@ -374,12 +380,8 @@ IStr pathConcat(IStr[] args...) {
     static char[1024][8] buffers = void;
     static byte bufferIndex = 0;
 
-    if (args.length == 0) {
-        return ".";
-    }
-
+    if (args.length == 0) return ".";
     bufferIndex = (bufferIndex + 1) % buffers.length;
-
     auto result = buffers[bufferIndex][];
     auto length = 0;
     foreach (i, arg; args) {
