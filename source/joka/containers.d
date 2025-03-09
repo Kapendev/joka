@@ -68,15 +68,6 @@ struct List(T) {
         mixin("items[i]", op, "= cast(T) rhs;");
     }
 
-    bool opEquals(List!T rhs) {
-        return items == rhs.items;
-    }
-
-    @trusted
-    bool opEquals(const(T)[] rhs) {
-        return items == cast(T[]) rhs;
-    }
-
     Sz opDollar(Sz dim)() {
         return items.length;
     }
@@ -234,15 +225,6 @@ struct FixedList(T, Sz N = defaultFixedListCapacity) {
     @trusted
     void opIndexOpAssign(IStr op)(const(T) rhs, Sz i) {
         mixin("items[i]", op, "= cast(T) rhs;");
-    }
-
-    bool opEquals(List!T rhs) {
-        return items == rhs.items;
-    }
-
-    @trusted
-    bool opEquals(const(T)[] rhs) {
-        return items == cast(T[]) rhs;
     }
 
     Sz opDollar(Sz dim)() {
@@ -668,17 +650,22 @@ struct GenerationalList(T) {
     }
 }
 
-struct Grid(T, Sz H = defaultGridRowCount, Sz W = defaultGridColCount) {
-    T[] tiles;
-
-    enum maxRowCount = H;
-    enum maxColCount = W;
-    enum maxCapacity = H * W;
+// TODO: Look at it more after those changes.
+struct Grid(T) {
+    List!T tiles;
+    Sz rowCount;
+    Sz colCount;
+    bool isRowColCheckDisabled;
 
     @safe @nogc nothrow:
 
-    this(T value) {
+    this(Sz rowCount, Sz colCount, T value = T.init) {
+        resizeBlank(rowCount, colCount);
         fill(value);
+    }
+
+    this(T value) {
+        this(defaultGridRowCount, defaultGridColCount, value);
     }
 
     T[] opIndex() {
@@ -686,22 +673,28 @@ struct Grid(T, Sz H = defaultGridRowCount, Sz W = defaultGridColCount) {
     }
 
     ref T opIndex(Sz row, Sz col) {
-        if (!has(row, col)) {
-            assert(0, "Tile `[{}, {}]` does not exist.".format(row, col));
+        if (!isRowColCheckDisabled) {
+            if (!has(row, col)) {
+                assert(0, "Tile `[{}, {}]` does not exist.".format(row, col));
+            }
         }
         return tiles[colCount * row + col];
     }
 
     void opIndexAssign(T rhs, Sz row, Sz col) {
-        if (!has(row, col)) {
-            assert(0, "Tile `[{}, {}]` does not exist.".format(row, col));
+        if (!isRowColCheckDisabled) {
+            if (!has(row, col)) {
+                assert(0, "Tile `[{}, {}]` does not exist.".format(row, col));
+            }
         }
         tiles[colCount * row + col] = rhs;
     }
 
     void opIndexOpAssign(IStr op)(T rhs, Sz row, Sz col) {
-        if (!has(row, col)) {
-            assert(0, "Tile `[{}, {}]` does not exist.".format(row, col));
+        if (!isRowColCheckDisabled) {
+            if (!has(row, col)) {
+                assert(0, "Tile `[{}, {}]` does not exist.".format(row, col));
+            }
         }
         mixin("tiles[colCount * row + col]", op, "= rhs;");
     }
@@ -725,45 +718,47 @@ struct Grid(T, Sz H = defaultGridRowCount, Sz W = defaultGridColCount) {
         return tiles.ptr;
     }
 
-    Sz rowCount() {
-        return tiles.length == 0 ? 0 : maxRowCount;
-    }
-
-    Sz colCount() {
-        return tiles.length == 0 ? 0 : maxColCount;
-    }
-
     Sz capacity() {
-        return tiles.length == 0 ? 0 : maxCapacity;
+        return tiles.capacity;
     }
 
     bool isEmpty() {
-        return length == 0;
+        return tiles.isEmpty;
     }
 
     bool has(Sz row, Sz col) {
         return row < rowCount && col < colCount;
     }
 
-    @trusted
-    void fillBlank() {
-        if (tiles.ptr == null) {
-            tiles = (cast(T*) stdc.malloc(maxCapacity * T.sizeof))[0 .. maxCapacity];
+    void resizeBlank(Sz newRowCount, Sz newColCount) {
+        tiles.resizeBlank(newRowCount * newColCount);
+        rowCount = newRowCount;
+        colCount = newColCount;
+    }
+
+    void resize(Sz newRowCount, Sz newColCount) {
+        tiles.resize(newRowCount * newColCount);
+        foreach (ref tile; tiles) {
+            tile = T.init;
         }
+        rowCount = newRowCount;
+        colCount = newColCount;
     }
 
     @trusted
     void fill(T value) {
-        fillBlank();
-        foreach (ref tile; tiles) {
-            tile = value;
-        }
+        tiles.fill(value);
+    }
+
+    void clear() {
+        tiles.clear();
     }
 
     @trusted
     void free() {
-        stdc.free(tiles.ptr);
-        tiles = [];
+        tiles.free();
+        rowCount = 0;
+        colCount = 0;
     }
 }
 
@@ -934,12 +929,12 @@ unittest {
     text[0] -= 1;
     assert(text[0] == 'h');
     text.append("!!");
-    assert(text == "hello world!!!");
+    assert(text[] == "hello world!!!");
     assert(text.pop() == '!');
     assert(text.pop() == '!');
-    assert(text == "hello world!");
+    assert(text[] == "hello world!");
     text.resize(0);
-    assert(text == "");
+    assert(text[] == "");
     assert(text.length == 0);
     assert(text.capacity == defaultListCapacity);
     assert(text.pop() == char.init);
@@ -981,12 +976,12 @@ unittest {
     text[0] -= 1;
     assert(text[0] == 'h');
     text.append("!!");
-    assert(text == "hello world!!!");
+    assert(text[] == "hello world!!!");
     assert(text.pop() == '!');
     assert(text.pop() == '!');
-    assert(text == "hello world!");
+    assert(text[] == "hello world!");
     text.resize(0);
-    assert(text == "");
+    assert(text[] == "");
     assert(text.length == 0);
     assert(text.pop() == char.init);
     text.resize(1);

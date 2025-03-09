@@ -1435,6 +1435,7 @@ double toDegrees(double radians) {
     return radians * dpi180;
 }
 
+pragma(inline, true);
 Color toRgb(uint rgb) {
     return Color(
         (rgb & 0xFF0000) >> 16,
@@ -1443,6 +1444,7 @@ Color toRgb(uint rgb) {
     );
 }
 
+pragma(inline, true);
 Color toRgba(uint rgba) {
     return Color(
         (rgba & 0xFF000000) >> 24,
@@ -1452,6 +1454,7 @@ Color toRgba(uint rgba) {
     );
 }
 
+pragma(inline, true);
 Color toColor(Vec3 vec) {
     return Color(
         cast(ubyte) clamp(vec.x, 0.0f, 255.0f),
@@ -1461,6 +1464,7 @@ Color toColor(Vec3 vec) {
     );
 }
 
+pragma(inline, true);
 Color toColor(Vec4 vec) {
     return Color(
         cast(ubyte) clamp(vec.x, 0.0f, 255.0f),
@@ -1470,38 +1474,47 @@ Color toColor(Vec4 vec) {
     );
 }
 
+pragma(inline, true);
 IVec2 toIVec(Vec2 vec) {
     return IVec2(cast(int) vec.x, cast(int) vec.y);
 }
 
+pragma(inline, true);
 IVec3 toIVec(Vec3 vec) {
     return IVec3(cast(int) vec.x, cast(int) vec.y, cast(int) vec.z);
 }
 
+pragma(inline, true);
 IVec4 toIVec(Vec4 vec) {
     return IVec4(cast(int) vec.x, cast(int) vec.y, cast(int) vec.z, cast(int) vec.w);
 }
 
+pragma(inline, true);
 Vec2 toVec(IVec2 vec) {
     return Vec2(vec.x, vec.y);
 }
 
+pragma(inline, true);
 Vec3 toVec(IVec3 vec) {
     return Vec3(vec.x, vec.y, vec.z);
 }
 
+pragma(inline, true);
 Vec4 toVec(IVec4 vec) {
     return Vec4(vec.x, vec.y, vec.z, vec.w);
 }
 
+pragma(inline, true);
 Vec4 toVec(Color color) {
     return Vec4(color.r, color.g, color.b, color.a);
 }
 
+pragma(inline, true);
 IRect toIRect(Rect rect) {
     return IRect(rect.position.toIVec(), rect.size.toIVec());
 }
 
+pragma(inline, true);
 Rect toRect(IRect rect) {
     return Rect(rect.position.toVec(), rect.size.toVec());
 }
