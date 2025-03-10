@@ -650,12 +650,10 @@ struct GenerationalList(T) {
     }
 }
 
-// TODO: Look at it more after those changes.
 struct Grid(T) {
     List!T tiles;
     Sz rowCount;
     Sz colCount;
-    bool isRowColCheckDisabled;
 
     @safe @nogc nothrow:
 
@@ -673,28 +671,22 @@ struct Grid(T) {
     }
 
     ref T opIndex(Sz row, Sz col) {
-        if (!isRowColCheckDisabled) {
-            if (!has(row, col)) {
-                assert(0, "Tile `[{}, {}]` does not exist.".format(row, col));
-            }
+        if (!has(row, col)) {
+            assert(0, "Tile `[{}, {}]` does not exist.".format(row, col));
         }
         return tiles[colCount * row + col];
     }
 
     void opIndexAssign(T rhs, Sz row, Sz col) {
-        if (!isRowColCheckDisabled) {
-            if (!has(row, col)) {
-                assert(0, "Tile `[{}, {}]` does not exist.".format(row, col));
-            }
+        if (!has(row, col)) {
+            assert(0, "Tile `[{}, {}]` does not exist.".format(row, col));
         }
         tiles[colCount * row + col] = rhs;
     }
 
     void opIndexOpAssign(IStr op)(T rhs, Sz row, Sz col) {
-        if (!isRowColCheckDisabled) {
-            if (!has(row, col)) {
-                assert(0, "Tile `[{}, {}]` does not exist.".format(row, col));
-            }
+        if (!has(row, col)) {
+            assert(0, "Tile `[{}, {}]` does not exist.".format(row, col));
         }
         mixin("tiles[colCount * row + col]", op, "= rhs;");
     }
@@ -730,6 +722,10 @@ struct Grid(T) {
         return row < rowCount && col < colCount;
     }
 
+    void reserve(Sz newCapacity) {
+        tiles.reserve(newCapacity);
+    }
+
     void resizeBlank(Sz newRowCount, Sz newColCount) {
         tiles.resizeBlank(newRowCount * newColCount);
         rowCount = newRowCount;
@@ -737,10 +733,8 @@ struct Grid(T) {
     }
 
     void resize(Sz newRowCount, Sz newColCount) {
-        tiles.resize(newRowCount * newColCount);
-        foreach (ref tile; tiles) {
-            tile = T.init;
-        }
+        tiles.resizeBlank(newRowCount * newColCount);
+        tiles.fill(T.init);
         rowCount = newRowCount;
         colCount = newColCount;
     }
@@ -752,6 +746,8 @@ struct Grid(T) {
 
     void clear() {
         tiles.clear();
+        rowCount = 0;
+        colCount = 0;
     }
 
     @trusted
@@ -760,14 +756,6 @@ struct Grid(T) {
         rowCount = 0;
         colCount = 0;
     }
-}
-
-Sz findListCapacity(Sz length) {
-    Sz result = defaultListCapacity;
-    while (result < length) {
-        result *= 2;
-    }
-    return result;
 }
 
 struct Arena {
@@ -857,6 +845,14 @@ struct Arena {
         capacity = 0;
         offset = 0;
     }
+}
+
+Sz findListCapacity(Sz length) {
+    Sz result = defaultListCapacity;
+    while (result < length) {
+        result *= 2;
+    }
+    return result;
 }
 
 /// Formats a string using a list and returns the resulting formatted string.
@@ -952,7 +948,7 @@ unittest {
     text.free();
 }
 
-// List test.
+// FixedList test.
 unittest {
     FixedList!char text;
 

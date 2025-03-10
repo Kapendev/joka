@@ -16,7 +16,6 @@ The code is rather C-like, so be prepared for that.
 
 * Dynamic Array: `List`
 * Flattened 2D Array: `Grid`
-* Tagged Union: `Variant`
 * Arena Allocator: `Arena`
 * ...and more!
 
@@ -40,3 +39,21 @@ However, since it relies on the C standard library, you will need something like
 ## Documentation
 
 Start with the [examples](./examples/) folder for a quick overview.
+
+## Questions
+
+### Why nogc?
+
+Because I can do manual memory management.
+
+### Why not use X nogc library?
+
+I like code that looks like C, but most people write code that looks like C++.
+Why can't the world be a better place?
+
+* Most of them love templates. I don't.
+* Most of them love compiler flags. I don't.
+* Most of them like RAII stuff. I don't.
+* Most of them like long compile times. I don't.
+
+I love to complain about things, so don't take anything here seriously.
