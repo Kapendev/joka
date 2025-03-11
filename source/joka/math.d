@@ -929,112 +929,139 @@ T abs(T)(T x) {
     return x < 0 ? -x : x;
 }
 
+pragma(inline, true)
 IVec2 abs(IVec2 vec) {
     return IVec2(vec.x.abs, vec.y.abs);
 }
 
+pragma(inline, true)
 IVec3 abs(IVec3 vec) {
     return IVec3(vec.x.abs, vec.y.abs, vec.z.abs);
 }
 
+pragma(inline, true)
 IVec4 abs(IVec4 vec) {
     return IVec4(vec.x.abs, vec.y.abs, vec.z.abs, vec.w.abs);
 }
 
+pragma(inline, true)
 Vec2 abs(Vec2 vec) {
     return Vec2(vec.x.abs, vec.y.abs);
 }
 
+pragma(inline, true)
 Vec3 abs(Vec3 vec) {
     return Vec3(vec.x.abs, vec.y.abs, vec.z.abs);
 }
 
+pragma(inline, true)
 Vec4 abs(Vec4 vec) {
     return Vec4(vec.x.abs, vec.y.abs, vec.z.abs, vec.w.abs);
 }
 
+pragma(inline, true)
 Rect abs(Rect rect) {
     return Rect(rect.position.abs, rect.size.abs);
 }
 
 pragma(inline, true)
 float floor(float x) {
-    auto xx = cast(float) cast(int) x;
-    return (x <= 0.0f && xx != x) ? xx - 1.0f : xx;
+    return (x <= 0.0f && (cast(float) cast(int) x) != x)
+        ? (cast(float) cast(int) x) - 1.0f
+        : (cast(float) cast(int) x);
 }
 
 pragma(inline, true)
 double floor(double x) {
-    auto xx = cast(double) cast(long) x;
-    return (x <= 0.0 && xx != x) ? xx - 1.0 : xx;
+    return (x <= 0.0 && (cast(double) cast(long) x) != x)
+        ? (cast(double) cast(long) x) - 1.0
+        : (cast(double) cast(long) x);
 }
 
+pragma(inline, true)
 Vec2 floor(Vec2 vec) {
     return Vec2(vec.x.floor, vec.y.floor);
 }
 
+pragma(inline, true)
 Vec3 floor(Vec3 vec) {
     return Vec3(vec.x.floor, vec.y.floor, vec.z.floor);
 }
 
+pragma(inline, true)
 Vec4 floor(Vec4 vec) {
     return Vec4(vec.x.floor, vec.y.floor, vec.z.floor, vec.w.floor);
 }
 
+pragma(inline, true)
 Rect floor(Rect rect) {
     return Rect(rect.position.floor, rect.size.floor);
 }
 
 pragma(inline, true)
 float ceil(float x) {
-    auto xx = cast(float) cast(int) x;
-    return (x <= 0.0f || xx == x) ? xx : xx + 1.0f;
+    return (x <= 0.0f || (cast(float) cast(int) x) == x)
+        ? (cast(float) cast(int) x)
+        : (cast(float) cast(int) x) + 1.0f;
 }
 
 pragma(inline, true)
 double ceil(double x) {
-    auto xx = cast(double) cast(long) x;
-    return (x <= 0.0 || xx == x) ? xx : xx + 1.0;
+    return (x <= 0.0 || (cast(double) cast(long) x) == x)
+        ? (cast(double) cast(long) x)
+        : (cast(double) cast(long) x) + 1.0;
 }
 
+pragma(inline, true)
 Vec2 ceil(Vec2 vec) {
     return Vec2(vec.x.ceil, vec.y.ceil);
 }
 
+pragma(inline, true)
 Vec3 ceil(Vec3 vec) {
     return Vec3(vec.x.ceil, vec.y.ceil, vec.z.ceil);
 }
 
+pragma(inline, true)
 Vec4 ceil(Vec4 vec) {
     return Vec4(vec.x.ceil, vec.y.ceil, vec.z.ceil, vec.w.ceil);
 }
 
+pragma(inline, true)
 Rect ceil(Rect rect) {
     return Rect(rect.position.ceil, rect.size.ceil);
 }
 
 pragma(inline, true)
 float round(float x) {
-    return x <= 0.0f ? cast(float) cast(int) (x - 0.5f) : cast(float) cast(int) (x + 0.5f);
+    return (x <= 0.0f)
+        ? cast(float) cast(int) (x - 0.5f)
+        : cast(float) cast(int) (x + 0.5f);
 }
 
 pragma(inline, true)
 double round(double x) {
-    return x <= 0.0 ? cast(double) cast(long) (x - 0.5) : cast(double) cast(long) (x + 0.5);
+    return (x <= 0.0)
+        ? cast(double) cast(long) (x - 0.5)
+        : cast(double) cast(long) (x + 0.5);
 }
 
+pragma(inline, true)
 Vec2 round(Vec2 vec) {
     return Vec2(vec.x.round, vec.y.round);
 }
 
+pragma(inline, true)
 Vec3 round(Vec3 vec) {
     return Vec3(vec.x.round, vec.y.round, vec.z.round);
 }
 
+pragma(inline, true)
 Vec4 round(Vec4 vec) {
     return Vec4(vec.x.round, vec.y.round, vec.z.round, vec.w.round);
 }
 
+pragma(inline, true)
 Rect round(Rect rect) {
     return Rect(rect.position.round, rect.size.round);
 }

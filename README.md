@@ -1,6 +1,6 @@
 # Joka
 
-Joka is a simple nogc utility library for the D programming language.
+Joka is a nogc utility library for the D programming language.
 It provides data structures and functions that work without garbage collection, offering precise memory control and minimal runtime overhead.
 The code is rather C-like, so be prepared for that.
 
