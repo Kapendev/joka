@@ -16,7 +16,7 @@ import stdc = joka.stdc;
 @safe @nogc nothrow:
 
 enum defaultListCapacity = 64;
-enum defaultFixedListCapacity = 128;
+enum defaultFixedListCapacity = 64;
 enum defaultGridRowCount = 256;
 enum defaultGridColCount = 256;
 enum defaultGridCapacity = defaultGridRowCount * defaultGridColCount;

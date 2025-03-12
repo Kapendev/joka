@@ -805,8 +805,28 @@ T min(T)(T a, T b) {
 }
 
 pragma(inline, true)
+T min3(T)(T a, T b, T c) {
+    return min(a, b).min(c);
+}
+
+pragma(inline, true)
+T min4(T)(T a, T b, T c, T d) {
+    return min(a, b).min(c).min(d);
+}
+
+pragma(inline, true)
 T max(T)(T a, T b) {
     return a < b ? b : a;
+}
+
+pragma(inline, true)
+T max3(T)(T a, T b, T c) {
+    return max(a, b).max(c);
+}
+
+pragma(inline, true)
+T max4(T)(T a, T b, T c, T d) {
+    return max(a, b).max(c).max(d);
 }
 
 pragma(inline, true)
@@ -1258,8 +1278,9 @@ double cbrt(double x) {
     return stdc.cbrt(x);
 }
 
+pragma(inline, true)
 T clamp(T)(T x, T a, T b) {
-    return x <= a ? a : x >= b ? b : x;
+    return max(x, a).min(b);
 }
 
 T wrap(T)(T x, T a, T b) {
@@ -1287,10 +1308,12 @@ T snap(T)(T x, T step) {
     }
 }
 
+pragma(inline, true)
 float lerp(float from, float to, float weight) {
     return from + (to - from) * weight;
 }
 
+pragma(inline, true)
 double lerp(double from, double to, double weight) {
     return from + (to - from) * weight;
 }
@@ -1315,14 +1338,18 @@ double smootherstep(double from, double to, double weight) {
     return (to * v) + (from * (1.0 - v));
 }
 
+pragma(inline, true)
 float moveTo(float from, float to, float delta) {
-    if (abs(to - from) > abs(delta)) return from + sign(to - from) * delta;
-    else return to;
+    return (abs(to - from) > abs(delta))
+        ? from + sign(to - from) * delta
+        : to;
 }
 
+pragma(inline, true)
 double moveTo(double from, double to, double delta) {
-    if (abs(to - from) > abs(delta)) return from + sign(to - from) * delta;
-    else return to;
+    return (abs(to - from) > abs(delta))
+        ? from + sign(to - from) * delta
+        : to;
 }
 
 Vec2 moveTo(Vec2 from, Vec2 to, Vec2 delta) {
@@ -1568,6 +1595,17 @@ unittest {
 
 // Function test.
 unittest {
+    assert(min3(6, 9, 4) == 4);
+    assert(max3(6, 9, 4) == 9);
+    assert(min4(6, 9, 4, 20) == 4);
+    assert(max4(6, 9, 4, 20) == 20);
+
+    assert(clamp(1, 6, 9) == 6);
+    assert(clamp(6, 6, 9) == 6);
+    assert(clamp(8, 6, 9) == 8);
+    assert(clamp(9, 6, 9) == 9);
+    assert(clamp(11, 6, 9) == 9);
+
     assert(wrap!uint(0, 0, 69) == 0);
     assert(wrap!uint(1, 0, 69) == 1);
     assert(wrap!uint(68, 0, 69) == 68);

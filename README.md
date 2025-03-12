@@ -46,14 +46,18 @@ Start with the [examples](./examples/) folder for a quick overview.
 
 Because I can do manual memory management.
 
+### Why are you not using X feature?
+
+Because I prefer to support older compilers and keep my code C-like.
+
 ### Why not use X nogc library?
 
-I like code that looks like C, but most people write code that looks like C++.
-Why can't the world be a better place?
+Because it's one less dependency for me to manage.
+I also prefer code that looks like C, whereas most people write code that looks like C++.
 
+* Most of them love RAII. I don't.
 * Most of them love templates. I don't.
-* Most of them love compiler flags. I don't.
-* Most of them like RAII stuff. I don't.
-* Most of them like long compile times. I don't.
+* Most of them love compile time flags. I don't.
 
-I love to complain about things, so don't take anything here seriously.
+I like to complain about things, so yeah.
+If you love templates, then use them. I support you.
