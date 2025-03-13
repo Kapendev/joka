@@ -236,6 +236,7 @@ struct IRect {
         }
     }
 
+    pragma(inline, true);
     bool hasPoint(IVec2 point) {
         return (
             point.x > position.x &&
@@ -245,6 +246,7 @@ struct IRect {
         );
     }
 
+    pragma(inline, true);
     bool hasPointInclusive(IVec2 point) {
         return (
             point.x >= position.x &&
@@ -254,6 +256,7 @@ struct IRect {
         );
     }
 
+    pragma(inline, true);
     bool hasIntersection(IRect area) {
         return (
             position.x + size.x > area.position.x &&
@@ -263,6 +266,7 @@ struct IRect {
         );
     }
 
+    pragma(inline, true);
     bool hasIntersectionInclusive(IRect area) {
         return (
             position.x + size.x >= area.position.x &&
@@ -311,12 +315,7 @@ struct Vec2 {
     }
 
     Vec2 normalize() {
-        auto m = magnitude;
-        if (m == 0.0f) {
-            return Vec2();
-        } else {
-            return this / Vec2(m);
-        }
+        return this / Vec2(magnitude);
     }
 
     float distanceTo(Vec2 to) {
@@ -364,13 +363,12 @@ struct Vec3 {
         return sqrt(x * x + y * y + z * z);
     }
 
+    float magnitudeSquared() {
+        return x * x + y * y + z * z;
+    }
+
     Vec3 normalize() {
-        auto m = magnitude;
-        if (m == 0.0f) {
-            return Vec3();
-        } else {
-            return this / Vec3(m);
-        }
+        return this / Vec3(magnitude);
     }
 
     float distanceTo(Vec3 to) {
@@ -420,13 +418,12 @@ struct Vec4 {
         return sqrt(x * x + y * y + z * z + w * w);
     }
 
+    float magnitudeSquared() {
+        return x * x + y * y + z * z + w * w;
+    }
+
     Vec4 normalize() {
-        auto m = magnitude;
-        if (m == 0.0f) {
-            return Vec4();
-        } else {
-            return this / Vec4(m);
-        }
+        return this / Vec4(magnitude);
     }
 
     float distanceTo(Vec4 to) {
@@ -584,6 +581,7 @@ struct Rect {
         return area(Hook.bottomRight);
     }
 
+    pragma(inline, true);
     bool hasPoint(Vec2 point) {
         return (
             point.x > position.x &&
@@ -593,6 +591,7 @@ struct Rect {
         );
     }
 
+    pragma(inline, true);
     bool hasPointInclusive(Vec2 point) {
         return (
             point.x >= position.x &&
@@ -602,6 +601,7 @@ struct Rect {
         );
     }
 
+    pragma(inline, true);
     bool hasIntersection(Rect area) {
         return (
             position.x + size.x > area.position.x &&
@@ -611,6 +611,7 @@ struct Rect {
         );
     }
 
+    pragma(inline, true);
     bool hasIntersectionInclusive(Rect area) {
         return (
             position.x + size.x >= area.position.x &&
@@ -1338,95 +1339,67 @@ double smootherstep(double from, double to, double weight) {
     return (to * v) + (from * (1.0 - v));
 }
 
-pragma(inline, true)
 float moveTo(float from, float to, float delta) {
     return (abs(to - from) > abs(delta))
         ? from + sign(to - from) * delta
         : to;
 }
 
-pragma(inline, true)
 double moveTo(double from, double to, double delta) {
     return (abs(to - from) > abs(delta))
         ? from + sign(to - from) * delta
         : to;
 }
 
+@trusted
 Vec2 moveTo(Vec2 from, Vec2 to, Vec2 delta) {
     Vec2 result = void;
-    Vec2 offset = from.directionTo(to) * delta;
-    if (abs(to.x - from.x) > abs(offset.x)) {
-        result.x = from.x + offset.x;
-    } else {
-        result.x = to.x;
-    }
-    if (abs(to.y - from.y) > abs(offset.y)) {
-        result.y = from.y + offset.y;
-    } else {
-        result.y = to.y;
-    }
+    auto offset = from.directionTo(to) * delta;
+    if (abs(to.x - from.x) > abs(offset.x)) result.x = from.x + offset.x;
+    else result.x = to.x;
+    if (abs(to.y - from.y) > abs(offset.y)) result.y = from.y + offset.y;
+    else result.y = to.y;
     return result;
 }
 
+@trusted
 Vec3 moveTo(Vec3 from, Vec3 to, Vec3 delta) {
     Vec3 result = void;
-    Vec3 offset = from.directionTo(to) * delta;
-    if (abs(to.x - from.x) > abs(offset.x)) {
-        result.x = from.x + offset.x;
-    } else {
-        result.x = to.x;
-    }
-    if (abs(to.y - from.y) > abs(offset.y)) {
-        result.y = from.y + offset.y;
-    } else {
-        result.y = to.y;
-    }
-    if (abs(to.z - from.z) > abs(offset.z)) {
-        result.z = from.z + offset.z;
-    } else {
-        result.z = to.z;
-    }
+    auto offset = from.directionTo(to) * delta;
+    if (abs(to.x - from.x) > abs(offset.x)) result.x = from.x + offset.x;
+    else result.x = to.x;
+    if (abs(to.y - from.y) > abs(offset.y)) result.y = from.y + offset.y;
+    else result.y = to.y;
+    if (abs(to.z - from.z) > abs(offset.z)) result.z = from.z + offset.z;
+    else result.z = to.z;
     return result;
 }
 
+@trusted
 Vec4 moveTo(Vec4 from, Vec4 to, Vec4 delta) {
     Vec4 result = void;
-    Vec4 offset = from.directionTo(to) * delta;
-    if (abs(to.x - from.x) > abs(offset.x)) {
-        result.x = from.x + offset.x;
-    } else {
-        result.x = to.x;
-    }
-    if (abs(to.y - from.y) > abs(offset.y)) {
-        result.y = from.y + offset.y;
-    } else {
-        result.y = to.y;
-    }
-    if (abs(to.z - from.z) > abs(offset.z)) {
-        result.z = from.z + offset.z;
-    } else {
-        result.z = to.z;
-    }
-    if (abs(to.w - from.w) > abs(offset.w)) {
-        result.w = from.w + offset.w;
-    } else {
-        result.w = to.w;
-    }
+    auto offset = from.directionTo(to) * delta;
+    if (abs(to.x - from.x) > abs(offset.x)) result.x = from.x + offset.x;
+    else result.x = to.x;
+    if (abs(to.y - from.y) > abs(offset.y)) result.y = from.y + offset.y;
+    else result.y = to.y;
+    if (abs(to.z - from.z) > abs(offset.z)) result.z = from.z + offset.z;
+    else result.z = to.z;
+    if (abs(to.w - from.w) > abs(offset.w)) result.w = from.w + offset.w;
+    else result.w = to.w;
     return result;
 }
 
 float moveToWithSlowdown(float from, float to, float delta, float slowdown) {
-    if (slowdown <= 0.0f || from.equals(to)) return to;
+    if (from.equals(to)) return to;
     auto target = ((from * (slowdown - 1.0f)) + to) / slowdown;
-    auto offset = target - from;
-    return from + offset * delta;
+    return from + (target - from) * delta;
 }
 
 double moveToWithSlowdown(double from, double to, double delta, double slowdown) {
-    if (slowdown <= 0.0 || from.equals(to)) return to;
+    if (from.equals(to)) return to;
     auto target = ((from * (slowdown - 1.0)) + to) / slowdown;
-    auto offset = target - from;
-    return from + offset * delta;
+    return from + (target - from) * delta;
 }
 
 Vec2 moveToWithSlowdown(Vec2 from, Vec2 to, Vec2 delta, float slowdown) {
@@ -1453,38 +1426,47 @@ Vec4 moveToWithSlowdown(Vec4 from, Vec4 to, Vec4 delta, float slowdown) {
     );
 }
 
+pragma(inline, true)
 bool equals(float a, float b, float localEpsilon = epsilon) {
     return abs(a - b) < localEpsilon;
 }
 
+pragma(inline, true)
 bool equals(double a, double b, double localEpsilon = epsilon) {
     return abs(a - b) < localEpsilon;
 }
 
+pragma(inline, true)
 bool equals(Vec2 a, Vec2 b, float localEpsilon = epsilon) {
     return equals(a.x, b.x, localEpsilon) && equals(a.y, b.y, localEpsilon);
 }
 
+pragma(inline, true)
 bool equals(Vec3 a, Vec3 b, float localEpsilon = epsilon) {
     return equals(a.x, b.x, localEpsilon) && equals(a.y, b.y, localEpsilon) && equals(a.z, b.z, localEpsilon);
 }
 
+pragma(inline, true)
 bool equals(Vec4 a, Vec4 b, float localEpsilon = epsilon) {
     return equals(a.x, b.x, localEpsilon) && equals(a.y, b.y, localEpsilon) && equals(a.z, b.z, localEpsilon) && equals(a.w, b.w, localEpsilon);
 }
 
+pragma(inline, true)
 float toRadians(float degrees) {
     return degrees * pi180;
 }
 
+pragma(inline, true)
 double toRadians(double degrees) {
     return degrees * pi180;
 }
 
+pragma(inline, true)
 float toDegrees(float radians) {
     return radians * dpi180;
 }
 
+pragma(inline, true)
 double toDegrees(double radians) {
     return radians * dpi180;
 }
@@ -1573,26 +1555,6 @@ Rect toRect(IRect rect) {
     return Rect(rect.position.toVec(), rect.size.toVec());
 }
 
-// Vec test.
-unittest {
-    assert(IVec2(6) + IVec2(4) == IVec2(10));
-    assert(IVec3(6) + IVec3(4) == IVec3(10));
-    assert(IVec4(6) + IVec4(4) == IVec4(10));
-
-    auto temp2 = IVec2(6);
-    auto temp3 = IVec2(6);
-    auto temp4 = IVec2(6);
-    temp2 += IVec2(4);
-    temp3 += IVec2(4);
-    temp4 += IVec2(4);
-    assert(temp2 == IVec2(10));
-    assert(temp3 == IVec2(10));
-    assert(temp4 == IVec2(10));
-    assert(temp2);
-    assert(temp3);
-    assert(temp4);
-}
-
 // Function test.
 unittest {
     assert(min3(6, 9, 4) == 4);
@@ -1661,4 +1623,24 @@ unittest {
     assert(toRgba(0xff0000ff) == red);
     assert(toRgba(0x00ff00ff) == green);
     assert(toRgba(0x0000ffff) == blue);
+}
+
+// Vec test.
+unittest {
+    assert(IVec2(6) + IVec2(4) == IVec2(10));
+    assert(IVec3(6) + IVec3(4) == IVec3(10));
+    assert(IVec4(6) + IVec4(4) == IVec4(10));
+
+    auto temp2 = IVec2(6);
+    auto temp3 = IVec2(6);
+    auto temp4 = IVec2(6);
+    temp2 += IVec2(4);
+    temp3 += IVec2(4);
+    temp4 += IVec2(4);
+    assert(temp2 == IVec2(10));
+    assert(temp3 == IVec2(10));
+    assert(temp4 == IVec2(10));
+    assert(temp2);
+    assert(temp3);
+    assert(temp4);
 }

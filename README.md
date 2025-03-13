@@ -2,7 +2,6 @@
 
 Joka is a nogc utility library for the D programming language.
 It provides data structures and functions that work without garbage collection, offering precise memory control and minimal runtime overhead.
-The code is rather C-like, so be prepared for that.
 
 ## Modules
 
@@ -19,26 +18,10 @@ The code is rather C-like, so be prepared for that.
 * Arena Allocator: `Arena`
 * ...and more!
 
-## Helper Functions
+## WebAssembly
 
-* String Formatting: `format`
-* String Concatenation: `concat`
-* Printing: `println`
-* ...and more!
-
-## Attributes and BetterC Support
-
-This project offers support for the `@safe` attribute and aims for good compatibility with BetterC.
+This project supports WebAssembly, but you'll need something like Emscripten to make it work.
 If you encounter errors with BetterC, try using the `-i` flag.
-
-## Web Support
-
-This project can be compiled to WebAssembly as it doesn't use the D standard library.
-However, since it relies on the C standard library, you will need something like Emscripten to make it work.
-
-## Documentation
-
-Start with the [examples](./examples/) folder for a quick overview.
 
 ## Questions
 
@@ -50,14 +33,7 @@ Because I can do manual memory management.
 
 Because I prefer to support older compilers and keep my code C-like.
 
-### Why not use X nogc library?
+### Why are you not using X library?
 
-Because it's one less dependency for me to manage.
-I also prefer code that looks like C, whereas most people write code that looks like C++.
-
-* Most of them love RAII. I don't.
-* Most of them love templates. I don't.
-* Most of them love compile time flags. I don't.
-
-I like to complain about things, so yeah.
-If you love templates, then use them. I support you.
+Because I prefer code that looks like C, whereas most people write code that looks like C++.
+Oh, and compile times. Joka compiles **blazingly fast** compared to similar libraries!

@@ -17,8 +17,8 @@ import stdc = joka.stdc;
 
 enum defaultListCapacity = 64;
 enum defaultFixedListCapacity = 64;
-enum defaultGridRowCount = 256;
-enum defaultGridColCount = 256;
+enum defaultGridRowCount = 128;
+enum defaultGridColCount = 128;
 enum defaultGridCapacity = defaultGridRowCount * defaultGridColCount;
 
 alias LStr   = List!char;  /// A dynamic string of chars.
@@ -849,9 +849,7 @@ struct Arena {
 
 Sz findListCapacity(Sz length) {
     Sz result = defaultListCapacity;
-    while (result < length) {
-        result *= 2;
-    }
+    while (result < length) result += result;
     return result;
 }
 
