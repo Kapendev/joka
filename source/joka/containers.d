@@ -499,13 +499,6 @@ struct SparseList(T) {
 struct GenerationalIndex {
     Sz value;
     Sz generation;
-
-    @safe @nogc nothrow:
-
-    pragma(inline, true)
-    bool opCast(T: bool)() {
-        return value != 0;
-    }
 }
 
 struct GenerationalList(T) {

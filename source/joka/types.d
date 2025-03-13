@@ -74,11 +74,6 @@ struct Result(T) {
         }
     }
 
-    pragma(inline, true)
-    bool opCast(T: bool)() {
-        return isSome;
-    }
-
     /// Returns the result value. Asserts when the result is an error.
     T get() {
         if (fault) assert(0, "Fault was detected.");
@@ -455,19 +450,6 @@ mixin template addXyzwOps(T, Sz N, IStr form = "xyzw") {
             mixin(form[1], op, "=rhs.", form[1], ";");
             mixin(form[2], op, "=rhs.", form[2], ";");
             mixin(form[3], op, "=rhs.", form[3], ";");
-        }
-    }
-
-    pragma(inline, true)
-    bool opCast(T: bool)() {
-        static if (N == 1) {
-            return mixin(form[0], "!= 0");
-        } else static if (N == 2) {
-            return mixin(form[0], "!= 0 ||", form[1], "!= 0");
-        } else static if (N == 3) {
-            return mixin(form[0], "!= 0 ||", form[1], "!= 0 ||", form[2], "!= 0");
-        } else static if (N == 4) {
-            return mixin(form[0], "!= 0 ||", form[1], "!= 0 ||", form[2], "!= 0 ||", form[3], "!= 0");
         }
     }
 }

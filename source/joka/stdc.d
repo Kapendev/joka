@@ -11,7 +11,7 @@ module joka.stdc;
 
 @nogc nothrow extern(C):
 
-// types
+// [types]
 
 version (WebAssembly) {
     alias CLong = int;
@@ -21,13 +21,13 @@ version (WebAssembly) {
     alias CULong = ulong;
 }
 
-// string.h
+// [string.h]
 
 int memcmp(const(void)* lhs, const(void)* rhs, size_t count);
 void* memset(void* dest, int ch, size_t count);
 void* memcpy(void* dest, const(void)* src, size_t count);
 
-// math.h
+// [math.h]
 
 int abs(int x);
 long labs(long x);
@@ -104,7 +104,7 @@ double floor(double x);
 float roundf(float x);
 double round(double x);
 
-// stdlib.h
+// [stdlib.h]
 
 void* malloc(size_t size);
 void* realloc(void* ptr, size_t size);
@@ -114,7 +114,7 @@ void exit(int code);
 char* getenv(const(char)* name);
 int system(const(char)* command);
 
-// stdio.h
+// [stdio.h]
 
 alias FILE = void;
 

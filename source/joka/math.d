@@ -89,6 +89,10 @@ struct Color {
 
     mixin addXyzwOps!(Color, length, form);
 
+    bool isZero() {
+        return r == 0 && g == 0 && b == 0 && a == 0;
+    }
+
     Color alpha(ubyte a) {
         return Color(r, g, b, a);
     }
@@ -118,6 +122,10 @@ struct IVec2 {
     }
 
     mixin addXyzwOps!(IVec2, length, form);
+
+    bool isZero() {
+        return x == 0 && y == 0;
+    }
 }
 
 /// A 3D vector using ints.
@@ -151,6 +159,10 @@ struct IVec3 {
     }
 
     mixin addXyzwOps!(IVec3, length, form);
+
+    bool isZero() {
+        return x == 0 && y == 0 && z == 0;
+    }
 }
 
 /// A 4D vector using ints.
@@ -186,6 +198,10 @@ struct IVec4 {
     }
 
     mixin addXyzwOps!(IVec4, length, form);
+
+    bool isZero() {
+        return x == 0 && y == 0 && z == 0 && w == 0;
+    }
 }
 
 struct IRect {
@@ -302,6 +318,10 @@ struct Vec2 {
 
     mixin addXyzwOps!(Vec2, length, form);
 
+    bool isZero() {
+        return x == 0 && y == 0;
+    }
+
     float angle() {
         return atan2(y, x);
     }
@@ -359,6 +379,10 @@ struct Vec3 {
 
     mixin addXyzwOps!(Vec3, length, form);
 
+    bool isZero() {
+        return x == 0 && y == 0 && z == 0;
+    }
+
     float magnitude() {
         return sqrt(x * x + y * y + z * z);
     }
@@ -413,6 +437,10 @@ struct Vec4 {
     }
 
     mixin addXyzwOps!(Vec4, length, form);
+
+    bool isZero() {
+        return x == 0 && y == 0 && z == 0 && w == 0;
+    }
 
     float magnitude() {
         return sqrt(x * x + y * y + z * z + w * w);
@@ -1640,7 +1668,7 @@ unittest {
     assert(temp2 == IVec2(10));
     assert(temp3 == IVec2(10));
     assert(temp4 == IVec2(10));
-    assert(temp2);
-    assert(temp3);
-    assert(temp4);
+    assert(!temp2.isZero);
+    assert(!temp3.isZero);
+    assert(!temp4.isZero);
 }
