@@ -20,7 +20,7 @@ It provides data structures and functions that work without garbage collection, 
 
 ## WebAssembly
 
-This project supports WebAssembly, but you'll need something like Emscripten to make it work.
+This project supports WebAssembly with BetterC, but you'll need something like Emscripten to make it work.
 If you encounter errors with BetterC, try using the `-i` flag.
 
 ## Questions
@@ -35,5 +35,5 @@ Because I prefer to support older compilers and keep my code C-like.
 
 ### Why are you not using X library?
 
-Because I prefer code that looks like C, whereas most people write code that looks like C++.
-Oh, and compile times. Joka compiles **blazingly fast** compared to similar libraries!
+Because I like code that looks like C, whereas most people write code that looks like C++.
+And compile times. Joka compiles **blazingly fast** compared to similar libraries!

@@ -89,6 +89,7 @@ struct Color {
 
     mixin addXyzwOps!(Color, length, form);
 
+    pragma(inline, true)
     bool isZero() {
         return r == 0 && g == 0 && b == 0 && a == 0;
     }
@@ -123,6 +124,7 @@ struct IVec2 {
 
     mixin addXyzwOps!(IVec2, length, form);
 
+    pragma(inline, true)
     bool isZero() {
         return x == 0 && y == 0;
     }
@@ -160,6 +162,7 @@ struct IVec3 {
 
     mixin addXyzwOps!(IVec3, length, form);
 
+    pragma(inline, true)
     bool isZero() {
         return x == 0 && y == 0 && z == 0;
     }
@@ -199,6 +202,7 @@ struct IVec4 {
 
     mixin addXyzwOps!(IVec4, length, form);
 
+    pragma(inline, true)
     bool isZero() {
         return x == 0 && y == 0 && z == 0 && w == 0;
     }
@@ -318,6 +322,7 @@ struct Vec2 {
 
     mixin addXyzwOps!(Vec2, length, form);
 
+    pragma(inline, true)
     bool isZero() {
         return x == 0 && y == 0;
     }
@@ -379,6 +384,7 @@ struct Vec3 {
 
     mixin addXyzwOps!(Vec3, length, form);
 
+    pragma(inline, true)
     bool isZero() {
         return x == 0 && y == 0 && z == 0;
     }
@@ -438,6 +444,7 @@ struct Vec4 {
 
     mixin addXyzwOps!(Vec4, length, form);
 
+    pragma(inline, true)
     bool isZero() {
         return x == 0 && y == 0 && z == 0 && w == 0;
     }
@@ -1014,17 +1021,29 @@ Rect abs(Rect rect) {
 }
 
 pragma(inline, true)
-float floor(float x) {
+float floorx(float x) {
     return (x <= 0.0f && (cast(float) cast(int) x) != x)
         ? (cast(float) cast(int) x) - 1.0f
         : (cast(float) cast(int) x);
 }
 
 pragma(inline, true)
-double floor(double x) {
+double floorx(double x) {
     return (x <= 0.0 && (cast(double) cast(long) x) != x)
         ? (cast(double) cast(long) x) - 1.0
         : (cast(double) cast(long) x);
+}
+
+pragma(inline, true)
+@trusted
+float floor(float x) {
+    return stdc.floorf(x);
+}
+
+pragma(inline, true)
+@trusted
+double floor(double  x) {
+    return stdc.floor(x);
 }
 
 pragma(inline, true)
@@ -1048,17 +1067,29 @@ Rect floor(Rect rect) {
 }
 
 pragma(inline, true)
-float ceil(float x) {
+float ceilx(float x) {
     return (x <= 0.0f || (cast(float) cast(int) x) == x)
         ? (cast(float) cast(int) x)
         : (cast(float) cast(int) x) + 1.0f;
 }
 
 pragma(inline, true)
-double ceil(double x) {
+double ceilx(double x) {
     return (x <= 0.0 || (cast(double) cast(long) x) == x)
         ? (cast(double) cast(long) x)
         : (cast(double) cast(long) x) + 1.0;
+}
+
+pragma(inline, true)
+@trusted
+float ceil(float x) {
+    return stdc.ceilf(x);
+}
+
+pragma(inline, true)
+@trusted
+double ceil(double x) {
+    return stdc.ceil(x);
 }
 
 pragma(inline, true)
@@ -1082,17 +1113,29 @@ Rect ceil(Rect rect) {
 }
 
 pragma(inline, true)
-float round(float x) {
+float roundx(float x) {
     return (x <= 0.0f)
         ? cast(float) cast(int) (x - 0.5f)
         : cast(float) cast(int) (x + 0.5f);
 }
 
 pragma(inline, true)
-double round(double x) {
+double roundx(double x) {
     return (x <= 0.0)
         ? cast(double) cast(long) (x - 0.5)
         : cast(double) cast(long) (x + 0.5);
+}
+
+pragma(inline, true)
+@trusted
+float round(float x) {
+    return stdc.roundf(x);
+}
+
+pragma(inline, true)
+@trusted
+double round(double x) {
+    return stdc.round(x);
 }
 
 pragma(inline, true)

@@ -106,39 +106,43 @@ IStr format(A...)(IStr formatStr, A args) {
 @safe @nogc nothrow:
 
 /// Returns true if the character is a symbol (!, ", ...).
+pragma(inline, true);
 bool isSymbol(char c) {
     return (c >= '!' && c <= '/') || (c >= ':' && c <= '@') || (c >= '[' && c <= '`') || (c >= '{' && c <= '~');
 }
 
 /// Returns true if the character is a digit (0-9).
+pragma(inline, true);
 bool isDigit(char c) {
     return c >= '0' && c <= '9';
 }
 
 /// Returns true if the character is an uppercase letter (A-Z).
+pragma(inline, true);
 bool isUpper(char c) {
     return c >= 'A' && c <= 'Z';
 }
 
 /// Returns true the character is a lowercase letter (a-z).
+pragma(inline, true);
 bool isLower(char c) {
     return c >= 'a' && c <= 'z';
 }
 
 /// Returns true if the character is an alphabetic letter (A-Z or a-z).
+pragma(inline, true);
 bool isAlpha(char c) {
     return isLower(c) || isUpper(c);
 }
 
 /// Returns true if the character is a whitespace character (space, tab, ...).
+pragma(inline, true);
 bool isSpace(char c) {
-    foreach (sc; spaceChars) {
-        if (c == sc) return true;
-    }
-    return false;
+    return (c >= '\t' && c <= '\r') || (c == ' ');
 }
 
 /// Returns true if the string represents a C string.
+pragma(inline, true);
 bool isCStr(IStr str) {
     return str.length != 0 && str[$ - 1] == '\0';
 }
@@ -171,9 +175,7 @@ void toLower(Str str) {
 @trusted
 Sz cStrLength(ICStr str) {
     Sz result = 0;
-    while (str[result] != '\0') {
-        result += 1;
-    }
+    while (str[result] != '\0') result += 1;
     return result;
 }
 
