@@ -64,15 +64,15 @@ enum Hook : ubyte {
 
 /// A RGBA color using ubytes.
 struct Color {
-    ubyte r;
-    ubyte g;
-    ubyte b;
-    ubyte a;
+    ubyte r; /// The R component of the color.
+    ubyte g; /// The G component of the color.
+    ubyte b; /// The B component of the color.
+    ubyte a; /// The A component of the color.
 
-    enum length = 4;
-    enum form = "rgba";
-    enum zero = Color(0, 0, 0, 0);
-    enum one = Color(1, 1, 1, 1);
+    enum length = 4;               /// The component count of the color.
+    enum form = "rgba";            /// The form of the color.
+    enum zero = Color(0, 0, 0, 0); /// The zero value of the color.
+    enum one = Color(1, 1, 1, 1);  /// The one value of the color.
 
     @safe @nogc nothrow:
 
@@ -96,8 +96,9 @@ struct Color {
         return r == 0 && g == 0 && b == 0 && a == 0;
     }
 
-    Color alpha(ubyte a) {
-        return Color(r, g, b, a);
+    /// Returns a color with just the alpha modified.
+    Color alpha(ubyte value) {
+        return Color(r, g, b, value);
     }
 }
 
@@ -1457,12 +1458,168 @@ float easeInOutQuint(float x) {
     return x < 0.5f ? 16.0f * x * x * x * x * x : 1.0f - pow(-2.0f * x + 2.0f, 5.0f) / 2.0f;
 }
 
+pragma(inline, true)
+float easeInCirc(float x) {
+    return 1.0f - sqrt(1.0f - pow(x, 2.0f));
+}
+
+pragma(inline, true)
+float easeOutCirc(float x) {
+    return sqrt(1.0f - pow(x - 1.0f, 2.0f));
+}
+
+pragma(inline, true)
+float easeInOutCirc(float x) {
+    return x < 0.5f
+        ? (1.0f - sqrt(1.0f - pow(2.0f * x, 2.0f))) / 2.0f
+        : (sqrt(1.0f - pow(-2.0f * x + 2.0f, 2.0f)) + 1.0f) / 2.0f;
+}
+
+pragma(inline, true)
+float easeInElastic(float x) {
+    enum c4 = (2.0f * pi) / 3.0f;
+
+    return x == 0.0f
+        ? 0.0f
+        : x == 1.0f
+        ? 1.0f
+        : -pow(2.0f, 10.0f * x - 10.0f) * sin((x * 10.0f - 10.75f) * c4);
+}
+
+pragma(inline, true)
+float easeOutElastic(float x) {
+    enum c4 = (2.0f * pi) / 3.0f;
+
+    return x == 0.0f
+        ? 0.0f
+        : x == 1.0f
+        ? 1.0f
+        : pow(2.0f, -10.0f * x) * sin((x * 10.0f - 0.75f) * c4) + 1.0f;
+}
+
+pragma(inline, true)
+float easeInOutElastic(float x) {
+    enum c5 = (2.0f * pi) / 4.5f;
+
+    return x == 0.0f
+        ? 0.0f
+        : x == 1.0f
+        ? 1.0f
+        : x < 0.5f
+        ? -(pow(2.0f, 20.0f * x - 10.0f) * sin((20.0f * x - 11.125f) * c5)) / 2.0f
+        : (pow(2.0f, -20.0f * x + 10.0f) * sin((20.0f * x - 11.125f) * c5)) / 2.0f + 1.0f;
+}
+
+pragma(inline, true)
+float easeInQuad(float x) {
+    return x * x;
+}
+
+pragma(inline, true)
+float easeOutQuad(float x) {
+    return 1.0f - (1.0f - x) * (1.0f - x);
+}
+
+pragma(inline, true)
+float easeInOutQuad(float x) {
+    return x < 0.5f ? 2.0f * x * x : 1.0f - pow(-2.0f * x + 2.0f, 2.0f) / 2.0f;
+}
+
+pragma(inline, true)
+float easeInQuart(float x) {
+    return x * x * x * x;
+}
+
+pragma(inline, true)
+float easeOutQuart(float x) {
+    return 1.0f - pow(1.0f - x, 4.0f);
+}
+
+pragma(inline, true)
+float easeInOutQuart(float x) {
+    return x < 0.5f ? 8.0f * x * x * x * x : 1.0f - pow(-2.0f * x + 2.0f, 4.0f) / 2.0f;
+}
+
+pragma(inline, true)
+float easeInExpo(float x) {
+    return x == 0.0f ? 0.0f : pow(2.0f, 10.0f * x - 10.0f);
+}
+
+pragma(inline, true)
+float easeOutExpo(float x) {
+    return x == 1.0f ? 1.0f : 1.0f - pow(2.0f, -10.0f * x);
+}
+
+pragma(inline, true)
+float easeInOutExpo(float x) {
+    return x == 0.0f
+        ? 0.0f
+        : x == 1.0f
+        ? 1.0f
+        : x < 0.5f ? pow(2.0f, 20.0f * x - 10.0f) / 2.0f
+        : (2.0f - pow(2.0f, -20.0f * x + 10.0f)) / 2.0f;
+}
+
+pragma(inline, true)
+float easeInBack(float x) {
+    enum c1 = 1.70158f;
+    enum c3 = c1 + 1.0f;
+
+    return c3 * x * x * x - c1 * x * x;
+}
+
+pragma(inline, true)
+float easeOutBack(float x) {
+    enum c1 = 1.70158f;
+    enum c3 = c1 + 1.0f;
+
+    return 1.0f + c3 * pow(x - 1.0f, 3.0f) + c1 * pow(x - 1.0f, 2.0f);
+}
+
+pragma(inline, true)
+float easeInOutBack(float x) {
+    enum c1 = 1.70158f;
+    enum c2 = c1 * 1.525f;
+
+    return x < 0.5f
+        ? (pow(2.0f * x, 2.0f) * ((c2 + 1.0f) * 2.0f * x - c2)) / 2.0f
+        : (pow(2.0f * x - 2.0f, 2.0f) * ((c2 + 1.0f) * (x * 2.0f - 2.0f) + c2) + 2.0f) / 2.0f;
+}
+
+pragma(inline, true)
+float easeInBounce(float x) {
+    return 1.0f - easeOutBounce(1.0f - x);
+}
+
+pragma(inline, true)
+float easeOutBounce(float x) {
+    enum n1 = 7.5625f;
+    enum d1 = 2.75f;
+
+    return (x < 1.0f / d1)
+        ? n1 * x * x
+        : (x < 2.0f / d1)
+        ? n1 * (x -= 1.5f / d1) * x + 0.75f
+        : (x < 2.5f / d1)
+        ? n1 * (x -= 2.25f / d1) * x + 0.9375f
+        : n1 * (x -= 2.625f / d1) * x + 0.984375f;
+}
+
+pragma(inline, true)
+float easeInOutBounce(float x) {
+    return x < 0.5f
+        ? (1.0f - easeOutBounce(1.0f - 2.0f * x)) / 2.0f
+        : (1.0f + easeOutBounce(2.0f * x - 1.0f)) / 2.0f;
+}
+
+pragma(inline, true)
 float moveTo(float from, float to, float delta) {
     return (abs(to - from) > abs(delta))
         ? from + sign(to - from) * delta
         : to;
 }
 
+pragma(inline, true)
 double moveTo(double from, double to, double delta) {
     return (abs(to - from) > abs(delta))
         ? from + sign(to - from) * delta
