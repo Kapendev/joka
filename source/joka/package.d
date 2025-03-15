@@ -12,4 +12,5 @@ public import joka.ascii;
 public import joka.containers;
 public import joka.io;
 public import joka.math;
+public import joka.memory;
 public import joka.types;

@@ -10,8 +10,8 @@
 module joka.containers;
 
 import joka.ascii;
+import joka.memory;
 import joka.types;
-import stdc = joka.stdc;
 
 @safe @nogc nothrow:
 
@@ -90,7 +90,7 @@ struct List(T) {
         Sz newLength = length + 1;
         if (newLength > capacity) {
             capacity = findListCapacity(newLength);
-            items = (cast(T*) stdc.realloc(items.ptr, capacity * T.sizeof))[0 .. newLength];
+            items = (cast(T*) jokaRealloc(items.ptr, capacity * T.sizeof))[0 .. newLength];
         } else {
             items = items.ptr[0 .. newLength];
         }
@@ -141,7 +141,7 @@ struct List(T) {
         auto targetCapacity = findListCapacity(newCapacity);
         if (targetCapacity > capacity) {
             capacity = targetCapacity;
-            items = (cast(T*) stdc.realloc(items.ptr, capacity * T.sizeof))[0 .. length];
+            items = (cast(T*) jokaRealloc(items.ptr, capacity * T.sizeof))[0 .. length];
         }
     }
 
@@ -178,7 +178,7 @@ struct List(T) {
 
     @trusted
     void free() {
-        stdc.free(items.ptr);
+        jokaFree(items.ptr);
         items = [];
         capacity = 0;
     }
@@ -759,19 +759,19 @@ struct Arena {
     @safe @nogc nothrow:
 
     this(Sz capacity) {
-        allocSelf(capacity);
+        mallocSelf(capacity);
     }
 
     @trusted
-    void allocSelf(Sz newCapacity) {
+    void mallocSelf(Sz newCapacity) {
         free();
-        data = cast(ubyte*) stdc.malloc(newCapacity);
+        data = cast(ubyte*) jokaMalloc(newCapacity);
         capacity = newCapacity;
         offset = 0;
     }
 
     @trusted
-    void* alloc(Sz size, Sz alignment) {
+    void* malloc(Sz size, Sz alignment) {
         if (size == 0 || alignment == 0) {
             assert(0, "Size or alignment is zero.");
         }
@@ -788,8 +788,18 @@ struct Arena {
     }
 
     @trusted
+    void* realloc(void* ptr, Sz oldSize, Sz newSize, Sz alignment) {
+        if (ptr == null) return malloc(newSize, alignment);
+        if (oldSize >= newSize) return null;
+        auto newPtr = malloc(newSize, alignment);
+        if (newPtr == null) return null;
+        jokaMemcpy(newPtr, ptr, oldSize);
+        return newPtr;
+    }
+
+    @trusted
     T* makeBlank(T)() {
-        return cast(T*) alloc(T.sizeof, T.alignof);
+        return cast(T*) malloc(T.sizeof, T.alignof);
     }
 
     T* make(T)() {
@@ -807,7 +817,7 @@ struct Arena {
 
     @trusted
     T[] makeSliceBlank(T)(Sz length) {
-        return (cast(T*) alloc(T.sizeof * length, T.alignof))[0 .. length];
+        return (cast(T*) malloc(T.sizeof * length, T.alignof))[0 .. length];
     }
 
     T[] makeSlice(T)(Sz length) {
@@ -833,7 +843,7 @@ struct Arena {
 
     @trusted
     free() {
-        stdc.free(data);
+        jokaFree(data);
         data = null;
         capacity = 0;
         offset = 0;
@@ -1162,8 +1172,8 @@ unittest {
     arena.clear();
     assert(arena.offset == 0);
     assert(arena.data != null);
-    assert(arena.alloc(1024, 1) != null);
-    assert(arena.alloc(1024, 1) == null);
+    assert(arena.malloc(1024, 1) != null);
+    assert(arena.malloc(1024, 1) == null);
     arena.free();
     assert(arena.capacity == 0);
     assert(arena.offset == 0);

@@ -14,19 +14,21 @@ import stdc = joka.stdc;
 
 @safe @nogc nothrow:
 
-enum epsilon = 0.000100f;   /// The value of epsilon.
-enum euler   = 2.718281f;   /// The value of Euler's number.
-enum log2e   = 1.442695f;   /// The value of log2(e).
-enum log10e  = 0.434294f;   /// The value of log10(e).
-enum ln2     = 0.693147f;   /// The value of ln(2).
-enum ln10    = 2.302585f;   /// The value of ln(10).
-enum pi      = 3.141592f;   /// The value of PI.
-enum pi2     = pi / 2.0f;   /// The value of PI / 2.
-enum pi4     = pi / 4.0f;   /// The value of PI / 4.
-enum pi180   = pi / 180.0f; /// The value of PI / 180.
-enum dpi     = 1.0f / pi;   /// The value of 1 / PI.
-enum dpi2    = 2.0f / pi;   /// The value of 2 / PI.
-enum dpi180  = 180.0f / pi; /// The value of 180 / PI.
+enum epsilon = 0.000100;                              /// The value of epsilon.
+enum euler   = 2.71828182845904523536028747135266249; /// The value of Euler's number.
+enum log2e   = 1.44269504088896340735992468100189214; /// The value of log2(e).
+enum log10e  = 0.43429448190325182765112891891660508; /// The value of log10(e).
+enum ln2     = 0.69314718055994530941723212145817656; /// The value of ln(2).
+enum ln10    = 2.30258509299404568401799145468436421; /// The value of ln(10).
+enum pi      = 3.14159265358979323846264338327950288; /// The value of PI.
+enum pi2     = pi / 2.0;                              /// The value of PI / 2.
+enum pi4     = pi / 4.0;                              /// The value of PI / 4.
+enum pi180   = pi / 180.0;                            /// The value of PI / 180.
+enum dpi     = 1.0 / pi;                              /// The value of 1 / PI.
+enum dpi2    = 2.0 / pi;                              /// The value of 2 / PI.
+enum dpi180  = 180.0 / pi;                            /// The value of 180 / PI.
+enum sqrt2   = 1.41421356237309504880168872420969808; /// The value of sqrt(2).
+enum dsqrt2  = 0.70710678118654752440084436210484903; /// The value of 1 / sqrt(2).
 
 enum black   = Color(0);             /// Black black.
 enum white   = Color(255);           /// White white.
@@ -1408,6 +1410,51 @@ float smootherstep(float from, float to, float weight) {
 double smootherstep(double from, double to, double weight) {
     auto v = weight * weight * weight * (weight * (weight * 6.0 - 15.0) + 10.0);
     return (to * v) + (from * (1.0 - v));
+}
+
+pragma(inline, true)
+float easeInSine(float x) {
+    return 1.0f - cos((x * pi) / 2.0f);
+}
+
+pragma(inline, true)
+float easeOutSine(float x) {
+    return sin((x * pi) / 2.0f);
+}
+
+pragma(inline, true)
+float easeInOutSine(float x) {
+    return -(cos(pi * x) - 1.0f) / 2.0f;
+}
+
+pragma(inline, true)
+float easeInCubic(float x) {
+    return x * x * x;
+}
+
+pragma(inline, true)
+float easeOutCubic(float x) {
+    return 1.0f - pow(1.0f - x, 3.0f);
+}
+
+pragma(inline, true)
+float easeInOutCubic(float x) {
+    return x < 0.5f ? 4.0f * x * x * x : 1.0f - pow(-2.0f * x + 2.0f, 3.0f) / 2.0f;
+}
+
+pragma(inline, true)
+float easeInQuint(float x) {
+    return x * x * x * x * x;
+}
+
+pragma(inline, true)
+float easeOutQuint(float x) {
+    return 1.0f - pow(1.0f - x, 5.0f);
+}
+
+pragma(inline, true)
+float easeInOutQuint(float x) {
+    return x < 0.5f ? 16.0f * x * x * x * x * x : 1.0f - pow(-2.0f * x + 2.0f, 5.0f) / 2.0f;
 }
 
 float moveTo(float from, float to, float delta) {
