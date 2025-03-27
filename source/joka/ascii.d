@@ -154,9 +154,7 @@ char toUpper(char c) {
 
 /// Converts all lowercase letters in the string to uppercase.
 void toUpper(Str str) {
-    foreach (ref c; str) {
-        c = toUpper(c);
-    }
+    foreach (ref c; str) c = toUpper(c);
 }
 
 /// Converts the character to lowercase if it is an uppercase letter.
@@ -166,9 +164,7 @@ char toLower(char c) {
 
 /// Converts all uppercase letters in the string to lowercase.
 void toLower(Str str) {
-    foreach (ref c; str) {
-        c = toLower(c);
-    }
+    foreach (ref c; str) c = toLower(c);
 }
 
 /// Returns the length of the C string.
@@ -182,9 +178,7 @@ Sz cStrLength(ICStr str) {
 /// Returns true if the two strings are equal, ignoring case.
 bool equalsNoCase(IStr str, IStr other) {
     if (str.length != other.length) return false;
-    foreach (i; 0 .. str.length) {
-        if (toUpper(str[i]) != toUpper(other[i])) return false;
-    }
+    foreach (i; 0 .. str.length) if (toUpper(str[i]) != toUpper(other[i])) return false;
     return true;
 }
 
@@ -261,6 +255,24 @@ int findEnd(IStr str, char item) {
     return findEnd(str, charToStr(item));
 }
 
+/// Finds the first occurrence of the specified item in the slice, or returns -1 if not found.
+int findItem(IStr[] items, IStr item) {
+    foreach (i, it; items) if (it == item) return cast(int) i;
+    return -1;
+}
+
+/// Finds the first occurrence of the specified start in the slice, or returns -1 if not found.
+int findItemThatStartsWith(IStr[] items, IStr start) {
+    foreach (i, it; items) if (it.startsWith(start)) return cast(int) i;
+    return -1;
+}
+
+/// Finds the first occurrence of the specified end in the slice, or returns -1 if not found.
+int findItemThatEndsWith(IStr[] items, IStr end) {
+    foreach (i, it; items) if (it.endsWith(end)) return cast(int) i;
+    return -1;
+}
+
 /// Removes whitespace characters from the beginning of the string.
 IStr trimStart(IStr str) {
     IStr result = str;
@@ -288,29 +300,20 @@ IStr trim(IStr str) {
 
 /// Removes the specified prefix from the beginning of the string if it exists.
 IStr removePrefix(IStr str, IStr prefix) {
-    if (str.startsWith(prefix)) {
-        return str[prefix.length .. $];
-    } else {
-        return str;
-    }
+    if (str.startsWith(prefix)) return str[prefix.length .. $];
+    else return str;
 }
 
 /// Removes the specified suffix from the end of the string if it exists.
 IStr removeSuffix(IStr str, IStr suffix) {
-    if (str.endsWith(suffix)) {
-        return str[0 .. $ - suffix.length];
-    } else {
-        return str;
-    }
+    if (str.endsWith(suffix)) return str[0 .. $ - suffix.length];
+    else return str;
 }
 
 /// Advances the string by the specified number of characters.
 IStr advanceStr(IStr str, Sz amount) {
-    if (str.length < amount) {
-        return str[$ .. $];
-    } else {
-        return str[amount .. $];
-    }
+    if (str.length < amount) return str[$ .. $];
+    else return str[amount .. $];
 }
 
 /// Copies characters from the source string to the destination string starting at the specified index.
