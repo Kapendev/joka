@@ -29,8 +29,8 @@ alias ICStr   = const(char)*;   /// A C string of constant chars.
 alias ICStr16 = const(wchar)*;  /// A C string of constant wchars.
 alias ICStr32 = const(dchar)*;  /// A C string of constant dchars.
 
+alias UnionType = ubyte;
 alias AliasArgs(A...) = A;
-alias VariantType = ubyte;
 
 /// A type representing error values.
 enum Fault : ubyte {
@@ -105,7 +105,7 @@ struct Result(T) {
     }
 }
 
-union VariantValue(A...) {
+union UnionValue(A...) {
     static assert(A.length != 0, "Arguments must contain at least one element.");
 
     static foreach (i, T; A) {
@@ -117,20 +117,22 @@ union VariantValue(A...) {
     }
 
     alias Types = A;
+    alias Base = A[0];
 }
 
-struct Variant(A...) {
-    VariantValue!A value;
-    VariantType type;
+struct Union(A...) {
+    UnionValue!A value;
+    UnionType type;
 
     alias Types = A;
+    alias Base = A[0];
 
     @safe @nogc nothrow:
 
     static foreach (i, T; A) {
         @trusted
         this(T value) {
-            auto temp = VariantValue!A();
+            auto temp = UnionValue!A();
             *(cast(T*) &temp) = value;
             this.value = temp;
             this.type = i;
@@ -140,7 +142,7 @@ struct Variant(A...) {
     static foreach (i, T; A) {
         @trusted
         void opAssign(T rhs) {
-            auto temp = VariantValue!A();
+            auto temp = UnionValue!A();
             *(cast(T*) &temp) = rhs;
             value = temp;
             type = i;
@@ -176,6 +178,11 @@ struct Variant(A...) {
     }
 
     @trusted
+    ref Base getBase() {
+        return value.m0;
+    }
+
+    @trusted
     auto call(IStr func, AA...)(AA args) {
         switch (type) {
             static foreach (i, T; A) {
@@ -197,13 +204,18 @@ struct Variant(A...) {
     }
 }
 
+pragma(inline, true);
+T or(T)(T a, T b) {
+    return a ? a : b;
+}
+
 /// Converts the value to a fault.
 Fault toFault(bool value, Fault other = Fault.some) {
     return value ? other : Fault.none;
 }
 
-T toVariant(T)(VariantType type) {
-    static assert(isVariantType!T, "Type `" ~ T.stringof  ~ "` is not a variant.");
+T toUnion(T)(UnionType type) {
+    static assert(isUnionType!T, "Type `" ~ T.stringof  ~ "` is not a variant.");
 
     T result;
     static foreach (i, Type; T.Types) {
@@ -220,8 +232,8 @@ T toVariant(T)(VariantType type) {
     return result;
 }
 
-T toVariant(T)(IStr typeName) {
-    static assert(isVariantType!T, "Type `" ~ T.stringof  ~ "` is not a variant.");
+T toUnion(T)(IStr typeName) {
+    static assert(isUnionType!T, "Type `" ~ T.stringof  ~ "` is not a variant.");
 
     T result;
     static foreach (i, Type; T.Types) {
@@ -238,8 +250,8 @@ T toVariant(T)(IStr typeName) {
     return result;
 }
 
-bool isVariantType(T)() {
-    return is(T : Variant!A, A...);
+bool isUnionType(T)() {
+    return is(T : Union!A, A...);
 }
 
 bool isBoolType(T)() {
@@ -456,7 +468,10 @@ mixin template addXyzwOps(T, Sz N, IStr form = "xyzw") {
 
 // Function test.
 unittest {
-    alias Number = Variant!(float, double);
+    alias Number = Union!(float, double);
+
+    assert(0.or(1) == 1);
+    assert(2.or(1) == 2);
 
     assert(toFault(false) == Fault.none);
     assert(toFault(true) == Fault.some);
@@ -468,10 +483,10 @@ unittest {
     assert(isArrayType!(int[3]) == true);
     assert(isArrayType!(typeof(toStaticArray!([1, 2, 3]))));
 
-    assert(toVariant!Number(Number.typeOf!float).get!float() == 0);
-    assert(toVariant!Number(Number.typeOf!double).get!double() == 0);
-    assert(toVariant!Number(Number.typeNameOf!float).get!float() == 0);
-    assert(toVariant!Number(Number.typeNameOf!double).get!double() == 0);
+    assert(toUnion!Number(Number.typeOf!float).get!float() == 0);
+    assert(toUnion!Number(Number.typeOf!double).get!double() == 0);
+    assert(toUnion!Number(Number.typeNameOf!float).get!float() == 0);
+    assert(toUnion!Number(Number.typeNameOf!double).get!double() == 0);
 }
 
 // Result test.
@@ -501,7 +516,7 @@ unittest {
 
 // Variant test.
 unittest {
-    alias Number = Variant!(float, double);
+    alias Number = Union!(float, double);
 
     assert(Number().typeName == "float");
     assert(Number().isType!float == true);

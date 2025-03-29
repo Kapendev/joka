@@ -8,10 +8,11 @@ int main(string[] args) {
     if (args.length == 1)                        { echo("Usage: run examples/hello.d"); return 1; }
     if (ls.findItemThatEndsWith("source") == -1) { echo("Run inside the root folder."); return 1; }
     isCmdLineHidden = true;
-    IStr[] dmd = ["dmd", "-betterC", "-Isource"];
-    dmd ~= find(jokaDir, ".d");
-    dmd ~= ["-run", args[1]];
-    return cmd(dmd);
+    foreach (arg; args[1 .. $]) {
+        logi(arg);
+        if (cmd("dmd", "-betterC", "-i", "-Isource", "-run", args[1])) return 1;
+    }
+    return 0;
 }
 
 // [Noby Library]
