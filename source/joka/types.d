@@ -61,15 +61,18 @@ struct Result(T) {
 
     @safe @nogc nothrow:
 
+    pragma(inline, true);
     this(T value) {
         this.value = value;
         this.fault = Fault.none;
     }
 
+    pragma(inline, true);
     this(Fault fault) {
         this.fault = fault;
     }
 
+    pragma(inline, true);
     this(T value, Fault fault) {
         if (fault) {
             this.fault = fault;
@@ -80,31 +83,32 @@ struct Result(T) {
     }
 
     /// Returns the result value. Asserts when the result is an error.
+    pragma(inline, true);
     T get() {
         if (fault) assert(0, "Fault was detected.");
         return value;
     }
 
     /// Returns the result value. Returns a default value when the result is an error.
+    pragma(inline, true);
     T getOr(T other) {
-        if (fault) {
-            return other;
-        } else {
-            return value;
-        }
+        return fault ? other : value;
     }
 
     /// Returns the result value. Returns a default value when the result is an error.
+    pragma(inline, true);
     T getOr() {
         return value;
     }
 
     /// Returns true when the result is an error.
+    pragma(inline, true);
     bool isNone() {
         return fault != 0;
     }
 
     /// Returns true when the result is a value.
+    pragma(inline, true);
     bool isSome() {
         return fault == 0;
     }
@@ -207,11 +211,6 @@ struct Union(A...) {
         static assert(isInAliasArgs!(T, A), "Type `" ~ T.stringof ~ "` is not part of the variant.");
         enum typeNameOf = T.stringof;
     }
-}
-
-pragma(inline, true);
-T or(T)(T a, T b) {
-    return a ? a : b;
 }
 
 /// Converts the value to a fault.
@@ -475,9 +474,6 @@ mixin template addXyzwOps(T, Sz N, IStr form = "xyzw") {
 // Function test.
 unittest {
     alias Number = Union!(float, double);
-
-    assert(0.or(1) == 1);
-    assert(2.or(1) == 2);
 
     assert(toFault(false) == Fault.none);
     assert(toFault(true) == Fault.some);
