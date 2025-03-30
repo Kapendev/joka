@@ -12,7 +12,7 @@ module joka.io;
 import joka.ascii;
 import joka.containers;
 import joka.types;
-import stdc = joka.stdc;
+import stdc = joka.stdc.stdio;
 
 @trusted
 void printf(A...)(IStr text, A args) {

@@ -16,7 +16,6 @@ alias Sz      = size_t;         /// The result of sizeof, ...
 alias Str     = char[];         /// A string slice of chars.
 alias Str16   = wchar[];        /// A string slice of wchars.
 alias Str32   = dchar[];        /// A string slice of dchars.
-
 alias IStr    = const(char)[];  /// A string slice of constant chars.
 alias IStr16  = const(wchar)[]; /// A string slice of constant wchars.
 alias IStr32  = const(dchar)[]; /// A string slice of constant dchars.
@@ -24,13 +23,19 @@ alias IStr32  = const(dchar)[]; /// A string slice of constant dchars.
 alias CStr    = char*;          /// A C string of chars.
 alias CStr16  = wchar*;         /// A C string of wchars.
 alias CStr32  = dchar*;         /// A C string of dchars.
-
 alias ICStr   = const(char)*;   /// A C string of constant chars.
 alias ICStr16 = const(wchar)*;  /// A C string of constant wchars.
 alias ICStr32 = const(dchar)*;  /// A C string of constant dchars.
 
 alias UnionType = ubyte;
 alias AliasArgs(A...) = A;
+
+deprecated("Use UnionType instead.")
+alias VariantType = UnionType;
+deprecated("Use UnionValue instead.")
+alias VariantValue = UnionValue;
+deprecated("Use Union instead.")
+alias Variant = Union;
 
 /// A type representing error values.
 enum Fault : ubyte {
@@ -210,6 +215,7 @@ T or(T)(T a, T b) {
 }
 
 /// Converts the value to a fault.
+pragma(inline, true);
 Fault toFault(bool value, Fault other = Fault.some) {
     return value ? other : Fault.none;
 }

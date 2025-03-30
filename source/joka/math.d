@@ -10,7 +10,7 @@
 module joka.math;
 
 import joka.types;
-import stdc = joka.stdc;
+import stdc = joka.stdc.math;
 
 @safe @nogc nothrow:
 

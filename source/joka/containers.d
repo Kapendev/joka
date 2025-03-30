@@ -34,10 +34,7 @@ struct List(T) {
 
     @trusted
     this(const(T)[] args...) {
-        resizeBlank(args.length);
-        foreach (i, ref item; items) {
-            item = cast(T) args[i];
-        }
+        append(args);
     }
 
     T[] opSlice(Sz dim)(Sz i, Sz j) {
@@ -193,10 +190,7 @@ struct FixedList(T, Sz N = defaultFixedListCapacity) {
 
     @trusted
     this(const(T)[] args...) {
-        length = args.length;
-        foreach (i, ref item; data[0 .. length]) {
-            item = cast(T) args[i];
-        }
+        append(args);
     }
 
     T[] opSlice(Sz dim)(Sz i, Sz j) {
@@ -321,9 +315,7 @@ struct SparseList(T) {
     @safe @nogc nothrow:
 
     this(const(T)[] args...) {
-        foreach (arg; args) {
-            append(arg);
-        }
+        append(args);
     }
 
     ref T opIndex(Sz i) {

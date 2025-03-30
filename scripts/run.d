@@ -10,7 +10,7 @@ int main(string[] args) {
     isCmdLineHidden = true;
     foreach (arg; args[1 .. $]) {
         logi(arg);
-        if (cmd("dmd", "-betterC", "-i", "-Isource", "-run", args[1])) return 1;
+        if (cmd("dmd", "-betterC", "-i", "-Isource", "-run", arg)) return 1;
     }
     return 0;
 }
