@@ -20,6 +20,15 @@ It provides data structures and functions that work without garbage collection, 
 This project supports WebAssembly with BetterC, but you'll need something like Emscripten to make it work.
 If you encounter errors with BetterC, try using the `-i` flag.
 
+## Documentation
+
+Start with the [examples](./examples/) folder for a quick overview.
+To test an example, run something like:
+
+```cmd
+dmd -run scripts/run.d examples/hello.d
+```
+
 ## Why are you not using X library?
 
 Because I like code that looks like C, whereas most people write code that looks like C++.
