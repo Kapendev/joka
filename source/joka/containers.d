@@ -95,10 +95,9 @@ struct List(T) {
 
     @trusted
     void append(const(T)[] args...) {
-        foreach (arg; args) {
-            appendBlank();
-            items[$ - 1] = cast(T) arg;
-        }
+        auto oldLength = length;
+        resizeBlank(length + args.length);
+        jokaMemcpy(ptr + oldLength, args.ptr, args.length * T.sizeof);
     }
 
     void remove(Sz i) {
@@ -107,7 +106,7 @@ struct List(T) {
     }
 
     void removeShift(Sz i) {
-        foreach (j; i .. items.length - 1) {
+        foreach (j; i .. length - 1) {
             items[j] = items[j + 1];
         }
         items = items[0 .. $ - 1];
@@ -156,9 +155,7 @@ struct List(T) {
         auto oldLength = length;
         resizeBlank(newLength);
         if (newLength > oldLength) {
-            foreach (i; 0 .. newLength - oldLength) {
-                items[$ - i - 1] = T.init;
-            }
+            foreach (i; 0 .. newLength - oldLength) items[$ - i - 1] = T.init;
         }
     }
 
@@ -242,12 +239,18 @@ struct FixedList(T, Sz N = defaultFixedListCapacity) {
         return length == 0;
     }
 
+    void appendBlank() {
+        length += 1;
+        if (length > items.length) {
+            assert(0, "Fixed list is full.");
+        }
+    }
+
     @trusted
     void append(const(T)[] args...) {
-        foreach (arg; args) {
-            length += 1;
-            items[$ - 1] = cast(T) arg;
-        }
+        auto oldLength = length;
+        resizeBlank(length + args.length);
+        jokaMemcpy(ptr + oldLength, args.ptr, args.length * T.sizeof);
     }
 
     void remove(Sz i) {
@@ -282,13 +285,18 @@ struct FixedList(T, Sz N = defaultFixedListCapacity) {
         }
     }
 
-    void resize(Sz length) {
-        if (length <= this.length) {
-            this.length = length;
-        } else {
-            foreach (i; 0 .. length - this.length) {
-                append(T.init);
-            }
+    void resizeBlank(Sz newLength) {
+        length = newLength;
+        if (length > items.length) {
+            assert(0, "Fixed list is full.");
+        }
+    }
+
+    void resize(Sz newLength) {
+        auto oldLength = length;
+        resizeBlank(newLength);
+        if (newLength > oldLength) {
+            foreach (i; 0 .. newLength - oldLength) items[$ - i - 1] = T.init;
         }
     }
 
@@ -858,13 +866,12 @@ IStr formatIntoList(A...)(ref LStr buffer, IStr formatStr, A args) {
     while (formatStrIndex < formatStr.length) {
         auto c1 = formatStr[formatStrIndex];
         auto c2 = formatStrIndex + 1 >= formatStr.length ? '+' : formatStr[formatStrIndex + 1];
-        if (c1 == '{' && c2 == '}' && argIndex < args.length) {
+        if (c1 == '{' && c2 == '}') {
+            if (argIndex >= args.length) assert(0, "A placeholder doesn't have an argument.");
             static foreach (i, arg; args) {
                 if (i == argIndex) {
                     auto temp = toStr(arg);
-                    foreach (i, c; temp) {
-                        buffer.append(c);
-                    }
+                    buffer.append(temp);
                     formatStrIndex += 2;
                     argIndex += 1;
                     goto loopExit;
@@ -876,6 +883,7 @@ IStr formatIntoList(A...)(ref LStr buffer, IStr formatStr, A args) {
             formatStrIndex += 1;
         }
     }
+    if (argIndex != args.length) assert(0, "An argument doesn't have a placeholder.");
     return buffer[];
 }
 
@@ -938,6 +946,8 @@ unittest {
     text.reserve(defaultListCapacity + 1);
     assert(text.length == 0);
     assert(text.capacity == defaultListCapacity * 2);
+    assert(text.formatIntoList("Hello {}!", "world") == "Hello world!");
+    assert(text.formatIntoList("({}, {})", -69, -420) == "(-69, -420)");
     text.free();
 }
 

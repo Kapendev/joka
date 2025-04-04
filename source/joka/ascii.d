@@ -9,6 +9,7 @@
 /// The `ascii` module provides functions designed to assist with ascii strings.
 module joka.ascii;
 
+import joka.memory;
 import joka.types;
 
 @safe:
@@ -22,10 +23,14 @@ enum symbolChars = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"; /// The set of symbol c
 
 version (Windows) {
     enum pathSep = '\\';
+    enum pathSepStr = "\\";
     enum pathSepOther = '/';
+    enum pathSepOtherStr = "/";
 } else {
-    enum pathSep = '/';       /// The primary OS path separator.
-    enum pathSepOther = '\\'; /// The complementary OS path separator.
+    enum pathSep = '/';          /// The primary OS path separator as a character.
+    enum pathSepStr = "/";       /// The primary OS path separator as a string.
+    enum pathSepOther = '\\';    /// The complementary OS path separator as a character.
+    enum pathSepOtherStr = "\\"; /// The complementary OS path separator as a string.
 }
 
 /// Converts the value to its string representation.
@@ -64,17 +69,15 @@ IStr formatIntoBuffer(A...)(Str buffer, IStr formatStr, A args) {
     auto resultIndex = 0;
     auto formatStrIndex = 0;
     auto argIndex = 0;
-
     while (formatStrIndex < formatStr.length) {
         auto c1 = formatStr[formatStrIndex];
         auto c2 = formatStrIndex + 1 >= formatStr.length ? '+' : formatStr[formatStrIndex + 1];
-        if (c1 == '{' && c2 == '}' && argIndex < args.length) {
+        if (c1 == '{' && c2 == '}') {
+            if (argIndex >= args.length) assert(0, "A placeholder doesn't have an argument.");
             static foreach (i, arg; args) {
                 if (i == argIndex) {
                     auto temp = toStr(arg);
-                    foreach (i, c; temp) {
-                        result[resultIndex + i] = c;
-                    }
+                    copyChars(result, temp, resultIndex);
                     resultIndex += temp.length;
                     formatStrIndex += 2;
                     argIndex += 1;
@@ -88,6 +91,7 @@ IStr formatIntoBuffer(A...)(Str buffer, IStr formatStr, A args) {
             formatStrIndex += 1;
         }
     }
+    if (argIndex != args.length) assert(0, "An argument doesn't have a placeholder.");
     result = result[0 .. resultIndex];
     return result;
 }
@@ -317,9 +321,10 @@ IStr advanceStr(IStr str, Sz amount) {
 }
 
 /// Copies characters from the source string to the destination string starting at the specified index.
+@trusted
 Fault copyChars(Str str, IStr source, Sz startIndex = 0) {
-    if (str.length < source.length) return Fault.overflow;
-    foreach (i, c; source) str[startIndex + i] = c;
+    if (str.length < source.length + startIndex) return Fault.overflow;
+    jokaMemcpy(&str[startIndex], source.ptr, source.length);
     return Fault.none;
 }
 
@@ -354,11 +359,18 @@ IStr concat(IStr[] args...) {
     return concatIntoBuffer(buffers[bufferIndex][], args);
 }
 
-/// Extracts and returns the directory part of the path, or "." if there is no directory.
-IStr pathDir(IStr path) {
-    auto end = findEnd(path, pathSep);
+/// Extracts and returns the directory name part of the path, or "." if there is no directory.
+IStr pathDirName(IStr path) {
+    auto end = findEnd(path, pathSepStr);
     if (end == -1) return ".";
     else return path[0 .. end];
+}
+
+/// Extracts and returns the base name part of the path, or "." if there is no directory.
+IStr pathBaseName(IStr path) {
+    auto end = findEnd(path, pathSepStr);
+    if (end == -1) return ".";
+    else return path[end + 1 .. $];
 }
 
 /// Formats the path to a standard form, normalizing separators.
@@ -393,7 +405,7 @@ IStr pathConcat(IStr[] args...) {
         result.copyChars(arg, length);
         length += arg.length;
         if (i != args.length - 1) {
-            result.copyChars(charToStr(pathSep), length);
+            result.copyChars(pathSepStr, length);
             length += 1;
         }
     }
@@ -744,8 +756,10 @@ unittest {
     assert(str.advanceStr(1) == str[1 .. $]);
     assert(str.advanceStr(str.length) == "");
     assert(str.advanceStr(str.length + 1) == "");
-    assert(pathConcat("one", "two").pathDir() == "one");
-    assert(pathConcat("one").pathDir() == ".");
+    assert(pathConcat("one", "two").pathDirName() == "one");
+    assert(pathConcat("one").pathDirName() == ".");
+    assert(pathConcat("one", "two").pathBaseName() == "two");
+    assert(pathConcat("one").pathBaseName() == ".");
     assert(pathFormat("one/two") == pathConcat("one", "two"));
     assert(pathFormat("one\\two") == pathConcat("one", "two"));
 
@@ -876,7 +890,6 @@ unittest {
 
     assert(toCStr("Hello").getOr().cStrLength == "Hello".length);
     assert(toCStr("Hello").getOr().cStrToStr() == "Hello");
-
-    // TODO: Write more tests for `format` when it is done.
     assert(format("Hello {}!", "world") == "Hello world!");
+    assert(format("({}, {})", -69, -420) == "(-69, -420)");
 }

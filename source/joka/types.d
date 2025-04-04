@@ -30,13 +30,6 @@ alias ICStr32 = const(dchar)*;  /// A C string of constant dchars.
 alias UnionType = ubyte;
 alias AliasArgs(A...) = A;
 
-deprecated("Use UnionType instead.")
-alias VariantType = UnionType;
-deprecated("Use UnionValue instead.")
-alias VariantValue = UnionValue;
-deprecated("Use Union instead.")
-alias Variant = Union;
-
 /// A type representing error values.
 enum Fault : ubyte {
     none,      /// Not an error.

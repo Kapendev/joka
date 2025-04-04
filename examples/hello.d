@@ -11,7 +11,6 @@ struct Person {
     }
 }
 
-extern(C)
 void main() {
     println("Hello Ghadius!");
     println(Person("Joka"), " Hee hee!");
