@@ -100,7 +100,7 @@ IStr formatIntoBuffer(A...)(Str buffer, IStr formatStr, A args) {
 /// For details on formatting, see the `formatIntoBuffer` function.
 @trusted
 IStr format(A...)(IStr formatStr, A args) {
-    static char[1024][8] buffers = void;
+    static char[512][8] buffers = void;
     static byte bufferIndex = 0;
 
     bufferIndex = (bufferIndex + 1) % buffers.length;
@@ -330,7 +330,8 @@ Fault copyChars(Str str, IStr source, Sz startIndex = 0) {
 
 /// Copies characters from the source string to the destination string starting at the specified index and adjusts the length of the destination string.
 Fault copyStr(ref Str str, IStr source, Sz startIndex = 0) {
-    if (auto fault = copyChars(str, source, startIndex)) return fault;
+    auto fault = copyChars(str, source, startIndex);
+    if (fault) return fault;
     str = str[0 .. startIndex + source.length];
     return Fault.none;
 }
@@ -351,7 +352,7 @@ IStr concatIntoBuffer(Str buffer, IStr[] args...) {
 
 /// Concatenates the strings using a static buffer and returns the result.
 IStr concat(IStr[] args...) {
-    static char[1024][8] buffers = void;
+    static char[512][4] buffers = void;
     static byte bufferIndex = 0;
 
     if (args.length == 0) return ".";
@@ -375,7 +376,7 @@ IStr pathBaseName(IStr path) {
 
 /// Formats the path to a standard form, normalizing separators.
 IStr pathFormat(IStr path) {
-    static char[1024][8] buffers = void;
+    static char[512][4] buffers = void;
     static byte bufferIndex = 0;
 
     if (path.length == 0) return ".";
@@ -394,7 +395,7 @@ IStr pathFormat(IStr path) {
 
 /// Concatenates the paths, ensuring proper path separators between them.
 IStr pathConcat(IStr[] args...) {
-    static char[1024][8] buffers = void;
+    static char[512][4] buffers = void;
     static byte bufferIndex = 0;
 
     if (args.length == 0) return ".";
@@ -677,7 +678,7 @@ Result!T toEnum(T)(IStr str) {
 /// Converts the string to a C string.
 @trusted
 Result!ICStr toCStr(IStr str) {
-    static char[1024] buffer = void;
+    static char[512] buffer = void;
 
     if (buffer.length < str.length) {
         return Result!ICStr(Fault.cantParse);
