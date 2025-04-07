@@ -343,7 +343,9 @@ struct Vec2 {
     }
 
     Vec2 normalize() {
-        return this / Vec2(magnitude);
+        auto m = magnitude;
+        if (m == 0) return Vec2();
+        return this / Vec2(m);
     }
 
     float distanceTo(Vec2 to) {
@@ -401,7 +403,9 @@ struct Vec3 {
     }
 
     Vec3 normalize() {
-        return this / Vec3(magnitude);
+        auto m = magnitude;
+        if (m == 0) return Vec3();
+        return this / Vec3(m);
     }
 
     float distanceTo(Vec3 to) {
@@ -461,7 +465,9 @@ struct Vec4 {
     }
 
     Vec4 normalize() {
-        return this / Vec4(magnitude);
+        auto m = magnitude;
+        if (m == 0) return Vec4();
+        return this / Vec4(m);
     }
 
     float distanceTo(Vec4 to) {
