@@ -360,18 +360,30 @@ IStr concat(IStr[] args...) {
     return concatIntoBuffer(buffers[bufferIndex][], args);
 }
 
-/// Extracts and returns the directory name part of the path, or "." if there is no directory.
+/// Returns the directory of the path, or "." if there is no directory.
 IStr pathDirName(IStr path) {
     auto end = findEnd(path, pathSepStr);
     if (end == -1) return ".";
     else return path[0 .. end];
 }
 
-/// Extracts and returns the base name part of the path, or "." if there is no directory.
+/// Returns the extension of the path.
+IStr pathExtName(IStr path) {
+    auto end = findEnd(path, ".");
+    if (end == -1) return "";
+    else return path[end .. $];
+}
+
+/// Returns the base name of the path.
 IStr pathBaseName(IStr path) {
     auto end = findEnd(path, pathSepStr);
-    if (end == -1) return ".";
+    if (end == -1) return path;
     else return path[end + 1 .. $];
+}
+
+/// Returns the base name of the path without the extension.
+IStr pathBaseNameNoExt(IStr path) {
+    return path.pathBaseName[0 .. $ - path.pathExtName.length];
 }
 
 /// Formats the path to a standard form, normalizing separators.
@@ -759,8 +771,10 @@ unittest {
     assert(str.advanceStr(str.length + 1) == "");
     assert(pathConcat("one", "two").pathDirName() == "one");
     assert(pathConcat("one").pathDirName() == ".");
+    assert(pathConcat("one.csv").pathExtName() == ".csv");
+    assert(pathConcat("one").pathExtName() == "");
     assert(pathConcat("one", "two").pathBaseName() == "two");
-    assert(pathConcat("one").pathBaseName() == ".");
+    assert(pathConcat("one").pathBaseName() == "one");
     assert(pathFormat("one/two") == pathConcat("one", "two"));
     assert(pathFormat("one\\two") == pathConcat("one", "two"));
 

@@ -16,7 +16,6 @@ import joka.types;
 @safe @nogc nothrow:
 
 enum defaultListCapacity = 16;
-enum defaultFixedListCapacity = 32;
 enum defaultGridRowCount = 128;
 enum defaultGridColCount = 128;
 enum defaultGridCapacity = defaultGridRowCount * defaultGridColCount;
@@ -86,7 +85,7 @@ struct List(T) {
     void appendBlank() {
         Sz newLength = length + 1;
         if (newLength > capacity) {
-            capacity = findListCapacity(newLength);
+            capacity = jokaFindListCapacity(newLength);
             items = (cast(T*) jokaRealloc(items.ptr, capacity * T.sizeof))[0 .. newLength];
         } else {
             items = items.ptr[0 .. newLength];
@@ -134,7 +133,7 @@ struct List(T) {
 
     @trusted
     void reserve(Sz newCapacity) {
-        auto targetCapacity = findListCapacity(newCapacity);
+        auto targetCapacity = jokaFindListCapacity(newCapacity);
         if (targetCapacity > capacity) {
             capacity = targetCapacity;
             items = (cast(T*) jokaRealloc(items.ptr, capacity * T.sizeof))[0 .. length];
@@ -179,7 +178,7 @@ struct List(T) {
 }
 
 /// A dynamic array allocated on the stack.
-struct FixedList(T, Sz N = defaultFixedListCapacity) {
+struct FixedList(T, Sz N) {
     T[N] data;
     Sz length;
 
@@ -850,7 +849,8 @@ struct Arena {
     }
 }
 
-Sz findListCapacity(Sz length) {
+extern(C)
+Sz jokaFindListCapacity(Sz length) {
     Sz result = defaultListCapacity;
     while (result < length) result += result;
     return result;
@@ -889,10 +889,10 @@ IStr formatIntoList(A...)(ref LStr buffer, IStr formatStr, A args) {
 
 // Function test.
 unittest {
-    assert(findListCapacity(0) == defaultListCapacity);
-    assert(findListCapacity(defaultListCapacity) == defaultListCapacity);
-    assert(findListCapacity(defaultListCapacity + 1) == defaultListCapacity * 2);
-    assert(findListCapacity(defaultListCapacity + 1) == defaultListCapacity * 2);
+    assert(jokaFindListCapacity(0) == defaultListCapacity);
+    assert(jokaFindListCapacity(defaultListCapacity) == defaultListCapacity);
+    assert(jokaFindListCapacity(defaultListCapacity + 1) == defaultListCapacity * 2);
+    assert(jokaFindListCapacity(defaultListCapacity + 1) == defaultListCapacity * 2);
 }
 
 // List test.
@@ -953,18 +953,17 @@ unittest {
 
 // FixedList test.
 unittest {
-    FixedList!char text;
+    FixedList!(char, 64) text;
 
-    text = FixedList!char();
+    text = FixedList!(char, 64)();
     assert(text.length == 0);
-    assert(text.capacity == defaultFixedListCapacity);
 
-    text = FixedList!char("abc");
+    text = FixedList!(char, 64)("abc");
     assert(text.length == 3);
     text.clear();
     assert(text.length == 0);
 
-    text = FixedList!char("Hello world!");
+    text = FixedList!(char, 64)("Hello world!");
     assert(text.length == "Hello world!".length);
     assert(text[] == text.items);
     assert(text[0] == text.items[0]);
