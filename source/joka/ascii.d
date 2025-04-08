@@ -386,6 +386,32 @@ IStr pathBaseNameNoExt(IStr path) {
     return path.pathBaseName[0 .. $ - path.pathExtName.length];
 }
 
+/// Removes path separators from the beginning of the path.
+IStr pathTrimStart(IStr path) {
+    IStr result = path;
+    while (result.length > 0) {
+        if (result[0] == pathSep || result[0] == pathSepOther) result = result[1 .. $];
+        else break;
+    }
+    return result;
+
+}
+
+/// Removes path separators from the end of the path.
+IStr pathTrimEnd(IStr path) {
+    IStr result = path;
+    while (result.length > 0) {
+        if (result[$ - 1] == pathSep || result[$ - 1] == pathSepOther) result = result[0 .. $ - 1];
+        else break;
+    }
+    return result;
+}
+
+/// Removes path separators from the beginning and end of the path.
+IStr pathTrim(IStr path) {
+    return path.pathTrimStart().pathTrimEnd();
+}
+
 /// Formats the path to a standard form, normalizing separators.
 IStr pathFormat(IStr path) {
     static char[512][4] buffers = void;
@@ -414,14 +440,27 @@ IStr pathConcat(IStr[] args...) {
     bufferIndex = (bufferIndex + 1) % buffers.length;
     auto result = buffers[bufferIndex][];
     auto length = 0;
+    auto isFirst = true;
     foreach (i, arg; args) {
-        result.copyChars(arg, length);
-        length += arg.length;
+        if (arg.length == 0) continue;
+        auto cleanArg = arg;
+        if (cleanArg[0] == pathSep || cleanArg[0] == pathSepOther) {
+            cleanArg = cleanArg.pathTrimStart();
+            if (isFirst) {
+                result[length] = pathSep;
+                length += 1;
+            }
+        }
+        cleanArg = cleanArg.pathTrimEnd();
+        result.copyChars(cleanArg, length);
+        length += cleanArg.length;
         if (i != args.length - 1) {
-            result.copyChars(pathSepStr, length);
+            result[length] = pathSep;
             length += 1;
         }
+        isFirst = false;
     }
+    if (length == 0) return ".";
     result = result[0 .. length];
     return result;
 }
@@ -769,6 +808,16 @@ unittest {
     assert(str.advanceStr(1) == str[1 .. $]);
     assert(str.advanceStr(str.length) == "");
     assert(str.advanceStr(str.length + 1) == "");
+    version (Windows) {
+    } else {
+        assert(pathConcat("one", "two") == "one/two");
+        assert(pathConcat("one", "/two") == "one/two");
+        assert(pathConcat("one", "/two/") == "one/two");
+        assert(pathConcat("one/", "/two/") == "one/two");
+        assert(pathConcat("/one/", "/two/") == "/one/two");
+        assert(pathConcat("", "two/") == "two");
+        assert(pathConcat("", "/two/") == "/two");
+    }
     assert(pathConcat("one", "two").pathDirName() == "one");
     assert(pathConcat("one").pathDirName() == ".");
     assert(pathConcat("one.csv").pathExtName() == ".csv");
