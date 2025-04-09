@@ -666,14 +666,14 @@ struct Grid(T) {
         if (!has(row, col)) {
             assert(0, "Tile `[{}, {}]` does not exist.".format(row, col));
         }
-        return tiles[colCount * row + col];
+        return tiles[jokaFindGridIndex(row, col, colCount)];
     }
 
     void opIndexAssign(T rhs, Sz row, Sz col) {
         if (!has(row, col)) {
             assert(0, "Tile `[{}, {}]` does not exist.".format(row, col));
         }
-        tiles[colCount * row + col] = rhs;
+        tiles[jokaFindGridIndex(row, col, colCount)] = rhs;
     }
 
     void opIndexOpAssign(IStr op)(T rhs, Sz row, Sz col) {
@@ -849,11 +849,30 @@ struct Arena {
     }
 }
 
+pragma(inline, true)
 extern(C)
 Sz jokaFindListCapacity(Sz length) {
     Sz result = defaultListCapacity;
     while (result < length) result += result;
     return result;
+}
+
+pragma(inline, true)
+extern(C)
+Sz jokaFindGridIndex(Sz row, Sz col, Sz colCount) {
+    return colCount * row + col;
+}
+
+pragma(inline, true)
+extern(C)
+Sz jokaFindGridRow(Sz gridIndex, Sz colCount) {
+    return gridIndex % colCount;
+}
+
+pragma(inline, true)
+extern(C)
+Sz jokaFindGridCol(Sz gridIndex, Sz colCount) {
+    return gridIndex / colCount;
 }
 
 /// Formats a string using a list and returns the resulting formatted string.
