@@ -273,9 +273,9 @@ struct IRect {
     bool hasPointInclusive(IVec2 point) {
         return (
             point.x >= position.x &&
-            point.x < position.x + size.x &&
+            point.x <= position.x + size.x &&
             point.y >= position.y &&
-            point.y < position.y + size.y
+            point.y <= position.y + size.y
         );
     }
 
@@ -293,9 +293,35 @@ struct IRect {
     bool hasIntersectionInclusive(IRect area) {
         return (
             position.x + size.x >= area.position.x &&
-            position.x < area.position.x + area.size.x &&
+            position.x <= area.position.x + area.size.x &&
             position.y + size.y >= area.position.y &&
-            position.y < area.position.y + area.size.y
+            position.y <= area.position.y + area.size.y
+        );
+    }
+
+    IRect intersection(IRect area) {
+        if (!this.hasIntersection(area)) {
+            return IRect();
+        } else {
+            auto maxY = max(position.x, area.position.x);
+            auto maxX = max(position.y, area.position.y);
+            return IRect(
+                maxX,
+                maxY,
+                min(position.x + size.x, area.position.x + area.size.x) - maxX,
+                min(position.y + size.y, area.position.y + area.size.y) - maxY,
+            );
+        }
+    }
+
+    IRect merger(IRect area) {
+        auto minX = min(position.x, area.position.x);
+        auto minY = min(position.y, area.position.y);
+        return IRect(
+            minX,
+            minY,
+            max(position.x + size.x, area.position.x + area.size.x) - minX,
+            max(position.y + size.y, area.position.y + area.size.y) - minY,
         );
     }
 }
@@ -639,9 +665,9 @@ struct Rect {
     bool hasPointInclusive(Vec2 point) {
         return (
             point.x >= position.x &&
-            point.x < position.x + size.x &&
+            point.x <= position.x + size.x &&
             point.y >= position.y &&
-            point.y < position.y + size.y
+            point.y <= position.y + size.y
         );
     }
 
@@ -659,9 +685,9 @@ struct Rect {
     bool hasIntersectionInclusive(Rect area) {
         return (
             position.x + size.x >= area.position.x &&
-            position.x < area.position.x + area.size.x &&
+            position.x <= area.position.x + area.size.x &&
             position.y + size.y >= area.position.y &&
-            position.y < area.position.y + area.size.y
+            position.y <= area.position.y + area.size.y
         );
     }
 
