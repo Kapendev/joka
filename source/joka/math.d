@@ -30,24 +30,26 @@ enum dpi180  = 180.0 / pi;                            /// The value of 180 / PI.
 enum sqrt2   = 1.41421356237309504880168872420969808; /// The value of sqrt(2).
 enum dsqrt2  = 0.70710678118654752440084436210484903; /// The value of 1 / sqrt(2).
 
-enum black   = Color(0);             /// Black black.
-enum white   = Color(255);           /// White white.
-enum red     = Color(255, 0, 0);     /// Red red.
-enum green   = Color(0, 255, 0);     /// Green green.
-enum blue    = Color(0, 0, 255);     /// Blue blue.
-enum yellow  = Color(255, 255, 0);   /// Yellow yellow.
-enum magenta = Color(255, 0, 255);   /// Magenta magenta.
-enum pink    = Color(255, 192, 204); /// Pink pink.
-enum cyan    = Color(0, 255, 255);   /// Cyan cyan.
-enum orange  = Color(255, 165, 0);   /// Orange orange.
-enum beige   = Color(240, 235, 210); /// Beige beige.
-enum brown   = Color(165, 72, 42);   /// Brown brown.
-enum maroon  = Color(128, 0, 0);     /// Maroon maroon.
-enum gray1   = Color(32, 32, 32);    /// Gray 1.
-enum gray2   = Color(96, 96, 96);    /// Gray 22.
-enum gray3   = Color(159, 159, 159); /// Gray 333.
-enum gray4   = Color(223, 223, 223); /// Gray 4444.
+enum black   = Rgba(0);             /// Black black.
+enum white   = Rgba(255);           /// White white.
+enum red     = Rgba(255, 0, 0);     /// Red red.
+enum green   = Rgba(0, 255, 0);     /// Green green.
+enum blue    = Rgba(0, 0, 255);     /// Blue blue.
+enum yellow  = Rgba(255, 255, 0);   /// Yellow yellow.
+enum magenta = Rgba(255, 0, 255);   /// Magenta magenta.
+enum pink    = Rgba(255, 192, 204); /// Pink pink.
+enum cyan    = Rgba(0, 255, 255);   /// Cyan cyan.
+enum orange  = Rgba(255, 165, 0);   /// Orange orange.
+enum beige   = Rgba(240, 235, 210); /// Beige beige.
+enum brown   = Rgba(165, 72, 42);   /// Brown brown.
+enum maroon  = Rgba(128, 0, 0);     /// Maroon maroon.
+enum gray1   = Rgba(32, 32, 32);    /// Gray 1.
+enum gray2   = Rgba(96, 96, 96);    /// Gray 22.
+enum gray3   = Rgba(159, 159, 159); /// Gray 333.
+enum gray4   = Rgba(223, 223, 223); /// Gray 4444.
 enum gray    = gray2;                /// Gray gray.
+
+alias Color = Rgba;
 
 /// A type representing relative points.
 enum Hook : ubyte {
@@ -63,7 +65,7 @@ enum Hook : ubyte {
 }
 
 /// A RGBA color using ubytes.
-struct Color {
+struct Rgba {
     ubyte r; /// The R component of the color.
     ubyte g; /// The G component of the color.
     ubyte b; /// The B component of the color.
@@ -71,8 +73,8 @@ struct Color {
 
     enum length = 4;               /// The component count of the color.
     enum form = "rgba";            /// The form of the color.
-    enum zero = Color(0, 0, 0, 0); /// The zero value of the color.
-    enum one = Color(1, 1, 1, 1);  /// The one value of the color.
+    enum zero = Rgba(0, 0, 0, 0); /// The zero value of the color.
+    enum one = Rgba(1, 1, 1, 1);  /// The one value of the color.
 
     @safe @nogc nothrow:
 
@@ -89,7 +91,7 @@ struct Color {
         this(r, r, r, 255);
     }
 
-    mixin addXyzwOps!(Color, length, form);
+    mixin addXyzwOps!(Rgba, length, form);
 
     pragma(inline, true)
     bool isZero() {
@@ -97,8 +99,8 @@ struct Color {
     }
 
     /// Returns a color with just the alpha modified.
-    Color alpha(ubyte value) {
-        return Color(r, g, b, value);
+    Rgba alpha(ubyte value) {
+        return Rgba(r, g, b, value);
     }
 }
 
@@ -1779,17 +1781,19 @@ double toDegrees(double radians) {
 }
 
 pragma(inline, true);
-Color toRgb(uint rgb) {
-    return Color(
+Rgba toRgb(uint rgb) {
+    return Rgba(
         (rgb & 0xFF0000) >> 16,
         (rgb & 0xFF00) >> 8,
         (rgb & 0xFF),
     );
 }
 
+alias toColor = toRgba;
+
 pragma(inline, true);
-Color toRgba(uint rgba) {
-    return Color(
+Rgba toRgba(uint rgba) {
+    return Rgba(
         (rgba & 0xFF000000) >> 24,
         (rgba & 0xFF0000) >> 16,
         (rgba & 0xFF00) >> 8,
@@ -1798,8 +1802,8 @@ Color toRgba(uint rgba) {
 }
 
 pragma(inline, true);
-Color toColor(Vec3 vec) {
-    return Color(
+Rgba toRgba(Vec3 vec) {
+    return Rgba(
         cast(ubyte) clamp(vec.x, 0.0f, 255.0f),
         cast(ubyte) clamp(vec.y, 0.0f, 255.0f),
         cast(ubyte) clamp(vec.z, 0.0f, 255.0f),
@@ -1808,8 +1812,8 @@ Color toColor(Vec3 vec) {
 }
 
 pragma(inline, true);
-Color toColor(Vec4 vec) {
-    return Color(
+Rgba toRgba(Vec4 vec) {
+    return Rgba(
         cast(ubyte) clamp(vec.x, 0.0f, 255.0f),
         cast(ubyte) clamp(vec.y, 0.0f, 255.0f),
         cast(ubyte) clamp(vec.z, 0.0f, 255.0f),
@@ -1848,7 +1852,7 @@ Vec4 toVec(IVec4 vec) {
 }
 
 pragma(inline, true);
-Vec4 toVec(Color color) {
+Vec4 toVec(Rgba color) {
     return Vec4(color.r, color.g, color.b, color.a);
 }
 
