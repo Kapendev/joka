@@ -913,7 +913,7 @@ float fmod(float x, float y) {
 }
 
 @trusted
-double fmodd(double x, double y) {
+double fmod64(double x, double y) {
     return stdc.fmod(x, y);
 }
 
@@ -923,7 +923,7 @@ float remainder(float x, float y) {
 }
 
 @trusted
-double remainderd(double x, double y) {
+double remainder64(double x, double y) {
     return stdc.remainder(x, y);
 }
 
@@ -933,7 +933,7 @@ float exp(float x) {
 }
 
 @trusted
-double exp(double x) {
+double exp64(double x) {
     return stdc.exp(x);
 }
 
@@ -943,7 +943,7 @@ float exp2(float x) {
 }
 
 @trusted
-double exp2(double x) {
+double exp264(double x) {
     return stdc.exp2(x);
 }
 
@@ -953,7 +953,7 @@ float expm1(float x) {
 }
 
 @trusted
-double expm1(double x) {
+double expm164(double x) {
     return stdc.expm1(x);
 }
 
@@ -963,7 +963,7 @@ float log(float x) {
 }
 
 @trusted
-double log(double x) {
+double log64(double x) {
     return stdc.log(x);
 }
 
@@ -973,7 +973,7 @@ float log10(float x) {
 }
 
 @trusted
-double log10(double x) {
+double log1064(double x) {
     return stdc.log10(x);
 }
 
@@ -983,7 +983,7 @@ float log2(float x) {
 }
 
 @trusted
-double log2(double x) {
+double log264(double x) {
     return stdc.log2(x);
 }
 
@@ -993,7 +993,7 @@ float log1p(float x) {
 }
 
 @trusted
-double log1p(double x) {
+double log1p64(double x) {
     return stdc.log1p(x);
 }
 
@@ -1003,7 +1003,7 @@ float pow(float base, float exponent) {
 }
 
 @trusted
-double powd(double base, double exponent) {
+double pow64(double base, double exponent) {
     return stdc.pow(base, exponent);
 }
 
@@ -1013,7 +1013,7 @@ float atan2(float y, float x) {
 }
 
 @trusted
-double atan2d(double y, double x) {
+double atan264(double y, double x) {
     return stdc.atan2(y, x);
 }
 
@@ -1058,14 +1058,14 @@ Rect abs(Rect rect) {
 }
 
 pragma(inline, true)
-float floorx(float x) {
+float floorX(float x) {
     return (x <= 0.0f && (cast(float) cast(int) x) != x)
         ? (cast(float) cast(int) x) - 1.0f
         : (cast(float) cast(int) x);
 }
 
 pragma(inline, true)
-double floorx(double x) {
+double floorX64(double x) {
     return (x <= 0.0 && (cast(double) cast(long) x) != x)
         ? (cast(double) cast(long) x) - 1.0
         : (cast(double) cast(long) x);
@@ -1079,7 +1079,7 @@ float floor(float x) {
 
 pragma(inline, true)
 @trusted
-double floor(double  x) {
+double floor64(double  x) {
     return stdc.floor(x);
 }
 
@@ -1104,14 +1104,14 @@ Rect floor(Rect rect) {
 }
 
 pragma(inline, true)
-float ceilx(float x) {
+float ceilX(float x) {
     return (x <= 0.0f || (cast(float) cast(int) x) == x)
         ? (cast(float) cast(int) x)
         : (cast(float) cast(int) x) + 1.0f;
 }
 
 pragma(inline, true)
-double ceilx(double x) {
+double ceilX64(double x) {
     return (x <= 0.0 || (cast(double) cast(long) x) == x)
         ? (cast(double) cast(long) x)
         : (cast(double) cast(long) x) + 1.0;
@@ -1125,7 +1125,7 @@ float ceil(float x) {
 
 pragma(inline, true)
 @trusted
-double ceil(double x) {
+double ceil64(double x) {
     return stdc.ceil(x);
 }
 
@@ -1150,14 +1150,14 @@ Rect ceil(Rect rect) {
 }
 
 pragma(inline, true)
-float roundx(float x) {
+float roundX(float x) {
     return (x <= 0.0f)
         ? cast(float) cast(int) (x - 0.5f)
         : cast(float) cast(int) (x + 0.5f);
 }
 
 pragma(inline, true)
-double roundx(double x) {
+double roundX64(double x) {
     return (x <= 0.0)
         ? cast(double) cast(long) (x - 0.5)
         : cast(double) cast(long) (x + 0.5);
@@ -1171,7 +1171,7 @@ float round(float x) {
 
 pragma(inline, true)
 @trusted
-double round(double x) {
+double round64(double x) {
     return stdc.round(x);
 }
 
@@ -1201,7 +1201,7 @@ float sqrt(float x) {
 }
 
 @trusted
-double sqrt(double x) {
+double sqrt64(double x) {
     return stdc.sqrt(x);
 }
 
@@ -1227,7 +1227,7 @@ float sin(float x) {
 }
 
 @trusted
-double sin(double x) {
+double sin64(double x) {
     return stdc.sin(x);
 }
 
@@ -1253,7 +1253,7 @@ float cos(float x) {
 }
 
 @trusted
-double cos(double x) {
+double cos64(double x) {
     return stdc.cos(x);
 }
 
@@ -1279,7 +1279,7 @@ float tan(float x) {
 }
 
 @trusted
-double tan(double x) {
+double tan64(double x) {
     return stdc.tan(x);
 }
 
@@ -1305,7 +1305,7 @@ float asin(float x) {
 }
 
 @trusted
-double asin(double x) {
+double asin64(double x) {
     return stdc.asin(x);
 }
 
@@ -1331,7 +1331,7 @@ float acos(float x) {
 }
 
 @trusted
-double acos(double x) {
+double acos64(double x) {
     return stdc.acos(x);
 }
 
@@ -1357,7 +1357,7 @@ float atan(float x) {
 }
 
 @trusted
-double atan(double x) {
+double atan64(double x) {
     return stdc.atan(x);
 }
 
@@ -1383,7 +1383,7 @@ float cbrt(float x) {
 }
 
 @trusted
-double cbrt(double x) {
+double cbrt64(double x) {
     return stdc.cbrt(x);
 }
 
@@ -1424,7 +1424,7 @@ float lerp(float from, float to, float weight) {
 }
 
 pragma(inline, true)
-double lerpd(double from, double to, double weight) {
+double lerp64(double from, double to, double weight) {
     return from + (to - from) * weight;
 }
 
@@ -1433,7 +1433,7 @@ float smoothstep(float from, float to, float weight) {
     return (to * v) + (from * (1.0f - v));
 }
 
-double smoothstepd(double from, double to, double weight) {
+double smoothstep64(double from, double to, double weight) {
     auto v = weight * weight * (3.0 - 2.0 * weight);
     return (to * v) + (from * (1.0 - v));
 }
@@ -1443,7 +1443,7 @@ float smootherstep(float from, float to, float weight) {
     return (to * v) + (from * (1.0f - v));
 }
 
-double smootherstepd(double from, double to, double weight) {
+double smootherstep64(double from, double to, double weight) {
     auto v = weight * weight * weight * (weight * (weight * 6.0 - 15.0) + 10.0);
     return (to * v) + (from * (1.0 - v));
 }
@@ -1655,7 +1655,7 @@ float moveTo(float from, float to, float delta) {
 }
 
 pragma(inline, true)
-float moveTod(double from, double to, double delta) {
+float moveTo64(double from, double to, double delta) {
     return (abs(to - from) > abs(delta))
         ? from + sign(to - from) * delta
         : to;
@@ -1706,8 +1706,8 @@ float moveToWithSlowdown(float from, float to, float delta, float slowdown) {
     return from + (target - from) * delta;
 }
 
-float moveToWithSlowdownd(double from, double to, double delta, double slowdown) {
-    if (from.fequalsd(to)) return to;
+float moveToWithSlowdown64(double from, double to, double delta, double slowdown) {
+    if (from.fequals64(to)) return to;
     auto target = ((from * (slowdown - 1.0)) + to) / slowdown;
     return from + (target - from) * delta;
 }
@@ -1745,7 +1745,7 @@ bool fequals(float a, float b, float localEpsilon = epsilon) {
 }
 
 pragma(inline, true)
-bool fequalsd(double a, double b, double localEpsilon = epsilon) {
+bool fequals64(double a, double b, double localEpsilon = epsilon) {
     return abs(a - b) < localEpsilon;
 }
 
@@ -1770,7 +1770,7 @@ float toRadians(float degrees) {
 }
 
 pragma(inline, true)
-double toRadians(double degrees) {
+double toRadians64(double degrees) {
     return degrees * pi180;
 }
 
@@ -1780,7 +1780,7 @@ float toDegrees(float radians) {
 }
 
 pragma(inline, true)
-double toDegrees(double radians) {
+double toDegrees64(double radians) {
     return radians * dpi180;
 }
 
