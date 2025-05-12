@@ -139,9 +139,7 @@ struct Union(A...) {
             this.value = temp;
             this.type = i;
         }
-    }
 
-    static foreach (i, T; A) {
         @trusted
         void opAssign(T rhs) {
             auto temp = UnionValue!A();

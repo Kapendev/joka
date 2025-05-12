@@ -913,7 +913,7 @@ float fmod(float x, float y) {
 }
 
 @trusted
-double fmod(double x, double y) {
+double fmodd(double x, double y) {
     return stdc.fmod(x, y);
 }
 
@@ -923,7 +923,7 @@ float remainder(float x, float y) {
 }
 
 @trusted
-double remainder(double x, double y) {
+double remainderd(double x, double y) {
     return stdc.remainder(x, y);
 }
 
@@ -1003,7 +1003,7 @@ float pow(float base, float exponent) {
 }
 
 @trusted
-double pow(double base, double exponent) {
+double powd(double base, double exponent) {
     return stdc.pow(base, exponent);
 }
 
@@ -1013,7 +1013,7 @@ float atan2(float y, float x) {
 }
 
 @trusted
-double atan2(double y, double x) {
+double atan2d(double y, double x) {
     return stdc.atan2(y, x);
 }
 
@@ -1409,6 +1409,7 @@ T wrap(T)(T x, T a, T b) {
     return result;
 }
 
+// TODO: Look at this again because I feel it returns weird values sometimes.
 T snap(T)(T x, T step) {
     static if (isIntegerType!T) {
         return cast(T) snap!double(cast(double) x, cast(double) step).round();
@@ -1423,7 +1424,7 @@ float lerp(float from, float to, float weight) {
 }
 
 pragma(inline, true)
-double lerp(double from, double to, double weight) {
+double lerpd(double from, double to, double weight) {
     return from + (to - from) * weight;
 }
 
@@ -1432,7 +1433,7 @@ float smoothstep(float from, float to, float weight) {
     return (to * v) + (from * (1.0f - v));
 }
 
-double smoothstep(double from, double to, double weight) {
+double smoothstepd(double from, double to, double weight) {
     auto v = weight * weight * (3.0 - 2.0 * weight);
     return (to * v) + (from * (1.0 - v));
 }
@@ -1442,7 +1443,7 @@ float smootherstep(float from, float to, float weight) {
     return (to * v) + (from * (1.0f - v));
 }
 
-double smootherstep(double from, double to, double weight) {
+double smootherstepd(double from, double to, double weight) {
     auto v = weight * weight * weight * (weight * (weight * 6.0 - 15.0) + 10.0);
     return (to * v) + (from * (1.0 - v));
 }
@@ -1654,7 +1655,7 @@ float moveTo(float from, float to, float delta) {
 }
 
 pragma(inline, true)
-double moveTo(double from, double to, double delta) {
+float moveTod(double from, double to, double delta) {
     return (abs(to - from) > abs(delta))
         ? from + sign(to - from) * delta
         : to;
@@ -1700,13 +1701,13 @@ Vec4 moveTo(Vec4 from, Vec4 to, Vec4 delta) {
 }
 
 float moveToWithSlowdown(float from, float to, float delta, float slowdown) {
-    if (from.equals(to)) return to;
+    if (from.fequals(to)) return to;
     auto target = ((from * (slowdown - 1.0f)) + to) / slowdown;
     return from + (target - from) * delta;
 }
 
-double moveToWithSlowdown(double from, double to, double delta, double slowdown) {
-    if (from.equals(to)) return to;
+float moveToWithSlowdownd(double from, double to, double delta, double slowdown) {
+    if (from.fequalsd(to)) return to;
     auto target = ((from * (slowdown - 1.0)) + to) / slowdown;
     return from + (target - from) * delta;
 }
@@ -1735,29 +1736,32 @@ Vec4 moveToWithSlowdown(Vec4 from, Vec4 to, Vec4 delta, float slowdown) {
     );
 }
 
+deprecated("Will be replaced with fequals.")
+alias equals = fequals;
+
 pragma(inline, true)
-bool equals(float a, float b, float localEpsilon = epsilon) {
+bool fequals(float a, float b, float localEpsilon = epsilon) {
     return abs(a - b) < localEpsilon;
 }
 
 pragma(inline, true)
-bool equals(double a, double b, double localEpsilon = epsilon) {
+bool fequalsd(double a, double b, double localEpsilon = epsilon) {
     return abs(a - b) < localEpsilon;
 }
 
 pragma(inline, true)
-bool equals(Vec2 a, Vec2 b, float localEpsilon = epsilon) {
-    return equals(a.x, b.x, localEpsilon) && equals(a.y, b.y, localEpsilon);
+bool fequals(Vec2 a, Vec2 b, float localEpsilon = epsilon) {
+    return fequals(a.x, b.x, localEpsilon) && fequals(a.y, b.y, localEpsilon);
 }
 
 pragma(inline, true)
-bool equals(Vec3 a, Vec3 b, float localEpsilon = epsilon) {
-    return equals(a.x, b.x, localEpsilon) && equals(a.y, b.y, localEpsilon) && equals(a.z, b.z, localEpsilon);
+bool fequals(Vec3 a, Vec3 b, float localEpsilon = epsilon) {
+    return fequals(a.x, b.x, localEpsilon) && fequals(a.y, b.y, localEpsilon) && fequals(a.z, b.z, localEpsilon);
 }
 
 pragma(inline, true)
-bool equals(Vec4 a, Vec4 b, float localEpsilon = epsilon) {
-    return equals(a.x, b.x, localEpsilon) && equals(a.y, b.y, localEpsilon) && equals(a.z, b.z, localEpsilon) && equals(a.w, b.w, localEpsilon);
+bool fequals(Vec4 a, Vec4 b, float localEpsilon = epsilon) {
+    return fequals(a.x, b.x, localEpsilon) && fequals(a.y, b.y, localEpsilon) && fequals(a.z, b.z, localEpsilon) && fequals(a.w, b.w, localEpsilon);
 }
 
 pragma(inline, true)
