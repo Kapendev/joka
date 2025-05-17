@@ -261,6 +261,93 @@ struct IRect {
         }
     }
 
+    IVec2 origin(Hook hook) {
+        return this.toRect().origin(hook).toIVec();
+    }
+
+    IRect area(Hook hook) {
+        return IRect(
+            position - origin(hook),
+            size,
+        );
+    }
+
+    IVec2 point(Hook hook) {
+        return position + origin(hook);
+    }
+
+    IVec2 topLeftPoint() {
+        return point(Hook.topLeft);
+    }
+
+    IVec2 topPoint() {
+        return point(Hook.top);
+    }
+
+    IVec2 topRightPoint() {
+        return point(Hook.topRight);
+    }
+
+    IVec2 leftPoint() {
+        return point(Hook.left);
+    }
+
+    IVec2 centerPoint() {
+        return point(Hook.center);
+    }
+
+    IVec2 rightPoint() {
+        return point(Hook.right);
+    }
+
+    IVec2 bottomLeftPoint() {
+        return point(Hook.bottomLeft);
+    }
+
+    IVec2 bottomPoint() {
+        return point(Hook.bottom);
+    }
+
+    IVec2 bottomRightPoint() {
+        return point(Hook.bottomRight);
+    }
+
+    IRect topLeftArea() {
+        return area(Hook.topLeft);
+    }
+
+    IRect topArea() {
+        return area(Hook.top);
+    }
+
+    IRect topRightArea() {
+        return area(Hook.topRight);
+    }
+
+    IRect leftArea() {
+        return area(Hook.left);
+    }
+
+    IRect centerArea() {
+        return area(Hook.center);
+    }
+
+    IRect rightArea() {
+        return area(Hook.right);
+    }
+
+    IRect bottomLeftArea() {
+        return area(Hook.bottomLeft);
+    }
+
+    IRect bottomArea() {
+        return area(Hook.bottom);
+    }
+
+    IRect bottomRightArea() {
+        return area(Hook.bottomRight);
+    }
+
     pragma(inline, true);
     bool hasPoint(IVec2 point) {
         return (
@@ -1736,7 +1823,7 @@ Vec4 moveToWithSlowdown(Vec4 from, Vec4 to, Vec4 delta, float slowdown) {
     );
 }
 
-deprecated("Will be replaced with fequals.")
+deprecated("Use `fequals` instead.")
 alias equals = fequals;
 
 pragma(inline, true)

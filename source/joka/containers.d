@@ -160,9 +160,7 @@ struct List(T) {
 
     @trusted
     void fill(const(T) value) {
-        foreach (ref item; items) {
-            item = cast(T) value;
-        }
+        foreach (ref item; items) item = cast(T) value;
     }
 
     void clear() {
@@ -301,9 +299,7 @@ struct FixedList(T, Sz N) {
 
     @trusted
     void fill(const(T) value) {
-        foreach (ref item; items) {
-            item = cast(T) value;
-        }
+        foreach (ref item; items) item = cast(T) value;
     }
 
     void clear() {
@@ -327,7 +323,7 @@ struct SparseList(T) {
 
     ref T opIndex(Sz i) {
         if (!has(i)) {
-            assert(0, "Index `[{}]` does not exist.".format(i));
+            assert(0, "Index `[{}]` does not exist.".fmt(i));
         }
         return data[i];
     }
@@ -335,7 +331,7 @@ struct SparseList(T) {
     @trusted
     void opIndexAssign(const(T) rhs, Sz i) {
         if (!has(i)) {
-            assert(0, "Index `[{}]` does not exist.".format(i));
+            assert(0, "Index `[{}]` does not exist.".fmt(i));
         }
         data[i] = cast(T) rhs;
     }
@@ -343,7 +339,7 @@ struct SparseList(T) {
     @trusted
     void opIndexOpAssign(IStr op)(const(T) rhs, Sz i) {
         if (!has(i)) {
-            assert(0, "Index `[{}]` does not exist.".format(i));
+            assert(0, "Index `[{}]` does not exist.".fmt(i));
         }
         mixin("data[i]", op, "= cast(T) rhs;");
     }
@@ -399,26 +395,17 @@ struct SparseList(T) {
 
     void remove(Sz i) {
         if (!has(i)) {
-            assert(0, "Index `[{}]` does not exist.".format(i));
+            assert(0, "Index `[{}]` does not exist.".fmt(i));
         }
         flags[i] = false;
         hotIndex = i;
-        if (i < openIndex) {
-            openIndex = i;
-        }
+        if (i < openIndex) openIndex = i;
         length -= 1;
     }
 
     void reserve(Sz capacity) {
         data.reserve(capacity);
         flags.reserve(capacity);
-    }
-
-    @trusted
-    void fill(const(T) value) {
-        foreach (ref item; items) {
-            item = cast(T) value;
-        }
     }
 
     void clear() {
@@ -459,9 +446,7 @@ struct SparseList(T) {
         }
 
         Sz id = 0;
-        while (id < flags.length && !flags[id]) {
-            id += 1;
-        }
+        while (id < flags.length && !flags[id]) id += 1;
         return Range(flags.items, id);
     }
 
@@ -508,7 +493,7 @@ struct GenerationalList(T) {
 
     ref T opIndex(GenerationalIndex i) {
         if (!has(i)) {
-            assert(0, "Index `[{}]` with generation `{}` does not exist.".format(i.value, i.generation));
+            assert(0, "Index `[{}]` with generation `{}` does not exist.".fmt(i.value, i.generation));
         }
         return data[i.value];
     }
@@ -516,7 +501,7 @@ struct GenerationalList(T) {
     @trusted
     void opIndexAssign(const(T) rhs, GenerationalIndex i) {
         if (!has(i)) {
-            assert(0, "Index `[{}]` with generation `{}` does not exist.".format(i.value, i.generation));
+            assert(0, "Index `[{}]` with generation `{}` does not exist.".fmt(i.value, i.generation));
         }
         data[i.value] = cast(T) rhs;
     }
@@ -524,7 +509,7 @@ struct GenerationalList(T) {
     @trusted
     void opIndexOpAssign(IStr op)(const(T) rhs, GenerationalIndex i) {
         if (!has(i)) {
-            assert(0, "Index `[{}]` with generation `{}` does not exist.".format(i.value, i.generation));
+            assert(0, "Index `[{}]` with generation `{}` does not exist.".fmt(i.value, i.generation));
         }
         mixin("data[i.value]", op, "= cast(T) rhs;");
     }
@@ -558,7 +543,7 @@ struct GenerationalList(T) {
 
     void remove(GenerationalIndex i) {
         if (!has(i)) {
-            assert(0, "Index `[{}]` with generation `{}` does not exist.".format(i.value, i.generation));
+            assert(0, "Index `[{}]` with generation `{}` does not exist.".fmt(i.value, i.generation));
         }
         data.remove(i.value);
         generations[data.hotIndex] += 1;
@@ -569,13 +554,8 @@ struct GenerationalList(T) {
         generations.reserve(capacity);
     }
 
-    void fill(const(T) value) {
-        data.fill(value);
-    }
-
     void clear() {
-        data.clear();
-        generations.clear();
+        foreach (id; ids) remove(id);
     }
 
     void free() {
@@ -606,9 +586,7 @@ struct GenerationalList(T) {
         }
 
         Sz id = 0;
-        while (id < data.flags.length && !data.flags[id]) {
-            id += 1;
-        }
+        while (id < data.flags.length && !data.flags[id]) id += 1;
         return Range(generations.items, data.flags.items, id);
     }
 
@@ -664,21 +642,21 @@ struct Grid(T) {
 
     ref T opIndex(Sz row, Sz col) {
         if (!has(row, col)) {
-            assert(0, "Tile `[{}, {}]` does not exist.".format(row, col));
+            assert(0, "Tile `[{}, {}]` does not exist.".fmt(row, col));
         }
         return tiles[jokaFindGridIndex(row, col, colCount)];
     }
 
     void opIndexAssign(T rhs, Sz row, Sz col) {
         if (!has(row, col)) {
-            assert(0, "Tile `[{}, {}]` does not exist.".format(row, col));
+            assert(0, "Tile `[{}, {}]` does not exist.".fmt(row, col));
         }
         tiles[jokaFindGridIndex(row, col, colCount)] = rhs;
     }
 
     void opIndexOpAssign(IStr op)(T rhs, Sz row, Sz col) {
         if (!has(row, col)) {
-            assert(0, "Tile `[{}, {}]` does not exist.".format(row, col));
+            assert(0, "Tile `[{}, {}]` does not exist.".fmt(row, col));
         }
         mixin("tiles[colCount * row + col]", op, "= rhs;");
     }
@@ -801,14 +779,8 @@ struct Arena {
         return cast(T*) malloc(T.sizeof, T.alignof);
     }
 
-    T* make(T)() {
-        auto result = makeBlank!T();
-        *result = T.init;
-        return result;
-    }
-
     @trusted
-    T* makeClone(T)(const(T) value) {
+    T* make(T)(const(T) value = T.init) {
         auto result = makeBlank!T();
         *result = cast(T) value;
         return result;
@@ -819,20 +791,9 @@ struct Arena {
         return (cast(T*) malloc(T.sizeof * length, T.alignof))[0 .. length];
     }
 
-    T[] makeSlice(T)(Sz length) {
+    T[] makeSlice(T)(Sz length, const(T) value = T.init) {
         auto result = makeSliceBlank!T(length);
-        foreach (ref item; result) {
-            item = T.init;
-        }
-        return result;
-    }
-
-    @trusted
-    T[] makeSliceClone(T)(const(T)[] value) {
-        auto result = makeSliceBlank!T(value.length);
-        foreach (i, ref item; result) {
-            item = cast(T) value[i];
-        }
+        foreach (ref item; result) item = value;
         return result;
     }
 
@@ -875,23 +836,26 @@ Sz jokaFindGridCol(Sz gridIndex, Sz colCount) {
     return gridIndex / colCount;
 }
 
+deprecated("Use `fmtIntoList` instead. All `format*` functions in Joka will be renamed to `fmt*` to avoid collisions with `std.format`.")
+alias formatIntoList = fmtIntoList;
+
 /// Formats a string using a list and returns the resulting formatted string.
 /// The list is cleared before writing.
 /// For details on formatting behavior, see the `formatIntoBuffer` function in the `ascii` module.
-IStr formatIntoList(A...)(ref LStr buffer, IStr formatStr, A args) {
+IStr fmtIntoList(A...)(ref LStr buffer, IStr fmtStr, A args) {
     buffer.clear();
-    auto formatStrIndex = 0;
+    auto fmtStrIndex = 0;
     auto argIndex = 0;
-    while (formatStrIndex < formatStr.length) {
-        auto c1 = formatStr[formatStrIndex];
-        auto c2 = formatStrIndex + 1 >= formatStr.length ? '+' : formatStr[formatStrIndex + 1];
+    while (fmtStrIndex < fmtStr.length) {
+        auto c1 = fmtStr[fmtStrIndex];
+        auto c2 = fmtStrIndex + 1 >= fmtStr.length ? '+' : fmtStr[fmtStrIndex + 1];
         if (c1 == '{' && c2 == '}') {
             if (argIndex >= args.length) assert(0, "A placeholder doesn't have an argument.");
             static foreach (i, arg; args) {
                 if (i == argIndex) {
                     auto temp = toStr(arg);
                     buffer.append(temp);
-                    formatStrIndex += 2;
+                    fmtStrIndex += 2;
                     argIndex += 1;
                     goto loopExit;
                 }
@@ -899,7 +863,7 @@ IStr formatIntoList(A...)(ref LStr buffer, IStr formatStr, A args) {
             loopExit:
         } else {
             buffer.append(c1);
-            formatStrIndex += 1;
+            fmtStrIndex += 1;
         }
     }
     if (argIndex != args.length) assert(0, "An argument doesn't have a placeholder.");
@@ -965,8 +929,8 @@ unittest {
     text.reserve(defaultListCapacity + 1);
     assert(text.length == 0);
     assert(text.capacity == defaultListCapacity * 2);
-    assert(text.formatIntoList("Hello {}!", "world") == "Hello world!");
-    assert(text.formatIntoList("({}, {})", -69, -420) == "(-69, -420)");
+    assert(text.fmtIntoList("Hello {}!", "world") == "Hello world!");
+    assert(text.fmtIntoList("({}, {})", -69, -420) == "(-69, -420)");
     text.free();
 }
 
@@ -1128,7 +1092,7 @@ unittest {
     assert(numbers.has(GenerationalIndex(3, 0)) == true);
     numbers.clear();
     numbers.append(1);
-    assert(numbers.has(GenerationalIndex(0, 0)) == true);
+    assert(numbers.has(GenerationalIndex(0, 1)) == true);
     assert(numbers.has(GenerationalIndex(1, 0)) == false);
     assert(numbers.has(GenerationalIndex(1, 1)) == false);
     assert(numbers.has(GenerationalIndex(2, 0)) == false);
@@ -1176,19 +1140,16 @@ unittest {
 @trusted
 unittest {
     Arena arena;
-    IStr text;
     int* number;
 
     arena = Arena(1024);
     assert(arena.capacity == 1024);
     assert(arena.offset == 0);
     assert(arena.data != null);
-    number = arena.makeClone(69);
+    number = arena.make(69);
     assert(*number == 69);
-    text = arena.makeSliceClone("Hello world!");
-    assert(text == "Hello world!");
-    assert(cast(Sz) text.ptr != cast(Sz) number);
-    assert(arena.offset != 0);
+    number = arena.make(420);
+    assert(*number == 420);
     arena.clear();
     assert(arena.offset == 0);
     assert(arena.data != null);

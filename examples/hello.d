@@ -7,7 +7,7 @@ struct Person {
 
     // This method will be used by the print functions.
     IStr toStr() {
-        return "My name is {}.".format(name);
+        return "My name is {}.".fmt(name);
     }
 }
 

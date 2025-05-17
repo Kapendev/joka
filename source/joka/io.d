@@ -16,7 +16,7 @@ import stdc = joka.stdc.stdio;
 
 @trusted
 void printf(A...)(IStr text, A args) {
-    stdc.fputs(format("{}\0", format(text, args)).ptr, stdc.stdout);
+    stdc.fputs(fmt("{}\0", fmt(text, args)).ptr, stdc.stdout);
 }
 
 @trusted

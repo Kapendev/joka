@@ -59,19 +59,24 @@ IStr toStr(T)(T value) {
     }
 }
 
+deprecated("Use `fmtIntoBuffer` instead. All `format*` functions in Joka will be renamed to `fmt*` to avoid collisions with `std.format`.")
+alias formatIntoBuffer = fmtIntoBuffer;
+deprecated("Use `fmt` instead. All `format*` functions in Joka will be renamed to `fmt*` to avoid collisions with `std.format`.")
+alias format = fmt;
+
 /// Formats the given string by replacing `{}` placeholders with argument values in order.
 /// Options within placeholders are not supported.
 /// For custom formatting use a wrapper type with a `toStr` method.
 /// Writes into the buffer and returns the formatted string.
 @trusted
-IStr formatIntoBuffer(A...)(Str buffer, IStr formatStr, A args) {
+IStr fmtIntoBuffer(A...)(Str buffer, IStr fmtStr, A args) {
     auto result = buffer;
     auto resultIndex = 0;
-    auto formatStrIndex = 0;
+    auto fmtStrIndex = 0;
     auto argIndex = 0;
-    while (formatStrIndex < formatStr.length) {
-        auto c1 = formatStr[formatStrIndex];
-        auto c2 = formatStrIndex + 1 >= formatStr.length ? '+' : formatStr[formatStrIndex + 1];
+    while (fmtStrIndex < fmtStr.length) {
+        auto c1 = fmtStr[fmtStrIndex];
+        auto c2 = fmtStrIndex + 1 >= fmtStr.length ? '+' : fmtStr[fmtStrIndex + 1];
         if (c1 == '{' && c2 == '}') {
             if (argIndex >= args.length) assert(0, "A placeholder doesn't have an argument.");
             static foreach (i, arg; args) {
@@ -79,7 +84,7 @@ IStr formatIntoBuffer(A...)(Str buffer, IStr formatStr, A args) {
                     auto temp = toStr(arg);
                     copyChars(result, temp, resultIndex);
                     resultIndex += temp.length;
-                    formatStrIndex += 2;
+                    fmtStrIndex += 2;
                     argIndex += 1;
                     goto loopExit;
                 }
@@ -88,7 +93,7 @@ IStr formatIntoBuffer(A...)(Str buffer, IStr formatStr, A args) {
         } else {
             result[resultIndex] = c1;
             resultIndex += 1;
-            formatStrIndex += 1;
+            fmtStrIndex += 1;
         }
     }
     if (argIndex != args.length) assert(0, "An argument doesn't have a placeholder.");
@@ -99,12 +104,12 @@ IStr formatIntoBuffer(A...)(Str buffer, IStr formatStr, A args) {
 /// Formats a string using a static buffer and returns the result.
 /// For details on formatting, see the `formatIntoBuffer` function.
 @trusted
-IStr format(A...)(IStr formatStr, A args) {
+IStr fmt(A...)(IStr fmtStr, A args) {
     static char[512][8] buffers = void;
     static byte bufferIndex = 0;
 
     bufferIndex = (bufferIndex + 1) % buffers.length;
-    return formatIntoBuffer(buffers[bufferIndex][], formatStr, args);
+    return fmtIntoBuffer(buffers[bufferIndex][], fmtStr, args);
 }
 
 @safe @nogc nothrow:
@@ -954,6 +959,6 @@ unittest {
 
     assert(toCStr("Hello").getOr().cStrLength == "Hello".length);
     assert(toCStr("Hello").getOr().cStrToStr() == "Hello");
-    assert(format("Hello {}!", "world") == "Hello world!");
-    assert(format("({}, {})", -69, -420) == "(-69, -420)");
+    assert(fmt("Hello {}!", "world") == "Hello world!");
+    assert(fmt("({}, {})", -69, -420) == "(-69, -420)");
 }
