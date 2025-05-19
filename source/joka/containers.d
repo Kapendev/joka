@@ -175,6 +175,8 @@ struct List(T) {
     }
 }
 
+// TODO: Doing `struct[N]` needs type info for some reason. Fix that.
+// NOTE: Will probably need something like `bytes[N]` and I hate it already...
 /// A dynamic array allocated on the stack.
 struct FixedList(T, Sz N) {
     T[N] data;
