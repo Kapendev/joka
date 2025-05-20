@@ -143,16 +143,13 @@ struct GVec2(T) {
     enum form = "xy";       /// The form of the vector.
     enum zero = GVec2!T(0); /// The zero value of the vector.
     enum one = GVec2!T(1);  /// The one value of the vector.
-    enum isDVec = isDoubleType!T;
 
-    static if (isIntegerType!T) {
-        static if (T.sizeof > float.sizeof) {
-            alias Float = double;
-        } else {
-            alias Float = float;
-        }
+    static if (T.sizeof > float.sizeof) {
+        enum is64 = true;
+        alias Float = double;
     } else {
-        alias Float = T;
+        enum is64 = false;
+        alias Float = float;
     }
 
     @safe @nogc nothrow:
@@ -190,7 +187,7 @@ struct GVec2(T) {
         static if (isIntegerType!T) {
             return this;
         } else {
-            static if (isDVec) {
+            static if (is64) {
                 return GVec2!T(x.floor64, y.floor64);
             } else {
                 return GVec2!T(x.floor, y.floor);
@@ -203,7 +200,7 @@ struct GVec2(T) {
         static if (isIntegerType!T) {
             return this;
         } else {
-            static if (isDVec) {
+            static if (is64) {
                 return GVec2!T(x.ceil64, y.ceil64);
             } else {
                 return GVec2!T(x.ceil, y.ceil);
@@ -216,7 +213,7 @@ struct GVec2(T) {
         static if (isIntegerType!T) {
             return this;
         } else {
-            static if (isDVec) {
+            static if (is64) {
                 return GVec2!T(x.round64, y.round64);
             } else {
                 return GVec2!T(x.round, y.round);
@@ -226,92 +223,64 @@ struct GVec2(T) {
 
     pragma(inline, true)
     GVec2!Float sqrt() {
-        static if (isIntegerType!T) {
-            return GVec2!Float(cast(Float) x, cast(Float) y).sqrt;
+        static if (is64) {
+            return GVec2!Float(x.sqrt64, y.sqrt64);
         } else {
-            static if (isDVec) {
-                return GVec2!Float(x.sqrt64, y.sqrt64);
-            } else {
-                return GVec2!Float(x.sqrt, y.sqrt);
-            }
+            return GVec2!Float(x.sqrt, y.sqrt);
         }
     }
 
     pragma(inline, true)
     GVec2!Float sin() {
-        static if (isIntegerType!T) {
-            return GVec2!Float(cast(Float) x, cast(Float) y).sin;
+        static if (is64) {
+            return GVec2!Float(x.sin64, y.sin64);
         } else {
-            static if (isDVec) {
-                return GVec2!Float(x.sin64, y.sin64);
-            } else {
-                return GVec2!Float(x.sin, y.sin);
-            }
+            return GVec2!Float(x.sin, y.sin);
         }
     }
 
     pragma(inline, true)
     GVec2!Float cos() {
-        static if (isIntegerType!T) {
-            return GVec2!Float(cast(Float) x, cast(Float) y).cos;
+        static if (is64) {
+            return GVec2!Float(x.cos64, y.cos64);
         } else {
-            static if (isDVec) {
-                return GVec2!Float(x.cos64, y.cos64);
-            } else {
-                return GVec2!Float(x.cos, y.cos);
-            }
+            return GVec2!Float(x.cos, y.cos);
         }
     }
 
     pragma(inline, true)
     GVec2!Float tan() {
-        static if (isIntegerType!T) {
-            return GVec2!Float(cast(Float) x, cast(Float) y).tan;
+        static if (is64) {
+            return GVec2!Float(x.tan64, y.tan64);
         } else {
-            static if (isDVec) {
-                return GVec2!Float(x.tan64, y.tan64);
-            } else {
-                return GVec2!Float(x.tan, y.tan);
-            }
+            return GVec2!Float(x.tan, y.tan);
         }
     }
 
     pragma(inline, true)
     GVec2!Float asin() {
-        static if (isIntegerType!T) {
-            return GVec2!Float(cast(Float) x, cast(Float) y).asin;
+        static if (is64) {
+            return GVec2!Float(x.asin64, y.asin64);
         } else {
-            static if (isDVec) {
-                return GVec2!Float(x.asin64, y.asin64);
-            } else {
-                return GVec2!Float(x.asin, y.asin);
-            }
+            return GVec2!Float(x.asin, y.asin);
         }
     }
 
     pragma(inline, true)
     GVec2!Float acos() {
-        static if (isIntegerType!T) {
-            return GVec2!Float(cast(Float) x, cast(Float) y).acos;
+        static if (is64) {
+            return GVec2!Float(x.acos64, y.acos64);
         } else {
-            static if (isDVec) {
-                return GVec2!Float(x.acos64, y.acos64);
-            } else {
-                return GVec2!Float(x.acos, y.acos);
-            }
+            return GVec2!Float(x.acos, y.acos);
         }
     }
 
     pragma(inline, true)
     GVec2!Float atan() {
-        static if (isIntegerType!T) {
-            return GVec2!Float(cast(Float) x, cast(Float) y).atan;
+        static if (is64) {
+            return GVec2!Float(x.atan64, y.atan64);
         } else {
-            static if (isDVec) {
-                return GVec2!Float(x.atan64, y.atan64);
-            } else {
-                return GVec2!Float(x.atan, y.atan);
-            }
+            return GVec2!Float(x.atan, y.atan);
         }
     }
 
@@ -322,7 +291,11 @@ struct GVec2(T) {
 
     pragma(inline, true)
     Float magnitude() {
-        return (x * x + y * y).sqrt;
+        static if (is64) {
+            return (x * x + y * y).sqrt64;
+        } else {
+            return (x * x + y * y).sqrt;
+        }
     }
 
     pragma(inline, true)
@@ -363,16 +336,13 @@ struct GVec3(T) {
     enum form = "xyz";      /// The form of the vector.
     enum zero = GVec3!T(0); /// The zero value of the vector.
     enum one = GVec3!T(1);  /// The one value of the vector.
-    enum isDVec = isDoubleType!T;
 
-    static if (isIntegerType!T) {
-        static if (T.sizeof > float.sizeof) {
-            alias Float = double;
-        } else {
-            alias Float = float;
-        }
+    static if (T.sizeof > float.sizeof) {
+        enum is64 = true;
+        alias Float = double;
     } else {
-        alias Float = T;
+        enum is64 = false;
+        alias Float = float;
     }
 
     @safe @nogc nothrow:
@@ -416,7 +386,7 @@ struct GVec3(T) {
         static if (isIntegerType!T) {
             return this;
         } else {
-            static if (isDVec) {
+            static if (is64) {
                 return GVec3!T(x.floor64, y.floor64, z.floor64);
             } else {
                 return GVec3!T(x.floor, y.floor, z.floor);
@@ -429,7 +399,7 @@ struct GVec3(T) {
         static if (isIntegerType!T) {
             return this;
         } else {
-            static if (isDVec) {
+            static if (is64) {
                 return GVec3!T(x.ceil64, y.ceil64, z.ceil64);
             } else {
                 return GVec3!T(x.ceil, y.ceil, z.ceil);
@@ -442,7 +412,7 @@ struct GVec3(T) {
         static if (isIntegerType!T) {
             return this;
         } else {
-            static if (isDVec) {
+            static if (is64) {
                 return GVec3!T(x.round64, y.round64, z.round64);
             } else {
                 return GVec3!T(x.round, y.round, z.round);
@@ -452,98 +422,74 @@ struct GVec3(T) {
 
     pragma(inline, true)
     GVec3!Float sqrt() {
-        static if (isIntegerType!T) {
-            return GVec3!Float(cast(Float) x, cast(Float) y, cast(Float) z).sqrt;
+        static if (is64) {
+            return GVec3!Float(x.sqrt64, y.sqrt64, z.sqrt64);
         } else {
-            static if (isDVec) {
-                return GVec3!Float(x.sqrt64, y.sqrt64, z.sqrt64);
-            } else {
-                return GVec3!Float(x.sqrt, y.sqrt, z.sqrt);
-            }
+            return GVec3!Float(x.sqrt, y.sqrt, z.sqrt);
         }
     }
 
     pragma(inline, true)
     GVec3!Float sin() {
-        static if (isIntegerType!T) {
-            return GVec3!Float(cast(Float) x, cast(Float) y, cast(Float) z).sin;
+        static if (is64) {
+            return GVec3!Float(x.sin64, y.sin64, z.sin64);
         } else {
-            static if (isDVec) {
-                return GVec3!Float(x.sin64, y.sin64, z.sin64);
-            } else {
-                return GVec3!Float(x.sin, y.sin, z.sin);
-            }
+            return GVec3!Float(x.sin, y.sin, z.sin);
         }
     }
 
     pragma(inline, true)
     GVec3!Float cos() {
-        static if (isIntegerType!T) {
-            return GVec3!Float(cast(Float) x, cast(Float) y, cast(Float) z).cos;
+        static if (is64) {
+            return GVec3!Float(x.cos64, y.cos64, z.cos64);
         } else {
-            static if (isDVec) {
-                return GVec3!Float(x.cos64, y.cos64, z.cos64);
-            } else {
-                return GVec3!Float(x.cos, y.cos, z.cos);
-            }
+            return GVec3!Float(x.cos, y.cos, z.cos);
         }
     }
 
     pragma(inline, true)
     GVec3!Float tan() {
-        static if (isIntegerType!T) {
-            return GVec3!Float(cast(Float) x, cast(Float) y, cast(Float) z).tan;
+        static if (is64) {
+            return GVec3!Float(x.tan64, y.tan64, z.tan64);
         } else {
-            static if (isDVec) {
-                return GVec3!Float(x.tan64, y.tan64, z.tan64);
-            } else {
-                return GVec3!Float(x.tan, y.tan, z.tan);
-            }
+            return GVec3!Float(x.tan, y.tan, z.tan);
         }
     }
 
     pragma(inline, true)
     GVec3!Float asin() {
-        static if (isIntegerType!T) {
-            return GVec3!Float(cast(Float) x, cast(Float) y, cast(Float) z).asin;
+        static if (is64) {
+            return GVec3!Float(x.asin64, y.asin64, z.asin64);
         } else {
-            static if (isDVec) {
-                return GVec3!Float(x.asin64, y.asin64, z.asin64);
-            } else {
-                return GVec3!Float(x.asin, y.asin, z.asin);
-            }
+            return GVec3!Float(x.asin, y.asin, z.asin);
         }
     }
 
     pragma(inline, true)
     GVec3!Float acos() {
-        static if (isIntegerType!T) {
-            return GVec3!Float(cast(Float) x, cast(Float) y, cast(Float) z).acos;
+        static if (is64) {
+            return GVec3!Float(x.acos64, y.acos64, z.acos64);
         } else {
-            static if (isDVec) {
-                return GVec3!Float(x.acos64, y.acos64, z.acos64);
-            } else {
-                return GVec3!Float(x.acos, y.acos, z.acos);
-            }
+            return GVec3!Float(x.acos, y.acos, z.acos);
         }
     }
 
     pragma(inline, true)
     GVec3!Float atan() {
-        static if (isIntegerType!T) {
-            return GVec3!Float(cast(Float) x, cast(Float) y, cast(Float) z).atan;
+        static if (is64) {
+            return GVec3!Float(x.atan64, y.atan64, z.atan64);
         } else {
-            static if (isDVec) {
-                return GVec3!Float(x.atan64, y.atan64, z.atan64);
-            } else {
-                return GVec3!Float(x.atan, y.atan, z.atan);
-            }
+            return GVec3!Float(x.atan, y.atan, z.atan);
         }
     }
 
     pragma(inline, true)
     Float magnitude() {
-        return (x * x + y * y + z * z).sqrt;
+        static if (is64) {
+            return (x * x + y * y + z * z).sqrt64;
+        } else {
+            return (x * x + y * y + z * z).sqrt;
+        }
     }
 
     pragma(inline, true)
@@ -581,16 +527,13 @@ struct GVec4(T) {
     enum form = "xyzw";     /// The form of the vector.
     enum zero = GVec4!T(0); /// The zero value of the vector.
     enum one = GVec4!T(1);  /// The one value of the vector.
-    enum isDVec = isDoubleType!T;
 
-    static if (isIntegerType!T) {
-        static if (T.sizeof > float.sizeof) {
-            alias Float = double;
-        } else {
-            alias Float = float;
-        }
+    static if (T.sizeof > float.sizeof) {
+        enum is64 = true;
+        alias Float = double;
     } else {
-        alias Float = T;
+        enum is64 = false;
+        alias Float = float;
     }
 
     @safe @nogc nothrow:
@@ -635,7 +578,7 @@ struct GVec4(T) {
         static if (isIntegerType!T) {
             return this;
         } else {
-            static if (isDVec) {
+            static if (is64) {
                 return GVec4!T(x.floor64, y.floor64, z.floor64, w.floor64);
             } else {
                 return GVec4!T(x.floor, y.floor, z.floor, w.floor);
@@ -648,7 +591,7 @@ struct GVec4(T) {
         static if (isIntegerType!T) {
             return this;
         } else {
-            static if (isDVec) {
+            static if (is64) {
                 return GVec4!T(x.ceil64, y.ceil64, z.ceil64, w.ceil64);
             } else {
                 return GVec4!T(x.ceil, y.ceil, z.ceil, w.ceil);
@@ -661,7 +604,7 @@ struct GVec4(T) {
         static if (isIntegerType!T) {
             return this;
         } else {
-            static if (isDVec) {
+            static if (is64) {
                 return GVec4!T(x.round64, y.round64, z.round64, w.round64);
             } else {
                 return GVec4!T(x.round, y.round, z.round, w.round);
@@ -671,98 +614,74 @@ struct GVec4(T) {
 
     pragma(inline, true)
     GVec4!Float sqrt() {
-        static if (isIntegerType!T) {
-            return GVec4!Float(cast(Float) x, cast(Float) y, cast(Float) z, cast(Float) w).sqrt;
+        static if (is64) {
+            return GVec4!Float(x.sqrt64, y.sqrt64, z.sqrt64, w.sqrt64);
         } else {
-            static if (isDVec) {
-                return GVec4!Float(x.sqrt64, y.sqrt64, z.sqrt64, w.sqrt64);
-            } else {
-                return GVec4!Float(x.sqrt, y.sqrt, z.sqrt, w.sqrt);
-            }
+            return GVec4!Float(x.sqrt, y.sqrt, z.sqrt, w.sqrt);
         }
     }
 
     pragma(inline, true)
     GVec4!Float sin() {
-        static if (isIntegerType!T) {
-            return GVec4!Float(cast(Float) x, cast(Float) y, cast(Float) z, cast(Float) w).sin;
+        static if (is64) {
+            return GVec4!Float(x.sin64, y.sin64, z.sin64, w.sin64);
         } else {
-            static if (isDVec) {
-                return GVec4!Float(x.sin64, y.sin64, z.sin64, w.sin64);
-            } else {
-                return GVec4!Float(x.sin, y.sin, z.sin, w.sin);
-            }
+            return GVec4!Float(x.sin, y.sin, z.sin, w.sin);
         }
     }
 
     pragma(inline, true)
     GVec4!Float cos() {
-        static if (isIntegerType!T) {
-            return GVec4!Float(cast(Float) x, cast(Float) y, cast(Float) z, cast(Float) w).cos;
+        static if (is64) {
+            return GVec4!Float(x.cos64, y.cos64, z.cos64, w.cos64);
         } else {
-            static if (isDVec) {
-                return GVec4!Float(x.cos64, y.cos64, z.cos64, w.cos64);
-            } else {
-                return GVec4!Float(x.cos, y.cos, z.cos, w.cos);
-            }
+            return GVec4!Float(x.cos, y.cos, z.cos, w.cos);
         }
     }
 
     pragma(inline, true)
     GVec4!Float tan() {
-        static if (isIntegerType!T) {
-            return GVec4!Float(cast(Float) x, cast(Float) y, cast(Float) z, cast(Float) w).tan;
+        static if (is64) {
+            return GVec4!Float(x.tan64, y.tan64, z.tan64, w.tan64);
         } else {
-            static if (isDVec) {
-                return GVec4!Float(x.tan64, y.tan64, z.tan64, w.tan64);
-            } else {
-                return GVec4!Float(x.tan, y.tan, z.tan, w.tan);
-            }
+            return GVec4!Float(x.tan, y.tan, z.tan, w.tan);
         }
     }
 
     pragma(inline, true)
     GVec4!Float asin() {
-        static if (isIntegerType!T) {
-            return GVec4!Float(cast(Float) x, cast(Float) y, cast(Float) z, cast(Float) w).asin;
+        static if (is64) {
+            return GVec4!Float(x.asin64, y.asin64, z.asin64, w.asin64);
         } else {
-            static if (isDVec) {
-                return GVec4!Float(x.asin64, y.asin64, z.asin64, w.asin64);
-            } else {
-                return GVec4!Float(x.asin, y.asin, z.asin, w.asin);
-            }
+            return GVec4!Float(x.asin, y.asin, z.asin, w.asin);
         }
     }
 
     pragma(inline, true)
     GVec4!Float acos() {
-        static if (isIntegerType!T) {
-            return GVec4!Float(cast(Float) x, cast(Float) y, cast(Float) z, cast(Float) w).acos;
+        static if (is64) {
+            return GVec4!Float(x.acos64, y.acos64, z.acos64, w.acos64);
         } else {
-            static if (isDVec) {
-                return GVec4!Float(x.acos64, y.acos64, z.acos64, w.acos64);
-            } else {
-                return GVec4!Float(x.acos, y.acos, z.acos, w.acos);
-            }
+            return GVec4!Float(x.acos, y.acos, z.acos, w.acos);
         }
     }
 
     pragma(inline, true)
     GVec4!Float atan() {
-        static if (isIntegerType!T) {
-            return GVec4!Float(cast(Float) x, cast(Float) y, cast(Float) z, cast(Float) w).atan;
+        static if (is64) {
+            return GVec4!Float(x.atan64, y.atan64, z.atan64, w.atan64);
         } else {
-            static if (isDVec) {
-                return GVec4!Float(x.atan64, y.atan64, z.atan64, w.atan64);
-            } else {
-                return GVec4!Float(x.atan, y.atan, z.atan, w.atan);
-            }
+            return GVec4!Float(x.atan, y.atan, z.atan, w.atan);
         }
     }
 
     pragma(inline, true)
     Float magnitude() {
-        return (x * x + y * y + z * z + w * w).sqrt;
+        static if (is64) {
+            return (x * x + y * y + z * z + w * w).sqrt64;
+        } else {
+            return (x * x + y * y + z * z + w * w).sqrt;
+        }
     }
 
     pragma(inline, true)
@@ -794,16 +713,12 @@ struct GRect(T) {
     GVec2!T position; /// The position of the rectangle.
     GVec2!T size;     /// The size of the rectangle.
 
-    enum isDVec = isDoubleType!T;
-
-    static if (isIntegerType!T) {
-        static if (T.sizeof > float.sizeof) {
-            alias Float = double;
-        } else {
-            alias Float = float;
-        }
+    static if (T.sizeof > float.sizeof) {
+        enum is64 = true;
+        alias Float = double;
     } else {
-        alias Float = T;
+        enum is64 = false;
+        alias Float = float;
     }
 
     @safe @nogc nothrow:
