@@ -710,8 +710,13 @@ struct GVec4(T) {
 
 /// A generic 2D rectangle.
 struct GRect(T) {
-    GVec2!T position; /// The position of the rectangle.
-    GVec2!T size;     /// The size of the rectangle.
+    GVec2!T position;     /// The position of the rectangle.
+    GVec2!T size;         /// The size of the rectangle.
+
+    alias x = position.x; /// The X position of the rectangle.
+    alias y = position.y; /// The Y position of the rectangle.
+    alias w = size.x;     /// The width of the rectangle.
+    alias h = size.y;     /// The height of the rectangle.
 
     static if (T.sizeof > float.sizeof) {
         enum is64 = true;
