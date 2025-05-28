@@ -713,11 +713,6 @@ struct GRect(T) {
     GVec2!T position;     /// The position of the rectangle.
     GVec2!T size;         /// The size of the rectangle.
 
-    alias x = position.x; /// The X position of the rectangle.
-    alias y = position.y; /// The Y position of the rectangle.
-    alias w = size.x;     /// The width of the rectangle.
-    alias h = size.y;     /// The height of the rectangle.
-
     static if (T.sizeof > float.sizeof) {
         enum is64 = true;
         alias Float = double;
@@ -758,6 +753,19 @@ struct GRect(T) {
     this(T x, T y, GVec2!T size) {
         this(GVec2!T(x, y), size);
     }
+
+    pragma(inline, true)
+    @trusted
+    ref T x() => position.x; /// The X position of the rectangle.
+    pragma(inline, true)
+    @trusted
+    ref T y() => position.y; /// The Y position of the rectangle.
+    pragma(inline, true)
+    @trusted
+    ref T w() => size.x;     /// The width of the rectangle.
+    pragma(inline, true)
+    @trusted
+    ref T h() => size.y;     /// The height of the rectangle.
 
     pragma(inline, true)
     GRect!T abs() {
