@@ -559,6 +559,11 @@ struct GVec4(T) {
     }
 
     pragma(inline, true)
+    this(GVec3!T xyz, T w) {
+        this(xyz.x, xyz.y, xyz.z, w);
+    }
+
+    pragma(inline, true)
     bool isZero() {
         return x == 0 && y == 0 && z == 0 && w == 0;
     }
@@ -710,8 +715,8 @@ struct GVec4(T) {
 
 /// A generic 2D rectangle.
 struct GRect(T) {
-    GVec2!T position;     /// The position of the rectangle.
-    GVec2!T size;         /// The size of the rectangle.
+    GVec2!T position; /// The position of the rectangle.
+    GVec2!T size;     /// The size of the rectangle.
 
     static if (T.sizeof > float.sizeof) {
         enum is64 = true;
@@ -754,18 +759,18 @@ struct GRect(T) {
         this(GVec2!T(x, y), size);
     }
 
+    /// The X position of the rectangle.
     pragma(inline, true)
-    @trusted
-    ref T x() => position.x; /// The X position of the rectangle.
+    @trusted ref T x() => position.x;
+    /// The Y position of the rectangle.
     pragma(inline, true)
-    @trusted
-    ref T y() => position.y; /// The Y position of the rectangle.
+    @trusted ref T y() => position.y;
+    /// The width of the rectangle.
     pragma(inline, true)
-    @trusted
-    ref T w() => size.x;     /// The width of the rectangle.
+    @trusted ref T w() => size.x;
+    /// The height of the rectangle.
     pragma(inline, true)
-    @trusted
-    ref T h() => size.y;     /// The height of the rectangle.
+    @trusted ref T h() => size.y;
 
     pragma(inline, true)
     GRect!T abs() {

@@ -1,4 +1,5 @@
 /// This example serves as a classic hello-world program.
+
 import joka;
 
 struct Person {
@@ -14,7 +15,8 @@ struct Person {
 void main() {
     println("Hello Ghadius!");
     println(Person("Joka"), " Hee hee!");
-    println(doubleToStr(69.12345, 0));
-    println(doubleToStr(69.12345, 10));
-    printfln("Number: {}", toStr(9));
+
+    printfln("Number 1: {}", doubleToStr(69.12345, 0));
+    printfln("Number 2: {}", doubleToStr(69.12345, 10));
+    printfln("Number 3: {}", toStr(69.12345));
 }

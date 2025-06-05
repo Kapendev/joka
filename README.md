@@ -1,6 +1,6 @@
-# Joka
+# 🃏 Joka
 
-Joka is a nogc utility library for the D programming language.
+Joka is a nogc utility library for the [D programming language](https://dlang.org/).
 It provides data structures and functions that work without garbage collection, offering precise memory control and minimal runtime overhead.
 
 ## Modules
@@ -9,6 +9,7 @@ It provides data structures and functions that work without garbage collection, 
 * joka.containers: Heap-allocated data structures
 * joka.io: Input and output functions
 * joka.math: Mathematical data structures and functions
+* joka.memory: Functions for dealing with memory.
 * joka.types: Type definitions and compile-time utilities
 
 ## Versions

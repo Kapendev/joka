@@ -318,9 +318,7 @@ bool isCharType(T)() {
 
 bool isPrimaryType(T)() {
     return isBoolType!T ||
-        isUnsignedType!T ||
-        isSignedType!T ||
-        isDoubleType!T ||
+        isNumberType!T ||
         isCharType!T;
 }
 
@@ -389,6 +387,11 @@ IStr toCleanNumber(alias i)() {
 
 template toStaticArray(alias slice) {
     auto toStaticArray = cast(typeof(slice[0])[slice.length]) slice;
+}
+
+noreturn TODO(IStr text, Sz line = __LINE__, IStr file = __FILE__)() {
+    enum output = "TODO(" ~ file ~ ":" ~ toCleanNumber!line ~ "): " ~ text;
+    assert(0, output);
 }
 
 mixin template addXyzwOps(T, TT, Sz N, IStr form = "xyzw") {

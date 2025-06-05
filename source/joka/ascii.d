@@ -14,6 +14,9 @@ import joka.types;
 
 @safe:
 
+enum defaultAsciiBufferSize = 512;
+enum defaultAsciiBufferCount = 8;
+
 enum digitChars = "0123456789";                          /// The set of digits.
 enum upperChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";          /// The set of uppercase letters.
 enum lowerChars = "abcdefghijklmnopqrstuvwxyz";          /// The set of lowercase letters.
@@ -105,7 +108,7 @@ IStr fmtIntoBuffer(A...)(Str buffer, IStr fmtStr, A args) {
 /// For details on formatting, see the `formatIntoBuffer` function.
 @trusted
 IStr fmt(A...)(IStr fmtStr, A args) {
-    static char[512][8] buffers = void;
+    static char[defaultAsciiBufferSize][defaultAsciiBufferCount] buffers = void;
     static byte bufferIndex = 0;
 
     bufferIndex = (bufferIndex + 1) % buffers.length;
@@ -357,12 +360,30 @@ IStr concatIntoBuffer(Str buffer, IStr[] args...) {
 
 /// Concatenates the strings using a static buffer and returns the result.
 IStr concat(IStr[] args...) {
-    static char[512][8] buffers = void;
+    static char[defaultAsciiBufferSize][defaultAsciiBufferCount] buffers = void;
     static byte bufferIndex = 0;
 
     if (args.length == 0) return ".";
     bufferIndex = (bufferIndex + 1) % buffers.length;
     return concatIntoBuffer(buffers[bufferIndex][], args);
+}
+
+/// Splits the string using a static buffer and returns the result.
+@trusted
+IStr[] split(IStr str, IStr sep) {
+    static IStr[defaultAsciiBufferSize] buffer = void;
+
+    auto length = 0;
+    while (str.length != 0) {
+        buffer[length] = str.skipValue(sep);
+        length += 1;
+    }
+    return buffer[0 .. length];
+}
+
+/// Splits the string using a static buffer and returns the result.
+IStr[] split(IStr str, char sep) {
+    return split(str, charToStr(sep));
 }
 
 /// Returns the directory of the path, or "." if there is no directory.
@@ -419,7 +440,7 @@ IStr pathTrim(IStr path) {
 
 /// Formats the path to a standard form, normalizing separators.
 IStr pathFormat(IStr path) {
-    static char[512][8] buffers = void;
+    static char[defaultAsciiBufferSize][defaultAsciiBufferCount] buffers = void;
     static byte bufferIndex = 0;
 
     if (path.length == 0) return ".";
@@ -438,7 +459,7 @@ IStr pathFormat(IStr path) {
 
 /// Concatenates the paths, ensuring proper path separators between them.
 IStr pathConcat(IStr[] args...) {
-    static char[512][8] buffers = void;
+    static char[defaultAsciiBufferSize][defaultAsciiBufferCount] buffers = void;
     static byte bufferIndex = 0;
 
     if (args.length == 0) return ".";
@@ -734,7 +755,7 @@ Result!T toEnum(T)(IStr str) {
 /// Converts the string to a C string.
 @trusted
 Result!ICStr toCStr(IStr str) {
-    static char[512] buffer = void;
+    static char[defaultAsciiBufferSize] buffer = void;
 
     if (buffer.length < str.length) {
         return Result!ICStr(Fault.cantParse);
@@ -813,6 +834,14 @@ unittest {
     assert(str.advanceStr(1) == str[1 .. $]);
     assert(str.advanceStr(str.length) == "");
     assert(str.advanceStr(str.length + 1) == "");
+
+    str = buffer[];
+    str.copyStr("999: Nine Hours, Nine Persons, Nine Doors");
+    assert(str.split(',').length == 3);
+    assert(str.split(',')[0] == "999: Nine Hours");
+    assert(str.split(',')[1] == " Nine Persons");
+    assert(str.split(',')[2] == " Nine Doors");
+
     version (Windows) {
     } else {
         assert(pathConcat("one", "two") == "one/two");
