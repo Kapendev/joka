@@ -371,14 +371,16 @@ IStr concat(IStr[] args...) {
 /// Splits the string using a static buffer and returns the result.
 @trusted
 IStr[] split(IStr str, IStr sep) {
-    static IStr[defaultAsciiBufferSize] buffer = void;
+    static IStr[defaultAsciiBufferSize][defaultAsciiBufferCount] buffers = void;
+    static byte bufferIndex = 0;
 
+    bufferIndex = (bufferIndex + 1) % buffers.length;
     auto length = 0;
     while (str.length != 0) {
-        buffer[length] = str.skipValue(sep);
+        buffers[bufferIndex][length] = str.skipValue(sep);
         length += 1;
     }
-    return buffer[0 .. length];
+    return buffers[bufferIndex][0 .. length];
 }
 
 /// Splits the string using a static buffer and returns the result.

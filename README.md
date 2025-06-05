@@ -9,7 +9,7 @@ It provides data structures and functions that work without garbage collection, 
 * joka.containers: Heap-allocated data structures
 * joka.io: Input and output functions
 * joka.math: Mathematical data structures and functions
-* joka.memory: Functions for dealing with memory.
+* joka.memory: Functions for dealing with memory
 * joka.types: Type definitions and compile-time utilities
 
 ## Versions
