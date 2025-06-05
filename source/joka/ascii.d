@@ -493,6 +493,21 @@ IStr pathConcat(IStr[] args...) {
     return result;
 }
 
+/// Splits the path using a static buffer and returns the result.
+@trusted
+IStr[] pathSplit(IStr str) {
+    static IStr[defaultAsciiBufferSize][defaultAsciiBufferCount] buffers = void;
+    static byte bufferIndex = 0;
+
+    bufferIndex = (bufferIndex + 1) % buffers.length;
+    auto length = 0;
+    while (str.length != 0) {
+        buffers[bufferIndex][length] = str.skipValue(pathSep);
+        length += 1;
+    }
+    return buffers[bufferIndex][0 .. length];
+}
+
 /// Skips over the next occurrence of the specified separator in the string, returning the substring before the separator and updating the input string to start after the separator.
 IStr skipValue(ref inout(char)[] str, IStr sep) {
     if (str.length < sep.length || sep.length == 0) {

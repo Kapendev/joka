@@ -389,11 +389,6 @@ template toStaticArray(alias slice) {
     auto toStaticArray = cast(typeof(slice[0])[slice.length]) slice;
 }
 
-noreturn TODO(IStr text, Sz line = __LINE__, IStr file = __FILE__)() {
-    enum output = "TODO(" ~ file ~ ":" ~ toCleanNumber!line ~ "): " ~ text;
-    assert(0, output);
-}
-
 mixin template addXyzwOps(T, TT, Sz N, IStr form = "xyzw") {
     static assert(N >= 2 && N <= 4, "Vector `" ~ T.stringof ~ "`  must have a dimension between 2 and 4.");
 

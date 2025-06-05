@@ -27,15 +27,30 @@ void printfln(A...)(IStr text, A args) {
 
 @safe
 void print(A...)(A args) {
-    static foreach (arg; args) {
-        printf("{}", arg);
-    }
+    static foreach (arg; args) printf("{}", arg);
 }
 
 @safe
 void println(A...)(A args) {
     print(args);
     print("\n");
+}
+
+@safe
+void tracef(Sz line = __LINE__, IStr file = __FILE__, A...)(IStr text, A args) {
+    printf("TRACE({}:{}): {}\n", file, line, text.fmt(args));
+}
+
+@safe
+void trace(Sz line = __LINE__, IStr file = __FILE__, A...)(A args) {
+    printf("TRACE({}:{}):", file, line);
+    static foreach (arg; args) printf(" {}", arg);
+    printf("\n");
+}
+
+@safe
+noreturn todo(IStr text, Sz line = __LINE__, IStr file = __FILE__) {
+    assert(0, "TODO({}:{}): {}".fmt(file, line, text));
 }
 
 @safe @nogc nothrow:
