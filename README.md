@@ -24,6 +24,11 @@ If you encounter errors with BetterC, try using the `-i` flag.
 ## Documentation
 
 Start with the [examples](./examples/) folder for a quick overview.
+To try an example, run:
+
+```cmd
+rdmd -Isource examples/hello.d
+```
 
 ## Why are you not using X library?
 

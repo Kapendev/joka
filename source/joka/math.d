@@ -128,6 +128,11 @@ struct Rgba {
         return r == 1 && g == 1 && b == 1 && a == 1;
     }
 
+    @trusted
+    ubyte[] items() {
+        return (cast(ubyte*) &this)[0 .. length];
+    }
+
     /// Returns a color with just the alpha modified.
     Rgba alpha(ubyte value) {
         return Rgba(r, g, b, value);
@@ -175,6 +180,11 @@ struct GVec2(T) {
     pragma(inline, true)
     bool isOne() {
         return x == 1 && y == 1;
+    }
+
+    @trusted
+    T[] items() {
+        return (cast(T*) &this)[0 .. length];
     }
 
     pragma(inline, true)
@@ -376,6 +386,11 @@ struct GVec3(T) {
         return x == 1 && y == 1 && z == 1;
     }
 
+    @trusted
+    T[] items() {
+        return (cast(T*) &this)[0 .. length];
+    }
+
     pragma(inline, true)
     GVec3!T abs() {
         return GVec3!T(x.abs, y.abs, z.abs);
@@ -571,6 +586,11 @@ struct GVec4(T) {
     pragma(inline, true)
     bool isOne() {
         return x == 1 && y == 1 && z == 1 && w == 1;
+    }
+
+    @trusted
+    T[] items() {
+        return (cast(T*) &this)[0 .. length];
     }
 
     pragma(inline, true)

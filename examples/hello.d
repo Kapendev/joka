@@ -5,18 +5,18 @@ import joka;
 struct Person {
     // An `IStr` is a `const(char)[]`.
     IStr name;
+    int age;
 
     // This method will be used by the print functions.
     IStr toStr() {
-        return "My name is {}.".fmt(name);
+        return "({}, {})".fmt(name, age);
     }
 }
 
 void main() {
-    println("Hello Ghadius!");
-    println(Person("Joka"), " Hee hee!");
-
-    printfln("Number 1: {}", doubleToStr(69.12345, 0));
-    printfln("Number 2: {}", doubleToStr(69.12345, 10));
-    printfln("Number 3: {}", toStr(69.12345));
+    println("Hellooo!");
+    printfln("Person: {}", Person("Joka", 40));
+    foreach (i; 0 .. 3) {
+        trace(333 * (i + 1));
+    }
 }
