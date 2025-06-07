@@ -172,6 +172,38 @@ struct GVec2(T) {
         this(x, x);
     }
 
+    T[] opSlice(Sz dim)(Sz i, Sz j) {
+        return items[i .. j];
+    }
+
+    T[] opIndex() {
+        return items;
+    }
+
+    // D calls this function when the slice operator is used. Does something but I do not remember what lol.
+    T[] opIndex(T[] slice) {
+        return slice;
+    }
+
+    // D will let you get the pointer of the array item if you return a ref value.
+    ref T opIndex(Sz i) {
+        return items[i];
+    }
+
+    @trusted
+    void opIndexAssign(const(T) rhs, Sz i) {
+        items[i] = cast(T) rhs;
+    }
+
+    @trusted
+    void opIndexOpAssign(IStr op)(const(T) rhs, Sz i) {
+        mixin("items[i]", op, "= cast(T) rhs;");
+    }
+
+    Sz opDollar(Sz dim)() {
+        return items.length;
+    }
+
     pragma(inline, true)
     bool isZero() {
         return x == 0 && y == 0;
@@ -376,6 +408,38 @@ struct GVec3(T) {
         this(xy.x, xy.y, z);
     }
 
+    T[] opSlice(Sz dim)(Sz i, Sz j) {
+        return items[i .. j];
+    }
+
+    T[] opIndex() {
+        return items;
+    }
+
+    // D calls this function when the slice operator is used. Does something but I do not remember what lol.
+    T[] opIndex(T[] slice) {
+        return slice;
+    }
+
+    // D will let you get the pointer of the array item if you return a ref value.
+    ref T opIndex(Sz i) {
+        return items[i];
+    }
+
+    @trusted
+    void opIndexAssign(const(T) rhs, Sz i) {
+        items[i] = cast(T) rhs;
+    }
+
+    @trusted
+    void opIndexOpAssign(IStr op)(const(T) rhs, Sz i) {
+        mixin("items[i]", op, "= cast(T) rhs;");
+    }
+
+    Sz opDollar(Sz dim)() {
+        return items.length;
+    }
+
     pragma(inline, true)
     bool isZero() {
         return x == 0 && y == 0 && z == 0;
@@ -576,6 +640,38 @@ struct GVec4(T) {
     pragma(inline, true)
     this(GVec3!T xyz, T w) {
         this(xyz.x, xyz.y, xyz.z, w);
+    }
+
+    T[] opSlice(Sz dim)(Sz i, Sz j) {
+        return items[i .. j];
+    }
+
+    T[] opIndex() {
+        return items;
+    }
+
+    // D calls this function when the slice operator is used. Does something but I do not remember what lol.
+    T[] opIndex(T[] slice) {
+        return slice;
+    }
+
+    // D will let you get the pointer of the array item if you return a ref value.
+    ref T opIndex(Sz i) {
+        return items[i];
+    }
+
+    @trusted
+    void opIndexAssign(const(T) rhs, Sz i) {
+        items[i] = cast(T) rhs;
+    }
+
+    @trusted
+    void opIndexOpAssign(IStr op)(const(T) rhs, Sz i) {
+        mixin("items[i]", op, "= cast(T) rhs;");
+    }
+
+    Sz opDollar(Sz dim)() {
+        return items.length;
     }
 
     pragma(inline, true)

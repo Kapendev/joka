@@ -6,6 +6,7 @@ It provides data structures and functions that work without garbage collection, 
 ## Modules
 
 * joka.ascii: ASCII string utilities
+* joka.cli: Command-line parsing utilities
 * joka.containers: Heap-allocated data structures
 * joka.io: Input and output functions
 * joka.math: Mathematical data structures and functions
