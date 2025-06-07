@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.25
+// Version: v0.0.26
 // ---
 
 /// The `types` module provides basic type definitions and compile-time functions such as type checking.
