@@ -9,7 +9,6 @@ void main() {
     auto fields1 = records[0].split(',');
     auto fields2 = records[1].split(',');
     auto fields3 = records[2].split(',');
-    // Print each field, row by row, formatted like a table.
     foreach (field; fields1) print("|", field);
     println("|");
     foreach (field; fields2) print("|", field);
@@ -17,7 +16,7 @@ void main() {
     foreach (field; fields3) print("|", field);
     println("|");
 
-    // Concatenate strings.
+    // Concatenate and split strings.
     auto info = concat(
         "------\n",
         "Split and concat create slices.\n",

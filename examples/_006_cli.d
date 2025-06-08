@@ -4,22 +4,17 @@ import joka;
 
 void main(string[] args) {
     // The "normal" way of checking arguments.
-    println("Args:");
+    println("Arguments:");
     if (args.length == 1) println(" None");
     foreach (token; args[1 .. $].toArgTokens()) {
         with (ArgType) final switch (token.type) {
-            case singleItem:
-                printfln(" Single Item: {}", token);
-                break;
-            case shortOption:
-                printfln(" Short Option: {}", token);
-                break;
-            case longOption:
-                printfln(" Long Option: {}", token);
-                break;
+            case singleItem: printfln(" Single Item: {}", token); break;
+            case shortOption: printfln(" Short Option: {}", token); break;
+            case longOption: printfln(" Long Option: {}", token); break;
         }
     }
     println();
+
     // The "I don't care" way of checking arguments.
     if (args.hasCommand("hello")) {
         println("Hello from Greece!");
@@ -30,6 +25,6 @@ void main(string[] args) {
             println("Building debug...");
         }
     } else {
-        println("Usage: cli [args...]");
+        println("Usage: cli [arguments...]");
     }
 }
