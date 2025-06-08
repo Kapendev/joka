@@ -3,12 +3,13 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.26
+// Version: v0.0.27
 // ---
 
 /// The `math` module provides mathematical data structures and functions.
 module joka.math;
 
+import joka.ascii;
 import joka.types;
 import stdc = joka.stdc.math;
 
@@ -76,6 +77,18 @@ alias URect = GRect!uint;   /// A 2D rectangle using uints.
 alias Rect = GRect!float;   /// A 2D rectangle using floats.
 alias DRect = GRect!double; /// A 2D rectangle using doubles.
 
+alias BCirc = GCirc!byte;   /// A 2D circle using bytes.
+alias ICirc = GCirc!int;    /// A 2D circle using ints.
+alias UCirc = GCirc!uint;   /// A 2D circle using uints.
+alias Circ = GCirc!float;   /// A 2D circle using floats.
+alias DCirc = GCirc!double; /// A 2D circle using doubles.
+
+alias BLine = GLine!byte;   /// A 2D line using bytes.
+alias ILine = GLine!int;    /// A 2D line using ints.
+alias ULine = GLine!uint;   /// A 2D line using uints.
+alias Line = GLine!float;   /// A 2D line using floats.
+alias DLine = GLine!double; /// A 2D line using doubles.
+
 /// A type representing relative points.
 enum Hook : ubyte {
     topLeft,     /// The top left point.
@@ -116,6 +129,14 @@ struct Rgba {
     pragma(inline, true)
     this(ubyte r) {
         this(r, r, r, 255);
+    }
+
+    IStr toStr() {
+        return "({} {} {} {})".fmt(r, g, b, a);
+    }
+
+    IStr toString() {
+        return toStr();
     }
 
     pragma(inline, true)
@@ -202,6 +223,14 @@ struct GVec2(T) {
 
     Sz opDollar(Sz dim)() {
         return items.length;
+    }
+
+    IStr toStr() {
+        return "({} {})".fmt(x, y);
+    }
+
+    IStr toString() {
+        return toStr();
     }
 
     pragma(inline, true)
@@ -440,6 +469,14 @@ struct GVec3(T) {
         return items.length;
     }
 
+    IStr toStr() {
+        return "({} {} {})".fmt(x, y, z);
+    }
+
+    IStr toString() {
+        return toStr();
+    }
+
     pragma(inline, true)
     bool isZero() {
         return x == 0 && y == 0 && z == 0;
@@ -674,6 +711,14 @@ struct GVec4(T) {
         return items.length;
     }
 
+    IStr toStr() {
+        return "({} {} {} {})".fmt(x, y, z, w);
+    }
+
+    IStr toString() {
+        return toStr();
+    }
+
     pragma(inline, true)
     bool isZero() {
         return x == 0 && y == 0 && z == 0 && w == 0;
@@ -887,6 +932,14 @@ struct GRect(T) {
     /// The height of the rectangle.
     pragma(inline, true)
     @trusted ref T h() => size.y;
+
+    IStr toStr() {
+        return "({} {})".fmt(position, size);
+    }
+
+    IStr toString() {
+        return toStr();
+    }
 
     pragma(inline, true)
     GRect!T abs() {
@@ -1204,51 +1257,75 @@ struct GRect(T) {
     }
 }
 
-/// A 2D Circle using floats.
-struct Circ {
-    Vec2 position;       /// The position of the circle.
-    float radius = 0.0f; /// The radius of the circle.
+/// A generic 2D Circle.
+struct GCirc(T) {
+    GVec2!T position; /// The position of the circle.
+    T radius = 0;     /// The radius of the circle.
+
+    static if (T.sizeof > float.sizeof) {
+        enum is64 = true;
+        alias Float = double;
+    } else {
+        enum is64 = false;
+        alias Float = float;
+    }
 
     @safe @nogc nothrow:
 
     pragma(inline, true)
-    this(Vec2 position, float radius) {
+    this(GVec2!T position, T radius) {
         this.position = position;
         this.radius = radius;
     }
 
     pragma(inline, true)
-    this(float x, float y, float radius) {
-        this(Vec2(x, y), radius);
+    this(T x, T y, T radius) {
+        this(GVec2!T(x, y), radius);
+    }
+
+    IStr toStr() {
+        return "({} {})".fmt(position, radius);
+    }
+
+    IStr toString() {
+        return toStr();
     }
 }
 
-/// A 2D Line using floats.
-struct Line {
-    Vec2 a; /// The start point of the line.
-    Vec2 b; /// The end point of the line.
+/// A generic 2D Line.
+struct GLine(T) {
+    GVec2!T a; /// The start point of the line.
+    GVec2!T b; /// The end point of the line.
 
     @safe @nogc nothrow:
 
     pragma(inline, true)
-    this(Vec2 a, Vec2 b) {
+    this(GVec2!T a, GVec2!T b) {
         this.a = a;
         this.b = b;
     }
 
     pragma(inline, true)
-    this(float ax, float ay, float bx, float by) {
-        this(Vec2(ax, ay), Vec2(bx, by));
+    this(T ax, T ay, T bx, T by) {
+        this(GVec2!T(ax, ay), GVec2!T(bx, by));
     }
 
     pragma(inline, true)
-    this(Vec2 a, float bx, float by) {
-        this(a, Vec2(bx, by));
+    this(GVec2!T a, T bx, T by) {
+        this(a, GVec2!T(bx, by));
     }
 
     pragma(inline, true)
-    this(float ax, float ay, Vec2 b) {
-        this(Vec2(ax, ay), b);
+    this(T ax, T ay, GVec2!T b) {
+        this(GVec2!T(ax, ay), b);
+    }
+
+    IStr toStr() {
+        return "({} {})".fmt(a, b);
+    }
+
+    IStr toString() {
+        return toStr();
     }
 }
 
@@ -2219,4 +2296,15 @@ unittest {
     assert(!temp2.isZero);
     assert(!temp3.isZero);
     assert(!temp4.isZero);
+}
+
+// Print test.
+unittest {
+    assert(Rgba(9).toStr()           == "(9 9 9 255)");
+    assert(IVec2(9).toStr()          == "(9 9)");
+    assert(IVec3(9).toStr()          == "(9 9 9)");
+    assert(IVec4(9).toStr()          == "(9 9 9 9)");
+    assert(ICirc(9, 9, 9).toStr()    == "((9 9) 9)");
+    assert(ILine(9, 9, 9, 9).toStr() == "((9 9) (9 9))");
+    assert(IRect(9, 9, 9, 9).toStr() == "((9 9) (9 9))");
 }
