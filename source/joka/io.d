@@ -55,17 +55,17 @@ noreturn todo(IStr text, Sz line = __LINE__, IStr file = __FILE__) {
 
 @safe @nogc nothrow:
 
+// NOTE: No automatic text conversion is done. We could handle it manually here in the future. Maybe.
+// NOTE: Also maybe think about errno lol.
 @trusted
 Fault readTextIntoBuffer(IStr path, ref LStr buffer) {
-    auto file = stdc.fopen(toCStr(path).getOr(), "r+b");
-    if (file == null) {
-        return Fault.cantOpen;
-    }
+    auto file = stdc.fopen(toCStr(path).getOr(), "rb");
+    if (file == null) return Fault.cantOpen;
+
     if (stdc.fseek(file, 0, stdc.SEEK_END) != 0) {
         stdc.fclose(file);
         return Fault.cantRead;
     }
-
     auto fileSize = stdc.ftell(file);
     if (fileSize == -1) {
         stdc.fclose(file);
@@ -76,11 +76,9 @@ Fault readTextIntoBuffer(IStr path, ref LStr buffer) {
         return Fault.cantRead;
     }
 
-    buffer.resize(fileSize);
+    buffer.resizeBlank(fileSize);
     stdc.fread(buffer.items.ptr, fileSize, 1, file);
-    if (stdc.fclose(file) != 0) {
-        return Fault.cantClose;
-    }
+    if (stdc.fclose(file) != 0) return Fault.cantClose;
     return Fault.none;
 }
 
@@ -90,16 +88,14 @@ Result!LStr readText(IStr path) {
     return Result!LStr(value, fault);
 }
 
+// NOTE: No automatic text conversion is done. We could handle it manually here in the future. Maybe.
+// NOTE: Also maybe think about errno lol.
 @trusted
 Fault writeText(IStr path, IStr text) {
-    auto file = stdc.fopen(toCStr(path).getOr(), "w");
-    if (file == null) {
-        return Fault.cantOpen;
-    }
+    auto file = stdc.fopen(toCStr(path).getOr(), "wb");
+    if (file == null) return Fault.cantOpen;
     stdc.fwrite(text.ptr, char.sizeof, text.length, file);
-    if (stdc.fclose(file) != 0) {
-        return Fault.cantClose;
-    }
+    if (stdc.fclose(file) != 0) return Fault.cantClose;
     return Fault.none;
 }
 

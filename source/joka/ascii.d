@@ -57,6 +57,9 @@ IStr toStr(T)(T value) {
         return enumToStr(value);
     } else static if (hasMember!(T, "toStr")) {
         return value.toStr();
+    } else static if (hasMember!(T, "toString")) {
+        // I'm a nice person.
+        return value.toString();
     } else {
         static assert(0, funcImplementationErrorMessage!(T, "toStr"));
     }
@@ -536,7 +539,9 @@ IStr skipValue(ref inout(char)[] str, char sep) {
 
 /// Skips over the next line in the string, returning the substring before the line break and updating the input string to start after the line break.
 IStr skipLine(ref inout(char)[] str) {
-    return skipValue(str, '\n');
+    auto result = skipValue(str, '\n');
+    if (result.length != 0 && result[$ - 1] == '\r') result = result[0 .. $ - 1];
+    return result;
 }
 
 /// Converts the boolean value to its string representation.
@@ -885,6 +890,8 @@ unittest {
     assert(skipValue(str, ',') == "three");
     assert(skipValue(str, ',') == "");
     assert(str.length == 0);
+    assert(skipValue(str, "\r\n") == "");
+    assert(skipLine(str) == "");
 
     assert(boolToStr(false) == "false");
     assert(boolToStr(true) == "true");

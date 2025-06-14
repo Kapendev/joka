@@ -8,6 +8,7 @@ struct Person {
     int age;
 
     // This method will be used by the print functions.
+    // The print functions also support `toString` methods.
     IStr toStr() {
         return "({} {})".fmt(name, age);
     }

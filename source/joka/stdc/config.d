@@ -11,6 +11,14 @@ module joka.stdc.config;
 @nogc nothrow extern(C):
 
 version (WebAssembly) {
+    static if ((void*).sizeof > int.sizeof) {
+        alias CLong = long;
+        alias CULong = ulong;
+    } else {
+        alias CLong = int;
+        alias CULong = uint;
+    }
+} else version (Windows) {
     alias CLong = int;
     alias CULong = uint;
 } else {

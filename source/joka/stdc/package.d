@@ -9,6 +9,7 @@
 module joka.stdc;
 
 public import joka.stdc.config;
+public import joka.stdc.errno;
 public import joka.stdc.math;
 public import joka.stdc.stdio;
 public import joka.stdc.stdlib;

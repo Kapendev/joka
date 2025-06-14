@@ -12,7 +12,7 @@ import joka.stdc.config;
 
 @nogc nothrow extern(C):
 
-alias FILE = void;
+struct FILE {};
 
 enum SEEK_SET = 0;
 enum SEEK_CUR = 1;
@@ -117,3 +117,4 @@ size_t fread(void* ptr, size_t size, size_t count, FILE* stream);
 int fclose(FILE* stream);
 int fputs(const(char)* str, FILE* stream);
 size_t fwrite(const(void)* buffer, size_t size, size_t count, FILE* stream);
+int ferror(FILE* stream);
