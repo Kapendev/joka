@@ -185,11 +185,9 @@ struct List(T) {
     }
 }
 
-// TODO: Doing `struct[N]` needs type info for some reason. Fix that.
-// NOTE: Will probably need something like `bytes[N]` and I hate it already...
 /// A dynamic array allocated on the stack.
 struct FixedList(T, Sz N) {
-    T[N] data;
+    ubyte[T.sizeof * N] data;
     Sz length;
 
     @safe nothrow @nogc:
@@ -231,8 +229,9 @@ struct FixedList(T, Sz N) {
         return items.length;
     }
 
+    @trusted
     T[] items() {
-        return data[0 .. length];
+        return (cast(T*) data.ptr)[0 .. length];
     }
 
     Sz capacity() {
