@@ -13,7 +13,7 @@ import joka.ascii;
 import joka.memory;
 import joka.types;
 
-@safe @nogc nothrow:
+@safe nothrow:
 
 enum defaultListCapacity = 16;
 enum defaultGridRowCount = 128;
@@ -29,54 +29,61 @@ struct List(T) {
     T[] items;
     Sz capacity;
 
-    @safe @nogc nothrow:
+    @safe nothrow:
 
     @trusted
     this(const(T)[] args...) {
         append(args);
     }
 
+    @nogc
     T[] opSlice(Sz dim)(Sz i, Sz j) {
         return items[i .. j];
     }
 
+    @nogc
     T[] opIndex() {
         return items;
     }
 
     // D calls this function when the slice operator is used. Does something but I do not remember what lol.
+    @nogc
     T[] opIndex(T[] slice) {
         return slice;
     }
 
     // D will let you get the pointer of the array item if you return a ref value.
+    @nogc
     ref T opIndex(Sz i) {
         return items[i];
     }
 
-    @trusted
+    @trusted @nogc
     void opIndexAssign(const(T) rhs, Sz i) {
         items[i] = cast(T) rhs;
     }
 
-    @trusted
+    @trusted @nogc
     void opIndexOpAssign(IStr op)(const(T) rhs, Sz i) {
         mixin("items[i]", op, "= cast(T) rhs;");
     }
 
+    @nogc
     Sz opDollar(Sz dim)() {
         return items.length;
     }
 
+    @nogc
     Sz length() {
         return items.length;
     }
 
-    @trusted
+    @trusted @nogc
     T* ptr() {
         return items.ptr;
     }
 
+    @nogc
     bool isEmpty() {
         return length == 0;
     }
@@ -99,18 +106,19 @@ struct List(T) {
         jokaMemcpy(ptr + oldLength, args.ptr, args.length * T.sizeof);
     }
 
+    @nogc
     void remove(Sz i) {
         items[i] = items[$ - 1];
         items = items[0 .. $ - 1];
     }
 
+    @nogc
     void removeShift(Sz i) {
-        foreach (j; i .. length - 1) {
-            items[j] = items[j + 1];
-        }
+        foreach (j; i .. length - 1) items[j] = items[j + 1];
         items = items[0 .. $ - 1];
     }
 
+    @nogc
     T pop() {
         if (length > 0) {
             T temp = items[$ - 1];
@@ -121,6 +129,7 @@ struct List(T) {
         }
     }
 
+    @nogc
     T popFront() {
         if (length > 0) {
             T temp = items[0];
@@ -158,19 +167,20 @@ struct List(T) {
         }
     }
 
-    @trusted
+    @trusted @nogc
     void fill(const(T) value) {
         foreach (ref item; items) item = cast(T) value;
     }
 
+    @nogc
     void clear() {
         items = items[0 .. 0];
     }
 
-    @trusted
+    @trusted @nogc
     void free() {
         jokaFree(items.ptr);
-        items = [];
+        items = null;
         capacity = 0;
     }
 }
@@ -182,7 +192,7 @@ struct FixedList(T, Sz N) {
     T[N] data;
     Sz length;
 
-    @safe @nogc nothrow:
+    @safe nothrow @nogc:
 
     @trusted
     this(const(T)[] args...) {
@@ -240,9 +250,7 @@ struct FixedList(T, Sz N) {
 
     void appendBlank() {
         length += 1;
-        if (length > items.length) {
-            assert(0, "Fixed list is full.");
-        }
+        if (length > items.length) assert(0, "Fixed list is full.");
     }
 
     @trusted
@@ -286,9 +294,7 @@ struct FixedList(T, Sz N) {
 
     void resizeBlank(Sz newLength) {
         length = newLength;
-        if (length > items.length) {
-            assert(0, "Fixed list is full.");
-        }
+        if (length > items.length) assert(0, "Fixed list is full.");
     }
 
     void resize(Sz newLength) {
@@ -317,12 +323,13 @@ struct SparseList(T) {
     Sz openIndex;
     Sz length;
 
-    @safe @nogc nothrow:
+    @safe nothrow:
 
     this(const(T)[] args...) {
         append(args);
     }
 
+    @nogc
     ref T opIndex(Sz i) {
         if (!has(i)) {
             assert(0, "Index `[{}]` does not exist.".fmt(i));
@@ -330,35 +337,34 @@ struct SparseList(T) {
         return data[i];
     }
 
-    @trusted
+    @trusted @nogc
     void opIndexAssign(const(T) rhs, Sz i) {
-        if (!has(i)) {
-            assert(0, "Index `[{}]` does not exist.".fmt(i));
-        }
+        if (!has(i)) assert(0, "Index `[{}]` does not exist.".fmt(i));
         data[i] = cast(T) rhs;
     }
 
-    @trusted
+    @trusted @nogc
     void opIndexOpAssign(IStr op)(const(T) rhs, Sz i) {
-        if (!has(i)) {
-            assert(0, "Index `[{}]` does not exist.".fmt(i));
-        }
+        if (!has(i)) assert(0, "Index `[{}]` does not exist.".fmt(i));
         mixin("data[i]", op, "= cast(T) rhs;");
     }
 
+    @nogc
     Sz capacity() {
         return data.capacity;
     }
 
-    @trusted
+    @trusted @nogc
     T* ptr() {
         return data.ptr;
     }
 
+    @nogc
     bool isEmpty() {
         return length == 0;
     }
 
+    @nogc
     bool has(Sz i) {
         return i < flags.length && flags[i];
     }
@@ -395,10 +401,9 @@ struct SparseList(T) {
         }
     }
 
+    @nogc
     void remove(Sz i) {
-        if (!has(i)) {
-            assert(0, "Index `[{}]` does not exist.".fmt(i));
-        }
+        if (!has(i)) assert(0, "Index `[{}]` does not exist.".fmt(i));
         flags[i] = false;
         hotIndex = i;
         if (i < openIndex) openIndex = i;
@@ -410,6 +415,7 @@ struct SparseList(T) {
         flags.reserve(capacity);
     }
 
+    @nogc
     void clear() {
         data.clear();
         flags.clear();
@@ -418,6 +424,7 @@ struct SparseList(T) {
         length = 0;
     }
 
+    @nogc
     void free() {
         data.free();
         flags.free();
@@ -426,6 +433,7 @@ struct SparseList(T) {
         length = 0;
     }
 
+    @nogc
     auto ids() {
         static struct Range {
             bool[] flags;
@@ -441,9 +449,7 @@ struct SparseList(T) {
 
             void popFront() {
                 id += 1;
-                while (id != flags.length && !flags[id]) {
-                    id += 1;
-                }
+                while (id != flags.length && !flags[id]) id += 1;
             }
         }
 
@@ -452,6 +458,7 @@ struct SparseList(T) {
         return Range(flags.items, id);
     }
 
+    @nogc
     auto items() {
         static struct Range {
             T[] data;
@@ -468,16 +475,12 @@ struct SparseList(T) {
 
             void popFront() {
                 id += 1;
-                while (id != flags.length && !flags[id]) {
-                    id += 1;
-                }
+                while (id != flags.length && !flags[id]) id += 1;
             }
         }
 
         Sz id = 0;
-        while (id < flags.length && !flags[id]) {
-            id += 1;
-        }
+        while (id < flags.length && !flags[id]) id += 1;
         return Range(data.items, flags.items, id);
     }
 }
@@ -491,48 +494,47 @@ struct GenerationalList(T) {
     SparseList!T data;
     List!Sz generations;
 
-    @safe @nogc nothrow:
+    @safe nothrow:
 
+    @nogc
     ref T opIndex(GenerationalIndex i) {
-        if (!has(i)) {
-            assert(0, "Index `[{}]` with generation `{}` does not exist.".fmt(i.value, i.generation));
-        }
+        if (!has(i)) assert(0, "Index `[{}]` with generation `{}` does not exist.".fmt(i.value, i.generation));
         return data[i.value];
     }
 
-    @trusted
+    @trusted @nogc
     void opIndexAssign(const(T) rhs, GenerationalIndex i) {
-        if (!has(i)) {
-            assert(0, "Index `[{}]` with generation `{}` does not exist.".fmt(i.value, i.generation));
-        }
+        if (!has(i)) assert(0, "Index `[{}]` with generation `{}` does not exist.".fmt(i.value, i.generation));
         data[i.value] = cast(T) rhs;
     }
 
-    @trusted
+    @trusted @nogc
     void opIndexOpAssign(IStr op)(const(T) rhs, GenerationalIndex i) {
-        if (!has(i)) {
-            assert(0, "Index `[{}]` with generation `{}` does not exist.".fmt(i.value, i.generation));
-        }
+        if (!has(i)) assert(0, "Index `[{}]` with generation `{}` does not exist.".fmt(i.value, i.generation));
         mixin("data[i.value]", op, "= cast(T) rhs;");
     }
 
+    @nogc
     Sz length() {
         return data.length;
     }
 
+    @nogc
     Sz capacity() {
         return data.capacity;
     }
 
-    @trusted
+    @trusted @nogc
     T* ptr() {
         return data.ptr;
     }
 
+    @nogc
     bool isEmpty() {
         return length == 0;
     }
 
+    @nogc
     bool has(GenerationalIndex i) {
         return data.has(i.value) && generations[i.value] == i.generation;
     }
@@ -543,10 +545,9 @@ struct GenerationalList(T) {
         return GenerationalIndex(data.hotIndex, generations[data.hotIndex]);
     }
 
+    @nogc
     void remove(GenerationalIndex i) {
-        if (!has(i)) {
-            assert(0, "Index `[{}]` with generation `{}` does not exist.".fmt(i.value, i.generation));
-        }
+        if (!has(i)) assert(0, "Index `[{}]` with generation `{}` does not exist.".fmt(i.value, i.generation));
         data.remove(i.value);
         generations[data.hotIndex] += 1;
     }
@@ -556,15 +557,18 @@ struct GenerationalList(T) {
         generations.reserve(capacity);
     }
 
+    @nogc
     void clear() {
         foreach (id; ids) remove(id);
     }
 
+    @nogc
     void free() {
         data.free();
         generations.free();
     }
 
+    @nogc
     auto ids() {
         static struct Range {
             Sz[] generations;
@@ -581,9 +585,7 @@ struct GenerationalList(T) {
 
             void popFront() {
                 id += 1;
-                while (id != flags.length && !flags[id]) {
-                    id += 1;
-                }
+                while (id != flags.length && !flags[id]) id += 1;
             }
         }
 
@@ -592,6 +594,7 @@ struct GenerationalList(T) {
         return Range(generations.items, data.flags.items, id);
     }
 
+    @nogc
     auto items() {
         static struct Range {
             T[] data;
@@ -608,16 +611,12 @@ struct GenerationalList(T) {
 
             void popFront() {
                 id += 1;
-                while (id != flags.length && !flags[id]) {
-                    id += 1;
-                }
+                while (id != flags.length && !flags[id]) id += 1;
             }
         }
 
         Sz id = 0;
-        while (id < data.flags.length && !data.flags[id]) {
-            id += 1;
-        }
+        while (id < data.flags.length && !data.flags[id]) id += 1;
         return Range(data.data.items, data.flags.items, id);
     }
 }
@@ -627,7 +626,7 @@ struct Grid(T) {
     Sz rowCount;
     Sz colCount;
 
-    @safe @nogc nothrow:
+    @safe nothrow:
 
     this(Sz rowCount, Sz colCount, T value = T.init) {
         resizeBlank(rowCount, colCount);
@@ -638,31 +637,30 @@ struct Grid(T) {
         this(defaultGridRowCount, defaultGridColCount, value);
     }
 
+    @nogc
     T[] opIndex() {
         return tiles[0 .. length];
     }
 
+    @nogc
     ref T opIndex(Sz row, Sz col) {
-        if (!has(row, col)) {
-            assert(0, "Tile `[{}, {}]` does not exist.".fmt(row, col));
-        }
+        if (!has(row, col)) assert(0, "Tile `[{}, {}]` does not exist.".fmt(row, col));
         return tiles[jokaFindGridIndex(row, col, colCount)];
     }
 
+    @nogc
     void opIndexAssign(T rhs, Sz row, Sz col) {
-        if (!has(row, col)) {
-            assert(0, "Tile `[{}, {}]` does not exist.".fmt(row, col));
-        }
+        if (!has(row, col)) assert(0, "Tile `[{}, {}]` does not exist.".fmt(row, col));
         tiles[jokaFindGridIndex(row, col, colCount)] = rhs;
     }
 
+    @nogc
     void opIndexOpAssign(IStr op)(T rhs, Sz row, Sz col) {
-        if (!has(row, col)) {
-            assert(0, "Tile `[{}, {}]` does not exist.".fmt(row, col));
-        }
+        if (!has(row, col)) assert(0, "Tile `[{}, {}]` does not exist.".fmt(row, col));
         mixin("tiles[colCount * row + col]", op, "= rhs;");
     }
 
+    @nogc
     Sz opDollar(Sz dim)() {
         static if (dim == 0) {
             return rowCount;
@@ -673,23 +671,27 @@ struct Grid(T) {
         }
     }
 
+    @nogc
     Sz length() {
         return tiles.length;
     }
 
-    @trusted
+    @trusted @nogc
     T* ptr() {
         return tiles.ptr;
     }
 
+    @nogc
     Sz capacity() {
         return tiles.capacity;
     }
 
+    @nogc
     bool isEmpty() {
         return tiles.isEmpty;
     }
 
+    @nogc
     bool has(Sz row, Sz col) {
         return row < rowCount && col < colCount;
     }
@@ -711,18 +713,19 @@ struct Grid(T) {
         colCount = newColCount;
     }
 
-    @trusted
+    @trusted @nogc
     void fill(T value) {
         tiles.fill(value);
     }
 
+    @nogc
     void clear() {
         tiles.clear();
         rowCount = 0;
         colCount = 0;
     }
 
-    @trusted
+    @trusted @nogc
     void free() {
         tiles.free();
         rowCount = 0;
@@ -735,7 +738,7 @@ struct Arena {
     Sz capacity;
     Sz offset;
 
-    @safe @nogc nothrow:
+    @safe nothrow:
 
     this(Sz capacity) {
         mallocSelf(capacity);
@@ -751,9 +754,7 @@ struct Arena {
 
     @trusted
     void* malloc(Sz size, Sz alignment) {
-        if (size == 0 || alignment == 0) {
-            assert(0, "Size or alignment is zero.");
-        }
+        if (size == 0 || alignment == 0) assert(0, "Size or alignment is zero.");
         Sz alignedOffset = void;
         if (offset == 0) {
             auto ptr = cast(Sz) data;
@@ -799,11 +800,12 @@ struct Arena {
         return result;
     }
 
+    @nogc
     void clear() {
         offset = 0;
     }
 
-    @trusted
+    @trusted @nogc
     free() {
         jokaFree(data);
         data = null;
@@ -813,7 +815,7 @@ struct Arena {
 }
 
 pragma(inline, true)
-extern(C)
+extern(C) @nogc
 Sz jokaFindListCapacity(Sz length) {
     Sz result = defaultListCapacity;
     while (result < length) result += result;
@@ -821,19 +823,19 @@ Sz jokaFindListCapacity(Sz length) {
 }
 
 pragma(inline, true)
-extern(C)
+extern(C) @nogc
 Sz jokaFindGridIndex(Sz row, Sz col, Sz colCount) {
     return colCount * row + col;
 }
 
 pragma(inline, true)
-extern(C)
+extern(C) @nogc
 Sz jokaFindGridRow(Sz gridIndex, Sz colCount) {
     return gridIndex % colCount;
 }
 
 pragma(inline, true)
-extern(C)
+extern(C) @nogc
 Sz jokaFindGridCol(Sz gridIndex, Sz colCount) {
     return gridIndex / colCount;
 }

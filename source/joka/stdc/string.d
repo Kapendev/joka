@@ -8,7 +8,7 @@
 
 module joka.stdc.string;
 
-@nogc nothrow extern(C):
+extern(C) nothrow @nogc:
 
 int memcmp(const(void)* lhs, const(void)* rhs, size_t count);
 void* memset(void* dest, int ch, size_t count);

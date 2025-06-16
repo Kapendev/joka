@@ -118,7 +118,7 @@ IStr fmt(A...)(IStr fmtStr, A args) {
     return fmtIntoBuffer(buffers[bufferIndex][], fmtStr, args);
 }
 
-@safe @nogc nothrow:
+@safe nothrow @nogc:
 
 /// Returns true if the character is a symbol (!, ", ...).
 pragma(inline, true);

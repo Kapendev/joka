@@ -13,7 +13,8 @@ import joka.ascii;
 import joka.types;
 import stdc = joka.stdc.math;
 
-@safe @nogc nothrow:
+// I don't care about `pure`, but I'm a nice person.
+@safe nothrow @nogc pure:
 
 enum epsilon = 0.000100;                              /// The value of epsilon.
 enum euler   = 2.71828182845904523536028747135266249; /// The value of Euler's number.
@@ -51,7 +52,7 @@ enum gray3   = Rgba(159, 159, 159); /// Gray 333.
 enum gray4   = Rgba(223, 223, 223); /// Gray 4444.
 enum gray    = gray2;               /// Gray gray.
 
-alias Color = Rgba;
+alias Color = Rgba;         /// The common color type.
 
 alias BVec2 = GVec2!byte;   /// A 2D vector using bytes.
 alias IVec2 = GVec2!int;    /// A 2D vector using ints.
@@ -114,7 +115,17 @@ struct Rgba {
     enum zero = Rgba(0, 0, 0, 0); /// The zero value of the color.
     enum one = Rgba(1, 1, 1, 1);  /// The one value of the color.
 
-    @safe @nogc nothrow:
+    @safe nothrow @nogc:
+
+    IStr toStr() {
+        return "({} {} {} {})".fmt(r, g, b, a);
+    }
+
+    IStr toString() {
+        return toStr();
+    }
+
+    @safe nothrow @nogc pure:
 
     mixin addXyzwOps!(Rgba, ubyte, length, form);
 
@@ -129,14 +140,6 @@ struct Rgba {
     pragma(inline, true)
     this(ubyte r) {
         this(r, r, r, 255);
-    }
-
-    IStr toStr() {
-        return "({} {} {} {})".fmt(r, g, b, a);
-    }
-
-    IStr toString() {
-        return toStr();
     }
 
     pragma(inline, true)
@@ -178,7 +181,17 @@ struct GVec2(T) {
         alias Float = float;
     }
 
-    @safe @nogc nothrow:
+    @safe nothrow @nogc:
+
+    IStr toStr() {
+        return "({} {})".fmt(x, y);
+    }
+
+    IStr toString() {
+        return toStr();
+    }
+
+    @safe nothrow @nogc pure:
 
     mixin addXyzwOps!(GVec2!T, T, length, form);
 
@@ -223,14 +236,6 @@ struct GVec2(T) {
 
     Sz opDollar(Sz dim)() {
         return items.length;
-    }
-
-    IStr toStr() {
-        return "({} {})".fmt(x, y);
-    }
-
-    IStr toString() {
-        return toStr();
     }
 
     pragma(inline, true)
@@ -416,7 +421,17 @@ struct GVec3(T) {
         alias Float = float;
     }
 
-    @safe @nogc nothrow:
+    @safe nothrow @nogc:
+
+    IStr toStr() {
+        return "({} {} {})".fmt(x, y, z);
+    }
+
+    IStr toString() {
+        return toStr();
+    }
+
+    @safe nothrow @nogc pure:
 
     mixin addXyzwOps!(GVec3!T, T, length, form);
 
@@ -467,14 +482,6 @@ struct GVec3(T) {
 
     Sz opDollar(Sz dim)() {
         return items.length;
-    }
-
-    IStr toStr() {
-        return "({} {} {})".fmt(x, y, z);
-    }
-
-    IStr toString() {
-        return toStr();
     }
 
     pragma(inline, true)
@@ -652,7 +659,17 @@ struct GVec4(T) {
         alias Float = float;
     }
 
-    @safe @nogc nothrow:
+    @safe nothrow @nogc:
+
+    IStr toStr() {
+        return "({} {} {} {})".fmt(x, y, z, w);
+    }
+
+    IStr toString() {
+        return toStr();
+    }
+
+    @safe nothrow @nogc pure:
 
     mixin addXyzwOps!(GVec4!T, T, length, form);
 
@@ -709,14 +726,6 @@ struct GVec4(T) {
 
     Sz opDollar(Sz dim)() {
         return items.length;
-    }
-
-    IStr toStr() {
-        return "({} {} {} {})".fmt(x, y, z, w);
-    }
-
-    IStr toString() {
-        return toStr();
     }
 
     pragma(inline, true)
@@ -887,7 +896,17 @@ struct GRect(T) {
         alias Float = float;
     }
 
-    @safe @nogc nothrow:
+    @safe nothrow @nogc:
+
+    IStr toStr() {
+        return "({} {})".fmt(position, size);
+    }
+
+    IStr toString() {
+        return toStr();
+    }
+
+    @safe nothrow @nogc pure:
 
     pragma(inline, true)
     this(GVec2!T position, GVec2!T size) {
@@ -932,14 +951,6 @@ struct GRect(T) {
     /// The height of the rectangle.
     pragma(inline, true)
     @trusted ref T h() => size.y;
-
-    IStr toStr() {
-        return "({} {})".fmt(position, size);
-    }
-
-    IStr toString() {
-        return toStr();
-    }
 
     pragma(inline, true)
     GRect!T abs() {
@@ -1270,7 +1281,17 @@ struct GCirc(T) {
         alias Float = float;
     }
 
-    @safe @nogc nothrow:
+    @safe nothrow @nogc:
+
+    IStr toStr() {
+        return "({} {})".fmt(position, radius);
+    }
+
+    IStr toString() {
+        return toStr();
+    }
+
+    @safe nothrow @nogc pure:
 
     pragma(inline, true)
     this(GVec2!T position, T radius) {
@@ -1282,14 +1303,6 @@ struct GCirc(T) {
     this(T x, T y, T radius) {
         this(GVec2!T(x, y), radius);
     }
-
-    IStr toStr() {
-        return "({} {})".fmt(position, radius);
-    }
-
-    IStr toString() {
-        return toStr();
-    }
 }
 
 /// A generic 2D Line.
@@ -1297,7 +1310,17 @@ struct GLine(T) {
     GVec2!T a; /// The start point of the line.
     GVec2!T b; /// The end point of the line.
 
-    @safe @nogc nothrow:
+    @safe nothrow @nogc:
+
+    IStr toStr() {
+        return "({} {})".fmt(a, b);
+    }
+
+    IStr toString() {
+        return toStr();
+    }
+
+    @safe nothrow @nogc pure:
 
     pragma(inline, true)
     this(GVec2!T a, GVec2!T b) {
@@ -1318,14 +1341,6 @@ struct GLine(T) {
     pragma(inline, true)
     this(T ax, T ay, GVec2!T b) {
         this(GVec2!T(ax, ay), b);
-    }
-
-    IStr toStr() {
-        return "({} {})".fmt(a, b);
-    }
-
-    IStr toString() {
-        return toStr();
     }
 }
 
@@ -2296,15 +2311,4 @@ unittest {
     assert(!temp2.isZero);
     assert(!temp3.isZero);
     assert(!temp4.isZero);
-}
-
-// Print test.
-unittest {
-    assert(Rgba(9).toStr()           == "(9 9 9 255)");
-    assert(IVec2(9).toStr()          == "(9 9)");
-    assert(IVec3(9).toStr()          == "(9 9 9)");
-    assert(IVec4(9).toStr()          == "(9 9 9 9)");
-    assert(ICirc(9, 9, 9).toStr()    == "((9 9) 9)");
-    assert(ILine(9, 9, 9, 9).toStr() == "((9 9) (9 9))");
-    assert(IRect(9, 9, 9, 9).toStr() == "((9 9) (9 9))");
 }

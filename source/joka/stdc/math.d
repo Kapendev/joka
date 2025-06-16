@@ -8,7 +8,7 @@
 
 module joka.stdc.math;
 
-@nogc nothrow extern(C):
+extern(C) nothrow @nogc pure:
 
 int abs(int x);
 long labs(long x);

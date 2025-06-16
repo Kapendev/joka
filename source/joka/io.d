@@ -53,7 +53,7 @@ noreturn todo(IStr text, Sz line = __LINE__, IStr file = __FILE__) {
     assert(0, "TODO({}:{}): {}".fmt(file, line, text));
 }
 
-@safe @nogc nothrow:
+@safe nothrow:
 
 // NOTE: No automatic text conversion is done. We could handle it manually here in the future. Maybe.
 // NOTE: Also maybe think about errno lol.
@@ -90,7 +90,7 @@ Result!LStr readText(IStr path) {
 
 // NOTE: No automatic text conversion is done. We could handle it manually here in the future. Maybe.
 // NOTE: Also maybe think about errno lol.
-@trusted
+@trusted @nogc
 Fault writeText(IStr path, IStr text) {
     auto file = stdc.fopen(toCStr(path).getOr(), "wb");
     if (file == null) return Fault.cantOpen;

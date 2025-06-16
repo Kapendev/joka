@@ -8,7 +8,7 @@
 
 module joka.stdc.config;
 
-@nogc nothrow extern(C):
+extern(C) nothrow @nogc:
 
 version (WebAssembly) {
     static if ((void*).sizeof > int.sizeof) {

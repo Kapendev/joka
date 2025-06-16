@@ -8,7 +8,7 @@
 
 module joka.stdc.errno;
 
-@nogc nothrow extern(C):
+extern(C) nothrow @nogc:
 
 // NOTE: Code from the D standard library.
 version (CRuntime_Microsoft) {

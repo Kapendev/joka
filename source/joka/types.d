@@ -9,7 +9,7 @@
 /// The `types` module provides basic type definitions and compile-time functions such as type checking.
 module joka.types;
 
-@safe @nogc nothrow:
+@safe nothrow @nogc:
 
 alias Sz      = size_t;         /// The result of sizeof, ...
 
@@ -52,7 +52,7 @@ struct Result(T) {
     else T value;             /// The value of the result.
     Fault fault = Fault.some; /// The error of the result.
 
-    @safe @nogc nothrow:
+    @safe nothrow @nogc:
 
     pragma(inline, true);
     this(T value) {
@@ -129,7 +129,7 @@ struct Union(A...) {
     alias Types = A;
     alias Base = A[0];
 
-    @safe @nogc nothrow:
+    @safe nothrow @nogc:
 
     static foreach (i, T; A) {
         @trusted

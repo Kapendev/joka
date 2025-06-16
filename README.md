@@ -1,21 +1,22 @@
 # 🃏 Joka
 
-Joka is a nogc utility library for the [D programming language](https://dlang.org/).
-It provides data structures and functions that work without garbage collection, offering precise memory control and minimal runtime overhead.
+A nogc utility library for the [D programming language](https://dlang.org/).
+Joka provides data structures and functions that work without garbage collection, offering precise memory control and minimal runtime overhead.
 
 ## Modules
 
-* joka.ascii: ASCII string utilities
-* joka.cli: Command-line parsing utilities
-* joka.containers: Heap-allocated data structures
-* joka.io: Input and output functions
-* joka.math: Mathematical data structures and functions
-* joka.memory: Functions for dealing with memory
-* joka.types: Type definitions and compile-time utilities
+* `joka.ascii`: ASCII string utilities
+* `joka.cli`: Command-line parsing utilities
+* `joka.containers`: Heap-allocated data structures
+* `joka.io`: Input and output functions
+* `joka.math`: Mathematical data structures and functions
+* `joka.memory`: Functions for dealing with memory
+* `joka.types`: Type definitions and compile-time utilities
 
 ## Versions
 
-* JokaCustomMemory: Allows the declaration of custom memory allocation functions (`jokaMalloc`, ...).
+* `JokaCustomMemory`: Allows the declaration of custom memory allocation functions
+* `JokaGcMemory`: Like `JokaCustomMemory`, but preconfigured to use the D garbage collector
 
 ## WebAssembly
 
@@ -28,10 +29,20 @@ Start with the [examples](./examples/) folder for a quick overview.
 To try an example, run:
 
 ```cmd
-rdmd -Isource examples/hello.d
+rdmd -Isource examples/_001_hello.d
 ```
 
-## Why are you not using X library?
+## Frequently Asked Questions
 
-Because I like code that looks like C, whereas most people write code that looks like C++.
-And compile times. Joka compiles **blazingly fast** compared to similar libraries!
+### Why aren't you using X library?
+
+Here are a few things I like about Joka that I don't see in other libraries:
+
+* Minimalistic: Avoids unnecessary abstractions.
+* Focused: Doesn’t try to support every use case.
+* Simple: Uses a single global allocator, set at compile time.
+* Fast: Compile times are **blazingly fast**!
+
+### Why aren't some functions `@nogc`?
+
+Because the D garbage collector can be used as a global allocator.

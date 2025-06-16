@@ -10,7 +10,7 @@ module joka.stdc.stdio;
 
 import joka.stdc.config;
 
-@nogc nothrow extern(C):
+extern(C) nothrow @nogc:
 
 struct FILE {};
 

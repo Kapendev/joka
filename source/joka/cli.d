@@ -12,7 +12,7 @@ module joka.cli;
 import joka.ascii;
 import joka.types;
 
-@safe @nogc nothrow:
+@safe nothrow @nogc:
 
 /// Command-line argument types.
 enum ArgType {
@@ -27,7 +27,7 @@ struct ArgToken {
     IStr name;    /// The name of the argument. Always present.
     IStr value;   /// The value of the argument. May be empty.
 
-    @safe @nogc nothrow:
+    @safe nothrow @nogc:
 
     IStr toStr() {
         return "{\"{}\": \"{}\"}".fmt(name, value);
@@ -42,7 +42,7 @@ struct ArgToken {
 struct ArgTokenRange {
     const(IStr)[] args;
 
-    @safe @nogc nothrow:
+    @safe nothrow @nogc:
 
     bool empty() {
         return args.length == 0;
