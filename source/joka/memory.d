@@ -12,15 +12,16 @@ module joka.memory;
 import joka.types;
 import stdc = joka.stdc;
 
+@system nothrow:
+
 version (JokaCustomMemory) {
-    @system nothrow @nogc:
     pragma(msg, "Joka: Using custom allocator.");
 
     extern(C) void* jokaMalloc(Sz size);
     extern(C) void* jokaRealloc(void* ptr, Sz size);
-    extern(C) void jokaFree(void* ptr);
-    extern(C) void* jokaMemset(void* ptr, int value, Sz size);
-    extern(C) void* jokaMemcpy(void* ptr, const(void)* source, Sz size);
+    extern(C) @nogc void jokaFree(void* ptr);
+    extern(C) @nogc void* jokaMemset(void* ptr, int value, Sz size);
+    extern(C) @nogc void* jokaMemcpy(void* ptr, const(void)* source, Sz size);
 
     @trusted
     T* jokaMakeBlank(T)() {
@@ -46,7 +47,6 @@ version (JokaCustomMemory) {
         return result;
     }
 } else version (JokaGcMemory) {
-    @system nothrow:
     pragma(msg, "Joka: Using GC allocator.");
 
     extern(C) void* jokaMalloc(Sz size) {
@@ -97,8 +97,6 @@ version (JokaCustomMemory) {
         return result;
     }
 } else {
-    @system nothrow @nogc:
-
     extern(C) void* jokaMalloc(Sz size) {
         return stdc.malloc(size);
     }
@@ -107,15 +105,15 @@ version (JokaCustomMemory) {
         return stdc.realloc(ptr, size);
     }
 
-    extern(C) void jokaFree(void* ptr) {
+    extern(C) @nogc void jokaFree(void* ptr) {
         stdc.free(ptr);
     }
 
-    extern(C) void* jokaMemset(void* ptr, int value, Sz size) {
+    extern(C) @nogc void* jokaMemset(void* ptr, int value, Sz size) {
         return stdc.memset(ptr, value, size);
     }
 
-    extern(C) void* jokaMemcpy(void* ptr, const(void)* source, Sz size) {
+    extern(C) @nogc void* jokaMemcpy(void* ptr, const(void)* source, Sz size) {
         return stdc.memcpy(ptr, source, size);
     }
 

@@ -56,4 +56,4 @@ Because the D garbage collector can be used as a global allocator.
 * Add float16 type.
 * Add utf8 stuff.
 * Maybe think about IO.
-* Maybe copy-paste this thing: [subprocess.h](https://github.com/sheredom/subprocess.h)
+* Maybe "copy-paste" this thing: [subprocess.h](https://github.com/sheredom/subprocess.h)
