@@ -187,7 +187,7 @@ struct List(T) {
 
 /// A dynamic array allocated on the stack.
 struct FixedList(T, Sz N) {
-    ubyte[T.sizeof * N] data;
+    align(T.alignof) ubyte[T.sizeof * N] data = void;
     Sz length;
 
     @safe nothrow @nogc:

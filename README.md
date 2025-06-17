@@ -39,10 +39,21 @@ rdmd -Isource examples/_001_hello.d
 Here are a few things I like about Joka that I don't see in other libraries:
 
 * Minimalistic: Avoids unnecessary abstractions.
-* Focused: Doesn’t try to support every use case.
+* Focused: Doesn't try to support every use case.
 * Simple: Uses a single global allocator, set at compile time.
 * Fast: Compile times are **blazingly fast**!
+
+### Why don't you use feature X?
+
+I prioritize supporting older compilers to ensure broader compatibility.
 
 ### Why aren't some functions `@nogc`?
 
 Because the D garbage collector can be used as a global allocator.
+
+## TODO
+
+* Add float16 type.
+* Add utf8 stuff.
+* Maybe think about IO.
+* Maybe copy-paste this thing: [subprocess.h](https://github.com/sheredom/subprocess.h)
