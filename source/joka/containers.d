@@ -20,9 +20,13 @@ enum defaultGridRowCount = 128;
 enum defaultGridColCount = 128;
 enum defaultGridCapacity = defaultGridRowCount * defaultGridColCount;
 
-alias LStr   = List!char;  /// A dynamic string of chars.
-alias LStr16 = List!wchar; /// A dynamic string of wchars.
-alias LStr32 = List!dchar; /// A dynamic string of dchars.
+alias LStr      = List!char;            /// A dynamic string of chars.
+alias LStr16    = List!wchar;           /// A dynamic string of wchars.
+alias LStr32    = List!dchar;           /// A dynamic string of dchars.
+
+alias FStr(Sz N)   = FixedList!(char, N);  /// A dynamic string of chars allocated on the stack.
+alias FStr16(Sz N) = FixedList!(wchar, N); /// A dynamic string of wchars allocated on the stack.
+alias FStr32(Sz N) = FizedList!(dchar, N); /// A dynamic string of dchars allocated on the stack.
 
 /// A dynamic array.
 struct List(T) {
@@ -31,54 +35,54 @@ struct List(T) {
 
     @safe nothrow:
 
-    @trusted
+    pragma(inline, true)
     this(const(T)[] args...) {
         append(args);
     }
 
-    @nogc
+    pragma(inline, true) @nogc
     T[] opSlice(Sz dim)(Sz i, Sz j) {
         return items[i .. j];
     }
 
-    @nogc
+    pragma(inline, true) @nogc
     T[] opIndex() {
         return items;
     }
 
     // D calls this function when the slice operator is used. Does something but I do not remember what lol.
-    @nogc
+    pragma(inline, true) @nogc
     T[] opIndex(T[] slice) {
         return slice;
     }
 
     // D will let you get the pointer of the array item if you return a ref value.
-    @nogc
+    pragma(inline, true) @nogc
     ref T opIndex(Sz i) {
         return items[i];
     }
 
-    @trusted @nogc
+    pragma(inline, true) @trusted @nogc
     void opIndexAssign(const(T) rhs, Sz i) {
         items[i] = cast(T) rhs;
     }
 
-    @trusted @nogc
+    pragma(inline, true) @trusted @nogc
     void opIndexOpAssign(IStr op)(const(T) rhs, Sz i) {
         mixin("items[i]", op, "= cast(T) rhs;");
     }
 
-    @nogc
+    pragma(inline, true) @nogc
     Sz opDollar(Sz dim)() {
         return items.length;
     }
 
-    @nogc
+    pragma(inline, true) @nogc
     Sz length() {
         return items.length;
     }
 
-    @trusted @nogc
+    pragma(inline, true) @trusted @nogc
     T* ptr() {
         return items.ptr;
     }
@@ -190,55 +194,58 @@ struct FixedList(T, Sz N) {
     align(T.alignof) ubyte[T.sizeof * N] data = void;
     Sz length;
 
+    enum capacity = N;
+
     @safe nothrow @nogc:
 
-    @trusted
+    pragma(inline, true)
     this(const(T)[] args...) {
         append(args);
     }
 
+    pragma(inline, true)
     T[] opSlice(Sz dim)(Sz i, Sz j) {
         return items[i .. j];
     }
 
+    pragma(inline, true)
     T[] opIndex() {
         return items[];
     }
 
     // D calls this function when the slice operator is used. Does something but I do not remember what lol.
+    pragma(inline, true)
     T[] opIndex(T[] slice) {
         return slice;
     }
 
     // D will let you get the pointer of the array item if you return a ref value.
+    pragma(inline, true)
     ref T opIndex(Sz i) {
         return items[i];
     }
 
-    @trusted
+    pragma(inline, true) @trusted
     void opIndexAssign(const(T) rhs, Sz i) {
         items[i] = cast(T) rhs;
     }
 
-    @trusted
+    pragma(inline, true) @trusted
     void opIndexOpAssign(IStr op)(const(T) rhs, Sz i) {
         mixin("items[i]", op, "= cast(T) rhs;");
     }
 
+    pragma(inline, true)
     Sz opDollar(Sz dim)() {
         return items.length;
     }
 
-    @trusted
+    pragma(inline, true) @trusted
     T[] items() {
         return (cast(T*) data.ptr)[0 .. length];
     }
 
-    Sz capacity() {
-        return data.length;
-    }
-
-    @trusted
+    pragma(inline, true) @trusted
     T* ptr() {
         return items.ptr;
     }
@@ -751,7 +758,7 @@ struct Arena {
         offset = 0;
     }
 
-    @trusted
+    @system @nogc
     void* malloc(Sz size, Sz alignment) {
         if (size == 0 || alignment == 0) assert(0, "Size or alignment is zero.");
         Sz alignedOffset = void;
@@ -766,7 +773,7 @@ struct Arena {
         return cast(void*) (data + alignedOffset);
     }
 
-    @trusted
+    @system @nogc
     void* realloc(void* ptr, Sz oldSize, Sz newSize, Sz alignment) {
         if (ptr == null) return malloc(newSize, alignment);
         if (oldSize >= newSize) return null;
@@ -776,23 +783,24 @@ struct Arena {
         return newPtr;
     }
 
-    @trusted
+    @trusted @nogc
     T* makeBlank(T)() {
         return cast(T*) malloc(T.sizeof, T.alignof);
     }
 
-    @trusted
+    @nogc
     T* make(T)(const(T) value = T.init) {
         auto result = makeBlank!T();
         *result = cast(T) value;
         return result;
     }
 
-    @trusted
+    @trusted @nogc
     T[] makeSliceBlank(T)(Sz length) {
         return (cast(T*) malloc(T.sizeof * length, T.alignof))[0 .. length];
     }
 
+    @nogc
     T[] makeSlice(T)(Sz length, const(T) value = T.init) {
         auto result = makeSliceBlank!T(length);
         foreach (ref item; result) item = value;
@@ -939,17 +947,17 @@ unittest {
 
 // FixedList test.
 unittest {
-    FixedList!(char, 64) text;
+    FStr!64 text;
 
-    text = FixedList!(char, 64)();
+    text = FStr!64();
     assert(text.length == 0);
 
-    text = FixedList!(char, 64)("abc");
+    text = FStr!64("abc");
     assert(text.length == 3);
     text.clear();
     assert(text.length == 0);
 
-    text = FixedList!(char, 64)("Hello world!");
+    text = FStr!64("Hello world!");
     assert(text.length == "Hello world!".length);
     assert(text[] == text.items);
     assert(text[0] == text.items[0]);

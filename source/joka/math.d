@@ -16,7 +16,7 @@ import stdc = joka.stdc.math;
 // I don't care about `pure`, but I'm a nice person.
 @safe nothrow @nogc pure:
 
-enum epsilon = 0.000100;                              /// The value of epsilon.
+enum epsilon = 0.0001;                                /// The value of epsilon.
 enum euler   = 2.71828182845904523536028747135266249; /// The value of Euler's number.
 enum log2e   = 1.44269504088896340735992468100189214; /// The value of log2(e).
 enum log10e  = 0.43429448190325182765112891891660508; /// The value of log10(e).
@@ -142,6 +142,11 @@ struct Rgba {
         this(r, r, r, 255);
     }
 
+    pragma(inline, true) @trusted
+    ubyte[] items() {
+        return (cast(ubyte*) &this)[0 .. length];
+    }
+
     pragma(inline, true)
     bool isZero() {
         return r == 0 && g == 0 && b == 0 && a == 0;
@@ -150,11 +155,6 @@ struct Rgba {
     pragma(inline, true)
     bool isOne() {
         return r == 1 && g == 1 && b == 1 && a == 1;
-    }
-
-    @trusted
-    ubyte[] items() {
-        return (cast(ubyte*) &this)[0 .. length];
     }
 
     /// Returns a color with just the alpha modified.
@@ -206,36 +206,9 @@ struct GVec2(T) {
         this(x, x);
     }
 
-    T[] opSlice(Sz dim)(Sz i, Sz j) {
-        return items[i .. j];
-    }
-
-    T[] opIndex() {
-        return items;
-    }
-
-    // D calls this function when the slice operator is used. Does something but I do not remember what lol.
-    T[] opIndex(T[] slice) {
-        return slice;
-    }
-
-    // D will let you get the pointer of the array item if you return a ref value.
-    ref T opIndex(Sz i) {
-        return items[i];
-    }
-
-    @trusted
-    void opIndexAssign(const(T) rhs, Sz i) {
-        items[i] = cast(T) rhs;
-    }
-
-    @trusted
-    void opIndexOpAssign(IStr op)(const(T) rhs, Sz i) {
-        mixin("items[i]", op, "= cast(T) rhs;");
-    }
-
-    Sz opDollar(Sz dim)() {
-        return items.length;
+    pragma(inline, true) @trusted
+    T[] items() {
+        return (cast(T*) &this)[0 .. length];
     }
 
     pragma(inline, true)
@@ -246,11 +219,6 @@ struct GVec2(T) {
     pragma(inline, true)
     bool isOne() {
         return x == 1 && y == 1;
-    }
-
-    @trusted
-    T[] items() {
-        return (cast(T*) &this)[0 .. length];
     }
 
     pragma(inline, true)
@@ -452,36 +420,9 @@ struct GVec3(T) {
         this(xy.x, xy.y, z);
     }
 
-    T[] opSlice(Sz dim)(Sz i, Sz j) {
-        return items[i .. j];
-    }
-
-    T[] opIndex() {
-        return items;
-    }
-
-    // D calls this function when the slice operator is used. Does something but I do not remember what lol.
-    T[] opIndex(T[] slice) {
-        return slice;
-    }
-
-    // D will let you get the pointer of the array item if you return a ref value.
-    ref T opIndex(Sz i) {
-        return items[i];
-    }
-
-    @trusted
-    void opIndexAssign(const(T) rhs, Sz i) {
-        items[i] = cast(T) rhs;
-    }
-
-    @trusted
-    void opIndexOpAssign(IStr op)(const(T) rhs, Sz i) {
-        mixin("items[i]", op, "= cast(T) rhs;");
-    }
-
-    Sz opDollar(Sz dim)() {
-        return items.length;
+    pragma(inline, true) @trusted
+    T[] items() {
+        return (cast(T*) &this)[0 .. length];
     }
 
     pragma(inline, true)
@@ -492,11 +433,6 @@ struct GVec3(T) {
     pragma(inline, true)
     bool isOne() {
         return x == 1 && y == 1 && z == 1;
-    }
-
-    @trusted
-    T[] items() {
-        return (cast(T*) &this)[0 .. length];
     }
 
     pragma(inline, true)
@@ -696,36 +632,9 @@ struct GVec4(T) {
         this(xyz.x, xyz.y, xyz.z, w);
     }
 
-    T[] opSlice(Sz dim)(Sz i, Sz j) {
-        return items[i .. j];
-    }
-
-    T[] opIndex() {
-        return items;
-    }
-
-    // D calls this function when the slice operator is used. Does something but I do not remember what lol.
-    T[] opIndex(T[] slice) {
-        return slice;
-    }
-
-    // D will let you get the pointer of the array item if you return a ref value.
-    ref T opIndex(Sz i) {
-        return items[i];
-    }
-
-    @trusted
-    void opIndexAssign(const(T) rhs, Sz i) {
-        items[i] = cast(T) rhs;
-    }
-
-    @trusted
-    void opIndexOpAssign(IStr op)(const(T) rhs, Sz i) {
-        mixin("items[i]", op, "= cast(T) rhs;");
-    }
-
-    Sz opDollar(Sz dim)() {
-        return items.length;
+    pragma(inline, true) @trusted
+    T[] items() {
+        return (cast(T*) &this)[0 .. length];
     }
 
     pragma(inline, true)
@@ -736,11 +645,6 @@ struct GVec4(T) {
     pragma(inline, true)
     bool isOne() {
         return x == 1 && y == 1 && z == 1 && w == 1;
-    }
-
-    @trusted
-    T[] items() {
-        return (cast(T*) &this)[0 .. length];
     }
 
     pragma(inline, true)

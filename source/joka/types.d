@@ -369,7 +369,7 @@ bool isInAliasArgs(T, A...)() {
 }
 
 IStr funcImplementationErrorMessage(T, IStr func)() {
-    return "Type `" ~ T.stringof ~ "` does not implement the `" ~ func ~ "` function.";
+    return "Type `" ~ T.stringof ~ "` doesn't implement the `" ~ func ~ "` function.";
 }
 
 IStr toCleanNumber(alias i)() {
@@ -390,7 +390,9 @@ template toStaticArray(alias slice) {
 }
 
 mixin template addXyzwOps(T, TT, Sz N, IStr form = "xyzw") {
-    static assert(N >= 2 && N <= 4, "Vector `" ~ T.stringof ~ "`  must have a dimension between 2 and 4.");
+    static assert(N >= 2 && N <= 4, "Vector `" ~ T.stringof ~ "` must have a dimension between 2 and 4.");
+    static assert(N == form.length, "Vector `" ~ T.stringof ~ "` must have a dimension that is equal to the given form length.");
+    static assert(hasMember!(T, "items"), "Vector `" ~ T.stringof ~ "` must implement the `" ~ TT.stringof ~ "[] items()` function.");
 
     pragma(inline, true)
     T opUnary(IStr op)() {
@@ -453,6 +455,43 @@ mixin template addXyzwOps(T, TT, Sz N, IStr form = "xyzw") {
             mixin(form[2], op, "=rhs.", form[2], ";");
             mixin(form[3], op, "=rhs.", form[3], ";");
         }
+    }
+
+    pragma(inline, true)
+    TT[] opSlice(Sz dim)(Sz i, Sz j) {
+        return items[i .. j];
+    }
+
+    pragma(inline, true)
+    TT[] opIndex() {
+        return items;
+    }
+
+    // D calls this function when the slice operator is used. Does something but I do not remember what lol.
+    pragma(inline, true)
+    TT[] opIndex(TT[] slice) {
+        return slice;
+    }
+
+    // D will let you get the pointer of the array item if you return a ref value.
+    pragma(inline, true)
+    ref TT opIndex(Sz i) {
+        return items[i];
+    }
+
+    pragma(inline, true) @trusted
+    void opIndexAssign(const(TT) rhs, Sz i) {
+        items[i] = cast(TT) rhs;
+    }
+
+    pragma(inline, true) @trusted
+    void opIndexOpAssign(IStr op)(const(TT) rhs, Sz i) {
+        mixin("items[i]", op, "= cast(T) rhs;");
+    }
+
+    pragma(inline, true)
+    Sz opDollar(Sz dim)() {
+        return N;
     }
 }
 
