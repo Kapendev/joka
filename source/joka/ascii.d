@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.28
+// Version: v0.0.29
 // ---
 
 /// The `ascii` module provides functions designed to assist with ascii strings.
@@ -14,15 +14,16 @@ import joka.types;
 
 @safe:
 
-enum defaultAsciiBufferSize = 512;
+enum defaultAsciiBufferSize = 1024;
 enum defaultAsciiBufferCount = 8;
 
-enum digitChars = "0123456789";                          /// The set of digits.
-enum upperChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";          /// The set of uppercase letters.
-enum lowerChars = "abcdefghijklmnopqrstuvwxyz";          /// The set of lowercase letters.
-enum alphaChars = upperChars ~ lowerChars;               /// The set of letters.
-enum spaceChars = " \t\v\r\n\f";                         /// The set of whitespace characters.
-enum symbolChars = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"; /// The set of symbol characters.
+enum digitChars    = "0123456789";                         /// The set of decimal numeric characters.
+enum upperChars    = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";         /// The set of uppercase letters.
+enum lowerChars    = "abcdefghijklmnopqrstuvwxyz";         /// The set of lowercase letters.
+enum alphaChars    = upperChars ~ lowerChars;              /// The set of letters.
+enum spaceChars    = " \t\v\r\n\f";                        /// The set of whitespace characters.
+enum symbolChars   = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"; /// The set of symbol characters.
+enum hexDigitChars = "0123456789abcdefABCDEF";             /// The set of hexadecimal numeric characters.
 
 version (Windows) {
     enum pathSep = '\\';
@@ -120,12 +121,6 @@ IStr fmt(A...)(IStr fmtStr, A args) {
 
 @safe nothrow @nogc:
 
-/// Returns true if the character is a symbol (!, ", ...).
-pragma(inline, true);
-bool isSymbol(char c) {
-    return (c >= '!' && c <= '/') || (c >= ':' && c <= '@') || (c >= '[' && c <= '`') || (c >= '{' && c <= '~');
-}
-
 /// Returns true if the character is a digit (0-9).
 pragma(inline, true);
 bool isDigit(char c) {
@@ -144,7 +139,7 @@ bool isLower(char c) {
     return c >= 'a' && c <= 'z';
 }
 
-/// Returns true if the character is an alphabetic letter (A-Z or a-z).
+/// Returns true if the character is an alphabetic letter (A-Z, a-z).
 pragma(inline, true);
 bool isAlpha(char c) {
     return isLower(c) || isUpper(c);
@@ -154,6 +149,18 @@ bool isAlpha(char c) {
 pragma(inline, true);
 bool isSpace(char c) {
     return (c >= '\t' && c <= '\r') || (c == ' ');
+}
+
+/// Returns true if the character is a symbol (!, ", ...).
+pragma(inline, true);
+bool isSymbol(char c) {
+    return (c >= '!' && c <= '/') || (c >= ':' && c <= '@') || (c >= '[' && c <= '`') || (c >= '{' && c <= '~');
+}
+
+/// Returns true if the character is a hexadecimal digit (0-9, A-F, a-f).
+pragma(inline, true);
+bool isHexDigit(char c) {
+    return isDigit(c) || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f');
 }
 
 /// Returns true if the string represents a C string.

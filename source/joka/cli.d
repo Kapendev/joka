@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.28
+// Version: v0.0.29
 // ---
 
 /// The `cli` module provides command-line parsing utilities.

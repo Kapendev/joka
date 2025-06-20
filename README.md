@@ -1,7 +1,8 @@
 # 🃏 Joka
 
 A nogc utility library for the [D programming language](https://dlang.org/).
-Joka provides data structures and functions that work without garbage collection, offering precise memory control and minimal runtime overhead.
+Joka provides data structures and functions that work without garbage collection, offering precise memory control.
+It is designed to complement the D standard library, not replace it.
 
 ## Modules
 
@@ -20,7 +21,7 @@ Joka provides data structures and functions that work without garbage collection
 
 ## WebAssembly
 
-This project supports WebAssembly with BetterC, but you'll need something like Emscripten to make it work.
+WebAssembly is supported with BetterC, but something like [Emscripten](https://emscripten.org/) is needed to make it work.
 If you encounter errors with BetterC, try using the `-i` flag.
 
 ## Documentation
@@ -38,22 +39,25 @@ rdmd -Isource examples/_001_hello.d
 
 Here are a few things I like about Joka that I don't see in other libraries:
 
-* Minimalistic: Avoids unnecessary abstractions.
-* Focused: Doesn't try to support every use case.
-* Simple: Uses a single global allocator, set at compile time.
-* Fast: Compile times are **blazingly fast**!
-
-### Why don't you use feature X?
-
-I prioritize supporting older compilers to ensure broader compatibility.
+* Minimalistic: Avoids abstractions
+* Focused: Doesn't try to support every use case
+* Simple: Uses a single global allocator, set at compile time
+* Fast: Compile times are **blazingly fast**
+* Friendly: Includes many examples
 
 ### Why aren't some functions `@nogc`?
 
 Because the D garbage collector can be used as a global allocator.
 
+### Why are you supporting the D garbage collector?
+
+Because I can and it's useful sometimes.
+
+### What are you using Joka for?
+
+Primarily for [Parin](https://github.com/Kapendev/parin), a game engine I'm working on.
+
 ## TODO
 
-* Add float16 type.
-* Add utf8 stuff.
 * Maybe think about IO.
 * Maybe "copy-paste" this thing: [subprocess.h](https://github.com/sheredom/subprocess.h)

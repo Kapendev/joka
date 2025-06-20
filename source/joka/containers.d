@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.28
+// Version: v0.0.29
 // ---
 
 /// The `containers` module provides various data structures that allocate on the heap.
@@ -15,14 +15,11 @@ import joka.types;
 
 @safe nothrow:
 
-enum defaultListCapacity = 16;
-enum defaultGridRowCount = 128;
-enum defaultGridColCount = 128;
-enum defaultGridCapacity = defaultGridRowCount * defaultGridColCount;
+enum defaultListCapacity = 16; /// The default list capacity. It is also the smallest list capacity.
 
-alias LStr      = List!char;            /// A dynamic string of chars.
-alias LStr16    = List!wchar;           /// A dynamic string of wchars.
-alias LStr32    = List!dchar;           /// A dynamic string of dchars.
+alias LStr   = List!char;  /// A dynamic string of chars.
+alias LStr16 = List!wchar; /// A dynamic string of wchars.
+alias LStr32 = List!dchar; /// A dynamic string of dchars.
 
 alias FStr(Sz N)   = FixedList!(char, N);  /// A dynamic string of chars allocated on the stack.
 alias FStr16(Sz N) = FixedList!(wchar, N); /// A dynamic string of wchars allocated on the stack.
@@ -491,31 +488,36 @@ struct SparseList(T) {
     }
 }
 
-struct GenerationalIndex {
+deprecated("Will be replaced with GenIndex.")
+alias GenerationalIndex = GenIndex;
+deprecated("Will be replaced with GenList.")
+alias GenerationalList(T) = GenList!(T);
+
+struct GenIndex {
     Sz value;
     Sz generation;
 }
 
-struct GenerationalList(T) {
+struct GenList(T) {
     SparseList!T data;
     List!Sz generations;
 
     @safe nothrow:
 
     @nogc
-    ref T opIndex(GenerationalIndex i) {
+    ref T opIndex(GenIndex i) {
         if (!has(i)) assert(0, "Index `[{}]` with generation `{}` does not exist.".fmt(i.value, i.generation));
         return data[i.value];
     }
 
     @trusted @nogc
-    void opIndexAssign(const(T) rhs, GenerationalIndex i) {
+    void opIndexAssign(const(T) rhs, GenIndex i) {
         if (!has(i)) assert(0, "Index `[{}]` with generation `{}` does not exist.".fmt(i.value, i.generation));
         data[i.value] = cast(T) rhs;
     }
 
     @trusted @nogc
-    void opIndexOpAssign(IStr op)(const(T) rhs, GenerationalIndex i) {
+    void opIndexOpAssign(IStr op)(const(T) rhs, GenIndex i) {
         if (!has(i)) assert(0, "Index `[{}]` with generation `{}` does not exist.".fmt(i.value, i.generation));
         mixin("data[i.value]", op, "= cast(T) rhs;");
     }
@@ -541,18 +543,18 @@ struct GenerationalList(T) {
     }
 
     @nogc
-    bool has(GenerationalIndex i) {
+    bool has(GenIndex i) {
         return data.has(i.value) && generations[i.value] == i.generation;
     }
 
-    GenerationalIndex append(const(T) arg) {
+    GenIndex append(const(T) arg) {
         data.append(arg);
         generations.resize(data.data.length);
-        return GenerationalIndex(data.hotIndex, generations[data.hotIndex]);
+        return GenIndex(data.hotIndex, generations[data.hotIndex]);
     }
 
     @nogc
-    void remove(GenerationalIndex i) {
+    void remove(GenIndex i) {
         if (!has(i)) assert(0, "Index `[{}]` with generation `{}` does not exist.".fmt(i.value, i.generation));
         data.remove(i.value);
         generations[data.hotIndex] += 1;
@@ -585,8 +587,8 @@ struct GenerationalList(T) {
                 return id == flags.length;
             }
 
-            GenerationalIndex front() {
-                return GenerationalIndex(id, generations[id]);
+            GenIndex front() {
+                return GenIndex(id, generations[id]);
             }
 
             void popFront() {
@@ -637,10 +639,6 @@ struct Grid(T) {
     this(Sz rowCount, Sz colCount, T value = T.init) {
         resizeBlank(rowCount, colCount);
         fill(value);
-    }
-
-    this(T value) {
-        this(defaultGridRowCount, defaultGridColCount, value);
     }
 
     @nogc
@@ -776,10 +774,10 @@ struct Arena {
     @system @nogc
     void* realloc(void* ptr, Sz oldSize, Sz newSize, Sz alignment) {
         if (ptr == null) return malloc(newSize, alignment);
-        if (oldSize >= newSize) return null;
         auto newPtr = malloc(newSize, alignment);
         if (newPtr == null) return null;
-        jokaMemcpy(newPtr, ptr, oldSize);
+        if (oldSize <= newSize) jokaMemcpy(newPtr, ptr, oldSize);
+        else jokaMemcpy(newPtr, ptr, newSize);
         return newPtr;
     }
 
@@ -1046,12 +1044,12 @@ unittest {
     assert(numbers.openIndex == 0);
 }
 
-// GenerationalList test
+// GenList test
 unittest {
-    GenerationalList!int numbers;
-    GenerationalIndex index;
+    GenList!int numbers;
+    GenIndex index;
 
-    numbers = GenerationalList!int();
+    numbers = GenList!int();
     assert(numbers.length == 0);
     assert(numbers.capacity == 0);
     assert(numbers.ptr == null);
@@ -1080,34 +1078,34 @@ unittest {
     assert(index.generation == 0);
     assert(numbers[index] == 3);
 
-    numbers[GenerationalIndex(0, 0)] = 1;
-    numbers[GenerationalIndex(0, 0)] += 1;
-    numbers[GenerationalIndex(0, 0)] -= 1;
-    assert(numbers.has(GenerationalIndex(1, 0)) == true);
-    assert(numbers.has(GenerationalIndex(2, 0)) == true);
-    assert(numbers.has(GenerationalIndex(3, 0)) == false);
-    numbers.remove(GenerationalIndex(1, 0));
-    assert(numbers.has(GenerationalIndex(0, 0)) == true);
-    assert(numbers.has(GenerationalIndex(1, 0)) == false);
-    assert(numbers.has(GenerationalIndex(2, 0)) == true);
-    assert(numbers.has(GenerationalIndex(3, 0)) == false);
+    numbers[GenIndex(0, 0)] = 1;
+    numbers[GenIndex(0, 0)] += 1;
+    numbers[GenIndex(0, 0)] -= 1;
+    assert(numbers.has(GenIndex(1, 0)) == true);
+    assert(numbers.has(GenIndex(2, 0)) == true);
+    assert(numbers.has(GenIndex(3, 0)) == false);
+    numbers.remove(GenIndex(1, 0));
+    assert(numbers.has(GenIndex(0, 0)) == true);
+    assert(numbers.has(GenIndex(1, 0)) == false);
+    assert(numbers.has(GenIndex(2, 0)) == true);
+    assert(numbers.has(GenIndex(3, 0)) == false);
     numbers.append(1);
-    assert(numbers.has(GenerationalIndex(0, 0)) == true);
-    assert(numbers.has(GenerationalIndex(1, 1)) == true);
-    assert(numbers.has(GenerationalIndex(2, 0)) == true);
-    assert(numbers.has(GenerationalIndex(3, 0)) == false);
+    assert(numbers.has(GenIndex(0, 0)) == true);
+    assert(numbers.has(GenIndex(1, 1)) == true);
+    assert(numbers.has(GenIndex(2, 0)) == true);
+    assert(numbers.has(GenIndex(3, 0)) == false);
     numbers.append(4);
-    assert(numbers.has(GenerationalIndex(0, 0)) == true);
-    assert(numbers.has(GenerationalIndex(1, 1)) == true);
-    assert(numbers.has(GenerationalIndex(2, 0)) == true);
-    assert(numbers.has(GenerationalIndex(3, 0)) == true);
+    assert(numbers.has(GenIndex(0, 0)) == true);
+    assert(numbers.has(GenIndex(1, 1)) == true);
+    assert(numbers.has(GenIndex(2, 0)) == true);
+    assert(numbers.has(GenIndex(3, 0)) == true);
     numbers.clear();
     numbers.append(1);
-    assert(numbers.has(GenerationalIndex(0, 1)) == true);
-    assert(numbers.has(GenerationalIndex(1, 0)) == false);
-    assert(numbers.has(GenerationalIndex(1, 1)) == false);
-    assert(numbers.has(GenerationalIndex(2, 0)) == false);
-    assert(numbers.has(GenerationalIndex(3, 0)) == false);
+    assert(numbers.has(GenIndex(0, 1)) == true);
+    assert(numbers.has(GenIndex(1, 0)) == false);
+    assert(numbers.has(GenIndex(1, 1)) == false);
+    assert(numbers.has(GenIndex(2, 0)) == false);
+    assert(numbers.has(GenIndex(3, 0)) == false);
     numbers.free();
     assert(numbers.length == 0);
     assert(numbers.capacity == 0);
@@ -1117,28 +1115,30 @@ unittest {
 // Grid test
 unittest {
     Grid!int numbers;
+    auto rowCount = 64;
+    auto colCount = 64;
+    auto capacity = rowCount * colCount;
 
-    numbers = Grid!int();
     assert(numbers.length == 0);
     assert(numbers.capacity == 0);
     assert(numbers.ptr == null);
     assert(numbers.rowCount == 0);
     assert(numbers.colCount == 0);
 
-    numbers = Grid!int(-1);
-    assert(numbers.length == defaultGridCapacity);
-    assert(numbers.capacity == defaultGridCapacity);
+    numbers = Grid!int(rowCount, colCount, -1);
+    assert(numbers.length == capacity);
+    assert(numbers.capacity == capacity);
     assert(numbers.ptr != null);
-    assert(numbers.rowCount == defaultGridRowCount);
-    assert(numbers.colCount == defaultGridColCount);
+    assert(numbers.rowCount == rowCount);
+    assert(numbers.colCount == colCount);
     assert(numbers[0, 0] == -1);
-    assert(numbers[defaultGridRowCount - 1, defaultGridColCount - 1] == -1);
+    assert(numbers[rowCount - 1, colCount - 1] == -1);
     numbers[0, 0] = 0;
     numbers[0, 0] += 1;
     numbers[0, 0] -= 1;
-    assert(numbers.has(7, defaultGridColCount) == false);
-    assert(numbers.has(defaultGridRowCount, 7) == false);
-    assert(numbers.has(defaultGridRowCount, defaultGridColCount) == false);
+    assert(numbers.has(7, colCount) == false);
+    assert(numbers.has(rowCount, 7) == false);
+    assert(numbers.has(rowCount, colCount) == false);
     numbers.free();
     assert(numbers.length == 0);
     assert(numbers.capacity == 0);

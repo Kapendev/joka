@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.28
+// Version: v0.0.29
 // ---
 
 /// The `types` module provides basic type definitions and compile-time functions such as type checking.
@@ -11,7 +11,8 @@ module joka.types;
 
 @safe nothrow @nogc:
 
-alias Sz      = size_t;         /// The result of sizeof, ...
+alias Sz      = size_t;         /// The result of sizeof.
+alias Pd      = ptrdiff_t;      /// The result of pointer math.
 
 alias Str     = char[];         /// A string slice of chars.
 alias Str16   = wchar[];        /// A string slice of wchars.
@@ -486,7 +487,7 @@ mixin template addXyzwOps(T, TT, Sz N, IStr form = "xyzw") {
 
     pragma(inline, true) @trusted
     void opIndexOpAssign(IStr op)(const(TT) rhs, Sz i) {
-        mixin("items[i]", op, "= cast(T) rhs;");
+        mixin("items[i]", op, "= cast(TT) rhs;");
     }
 
     pragma(inline, true)

@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.28
+// Version: v0.0.29
 // ---
 
 /// The `io` module provides input and output functions such as file reading.
@@ -55,11 +55,10 @@ noreturn todo(IStr text, Sz line = __LINE__, IStr file = __FILE__) {
 
 @safe nothrow:
 
-// NOTE: No automatic text conversion is done. We could handle it manually here in the future. Maybe.
 // NOTE: Also maybe think about errno lol.
 @trusted
 Fault readTextIntoBuffer(IStr path, ref LStr buffer) {
-    auto file = stdc.fopen(toCStr(path).getOr(), "rb");
+    auto file = stdc.fopen(toCStr(path).getOr(), "r");
     if (file == null) return Fault.cantOpen;
 
     if (stdc.fseek(file, 0, stdc.SEEK_END) != 0) {
@@ -88,11 +87,10 @@ Result!LStr readText(IStr path) {
     return Result!LStr(value, fault);
 }
 
-// NOTE: No automatic text conversion is done. We could handle it manually here in the future. Maybe.
 // NOTE: Also maybe think about errno lol.
 @trusted @nogc
 Fault writeText(IStr path, IStr text) {
-    auto file = stdc.fopen(toCStr(path).getOr(), "wb");
+    auto file = stdc.fopen(toCStr(path).getOr(), "w");
     if (file == null) return Fault.cantOpen;
     stdc.fwrite(text.ptr, char.sizeof, text.length, file);
     if (stdc.fclose(file) != 0) return Fault.cantClose;
