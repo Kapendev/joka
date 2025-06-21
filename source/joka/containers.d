@@ -253,7 +253,7 @@ struct FixedList(T, Sz N) {
 
     void appendBlank() {
         length += 1;
-        if (length > items.length) assert(0, "Fixed list is full.");
+        if (length > N) assert(0, "List is full.");
     }
 
     @trusted
@@ -269,9 +269,7 @@ struct FixedList(T, Sz N) {
     }
 
     void removeShift(Sz i) {
-        foreach (j; i .. items.length - 1) {
-            items[j] = items[j + 1];
-        }
+        foreach (j; i .. items.length - 1) items[j] = items[j + 1];
         length -= 1;
     }
 
@@ -296,8 +294,8 @@ struct FixedList(T, Sz N) {
     }
 
     void resizeBlank(Sz newLength) {
+        if (newLength > N) assert(0, "List is full.");
         length = newLength;
-        if (length > items.length) assert(0, "Fixed list is full.");
     }
 
     void resize(Sz newLength) {
@@ -887,6 +885,7 @@ unittest {
     assert(jokaFindListCapacity(defaultListCapacity + 1) == defaultListCapacity * 2);
 }
 
+// TODO: Write better tests.
 // List test.
 unittest {
     LStr text;
@@ -943,12 +942,17 @@ unittest {
     text.free();
 }
 
+// TODO: Write better tests.
 // FixedList test.
 unittest {
     FStr!64 text;
 
     text = FStr!64();
     assert(text.length == 0);
+    text.resize(63);
+    assert(text.length == 63);
+    text.appendBlank();
+    assert(text.length == 64);
 
     text = FStr!64("abc");
     assert(text.length == 3);
