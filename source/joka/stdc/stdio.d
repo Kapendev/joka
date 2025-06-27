@@ -118,3 +118,8 @@ int fclose(FILE* stream);
 int fputs(const(char)* str, FILE* stream);
 size_t fwrite(const(void)* buffer, size_t size, size_t count, FILE* stream);
 int ferror(FILE* stream);
+
+int printf(const(char)* format, ...);
+int fprintf(FILE* stream, const(char)* format, ...);
+int sprintf(char* buffer, const(char)* format, ...);
+int snprintf(char* buffer, size_t bufsz, const(char)* format, ...);

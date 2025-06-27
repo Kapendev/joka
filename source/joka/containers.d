@@ -244,7 +244,7 @@ struct FixedList(T, Sz N) {
 
     pragma(inline, true) @trusted
     T* ptr() {
-        return items.ptr;
+        return cast(T*) data.ptr;
     }
 
     bool isEmpty() {
