@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.29
 // ---
 
 /// The `ascii` module provides functions designed to assist with ascii strings.
@@ -121,80 +120,74 @@ IStr fmt(A...)(IStr fmtStr, A args) {
 
 @safe nothrow @nogc:
 
-/// Returns true if the character is a digit (0-9).
-pragma(inline, true);
-bool isDigit(char c) {
-    return c >= '0' && c <= '9';
-}
+pragma(inline, true) {
+    /// Returns true if the character is a digit (0-9).
+    bool isDigit(char c) {
+        return c >= '0' && c <= '9';
+    }
 
-/// Returns true if the character is an uppercase letter (A-Z).
-pragma(inline, true);
-bool isUpper(char c) {
-    return c >= 'A' && c <= 'Z';
-}
+    /// Returns true if the character is an uppercase letter (A-Z).
+    bool isUpper(char c) {
+        return c >= 'A' && c <= 'Z';
+    }
 
-/// Returns true the character is a lowercase letter (a-z).
-pragma(inline, true);
-bool isLower(char c) {
-    return c >= 'a' && c <= 'z';
-}
+    /// Returns true the character is a lowercase letter (a-z).
+    bool isLower(char c) {
+        return c >= 'a' && c <= 'z';
+    }
 
-/// Returns true if the character is an alphabetic letter (A-Z, a-z).
-pragma(inline, true);
-bool isAlpha(char c) {
-    return isLower(c) || isUpper(c);
-}
+    /// Returns true if the character is an alphabetic letter (A-Z, a-z).
+    bool isAlpha(char c) {
+        return isLower(c) || isUpper(c);
+    }
 
-/// Returns true if the character is a whitespace character (space, tab, ...).
-pragma(inline, true);
-bool isSpace(char c) {
-    return (c >= '\t' && c <= '\r') || (c == ' ');
-}
+    /// Returns true if the character is a whitespace character (space, tab, ...).
+    bool isSpace(char c) {
+        return (c >= '\t' && c <= '\r') || (c == ' ');
+    }
 
-/// Returns true if the character is a symbol (!, ", ...).
-pragma(inline, true);
-bool isSymbol(char c) {
-    return (c >= '!' && c <= '/') || (c >= ':' && c <= '@') || (c >= '[' && c <= '`') || (c >= '{' && c <= '~');
-}
+    /// Returns true if the character is a symbol (!, ", ...).
+    bool isSymbol(char c) {
+        return (c >= '!' && c <= '/') || (c >= ':' && c <= '@') || (c >= '[' && c <= '`') || (c >= '{' && c <= '~');
+    }
 
-/// Returns true if the character is a hexadecimal digit (0-9, A-F, a-f).
-pragma(inline, true);
-bool isHexDigit(char c) {
-    return isDigit(c) || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f');
-}
+    /// Returns true if the character is a hexadecimal digit (0-9, A-F, a-f).
+    bool isHexDigit(char c) {
+        return isDigit(c) || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f');
+    }
 
-/// Returns true if the string represents a C string.
-pragma(inline, true);
-bool isCStr(IStr str) {
-    return str.length != 0 && str[$ - 1] == '\0';
-}
+    /// Returns true if the string represents a C string.
+    bool isCStr(IStr str) {
+        return str.length != 0 && str[$ - 1] == '\0';
+    }
 
-/// Converts the character to uppercase if it is a lowercase letter.
-char toUpper(char c) {
-    return isLower(c) ? cast(char) (c - 32) : c;
-}
+    /// Converts the character to uppercase if it is a lowercase letter.
+    char toUpper(char c) {
+        return isLower(c) ? cast(char) (c - 32) : c;
+    }
 
-/// Converts all lowercase letters in the string to uppercase.
-void toUpper(Str str) {
-    foreach (ref c; str) c = toUpper(c);
-}
+    /// Converts the character to lowercase if it is an uppercase letter.
+    char toLower(char c) {
+        return isUpper(c) ? cast(char) (c + 32) : c;
+    }
 
-/// Converts the character to lowercase if it is an uppercase letter.
-char toLower(char c) {
-    return isUpper(c) ? cast(char) (c + 32) : c;
-}
+    /// Converts all lowercase letters in the string to uppercase.
+    void toUpper(Str str) {
+        foreach (ref c; str) c = toUpper(c);
+    }
 
-/// Converts all uppercase letters in the string to lowercase.
-void toLower(Str str) {
-    foreach (ref c; str) c = toLower(c);
-}
+    /// Converts all uppercase letters in the string to lowercase.
+    void toLower(Str str) {
+        foreach (ref c; str) c = toLower(c);
+    }
 
-/// Returns the length of the C string.
-@trusted
-Sz cStrLength(ICStr str) {
-    Sz result = 0;
-    while (str[result] != '\0') result += 1;
-    return result;
+    /// Returns the length of the C string.
+    @trusted
+    Sz cStrLength(ICStr str) {
+        Sz result = 0;
+        while (str[result]) result += 1;
+        return result;
+    }
 }
 
 /// Returns true if the two strings are equal, ignoring case.

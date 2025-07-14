@@ -30,7 +30,7 @@ Start with the [examples](./examples/) folder for a quick overview.
 To try an example, run:
 
 ```cmd
-rdmd -Isource examples/_001_hello.d
+ldc2 -I=source -i -run examples/_001_hello.d
 ```
 
 ## Frequently Asked Questions

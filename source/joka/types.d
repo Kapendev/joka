@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.29
 // ---
 
 /// The `types` module provides basic type definitions and compile-time functions such as type checking.
@@ -47,26 +46,52 @@ enum Fault : ubyte {
     cantWrite, /// A write permissions error.
 }
 
-/// Represents a result of a procedure.
+/// A static array.
+// It exists mainly because of weird BetterC stuff.
+struct Array(T, Sz N) {
+    align(T.alignof) ubyte[T.sizeof * N] data;
+
+    enum length = N;
+    enum capacity = N;
+
+    pragma(inline, true) @trusted nothrow @nogc:
+
+    mixin addSliceOps!(Array!(T, N), T);
+
+    this(const(T)[] items...) {
+        if (items.length > N) assert(0, "Too many items.");
+        auto me = this.items;
+        foreach (i; 0 .. N) me[i] = cast(T) items[i];
+    }
+
+    /// Returns the items of the array.
+    T[] items() {
+        return (cast(T*) data.ptr)[0 .. N];
+    }
+
+    /// Returns the pointer of the array.
+    T* ptr() {
+        return cast(T*) data.ptr;
+    }
+}
+
+/// Represents a result of a function.
 struct Result(T) {
     static if (isNumberType!T) T value = 0;
     else T value;             /// The value of the result.
     Fault fault = Fault.some; /// The error of the result.
 
-    @safe nothrow @nogc:
+    pragma(inline, true) @safe nothrow @nogc:
 
-    pragma(inline, true);
     this(T value) {
         this.value = value;
         this.fault = Fault.none;
     }
 
-    pragma(inline, true);
     this(Fault fault) {
         this.fault = fault;
     }
 
-    pragma(inline, true);
     this(T value, Fault fault) {
         if (fault) {
             this.fault = fault;
@@ -77,32 +102,27 @@ struct Result(T) {
     }
 
     /// Returns the result value. Asserts when the result is an error.
-    pragma(inline, true);
     T get() {
         if (fault) assert(0, "Fault was detected.");
         return value;
     }
 
     /// Returns the result value. Returns a default value when the result is an error.
-    pragma(inline, true);
     T getOr(T other) {
         return fault ? other : value;
     }
 
     /// Returns the result value. Returns a default value when the result is an error.
-    pragma(inline, true);
     T getOr() {
         return value;
     }
 
     /// Returns true when the result is an error.
-    pragma(inline, true);
     bool isNone() {
         return fault != 0;
     }
 
     /// Returns true when the result is a value.
-    pragma(inline, true);
     bool isSome() {
         return fault == 0;
     }
@@ -179,9 +199,12 @@ struct Union(A...) {
     }
 
     @trusted
-    ref Base getBase() {
+    ref Base base() {
         return value.m0;
     }
+
+    deprecated("Will be replaced with base.")
+    alias getBase = base;
 
     @trusted
     auto call(IStr func, AA...)(AA args) {
@@ -206,7 +229,7 @@ struct Union(A...) {
 }
 
 /// Converts the value to a fault.
-pragma(inline, true);
+pragma(inline, true)
 Fault toFault(bool value, Fault other = Fault.some) {
     return value ? other : Fault.none;
 }
@@ -387,112 +410,136 @@ IStr toCleanNumber(alias i)() {
 }
 
 template toStaticArray(alias slice) {
-    auto toStaticArray = cast(typeof(slice[0])[slice.length]) slice;
+    enum toStaticArray = cast(typeof(slice[0])[slice.length]) slice;
+}
+
+mixin template addSliceOps(T, TT) {
+    static assert(hasMember!(T, "items"), "Slice `" ~ T.stringof ~ "` must implement the `" ~ TT.stringof ~ "[] items()` function or have a member called that.");
+
+    pragma(inline, true) @trusted nothrow @nogc {
+        TT[] opSlice(Sz dim)(Sz i, Sz j) {
+            return items[i .. j];
+        }
+
+        TT[] opIndex() {
+            return items[];
+        }
+
+        TT[] opIndex(TT[] slice) {
+            return slice;
+        }
+
+        ref TT opIndex(Sz i) {
+            return items[i];
+        }
+
+        void opIndexAssign(const(TT) rhs, Sz i) {
+            items[i] = cast(TT) rhs;
+        }
+
+        void opIndexOpAssign(const(char)[] op)(const(TT) rhs, Sz i) {
+            mixin("items[i]", op, "= cast(TT) rhs;");
+        }
+
+        Sz opDollar(Sz dim)() {
+            return items.length;
+        }
+    }
 }
 
 mixin template addXyzwOps(T, TT, Sz N, IStr form = "xyzw") {
     static assert(N >= 2 && N <= 4, "Vector `" ~ T.stringof ~ "` must have a dimension between 2 and 4.");
     static assert(N == form.length, "Vector `" ~ T.stringof ~ "` must have a dimension that is equal to the given form length.");
-    static assert(hasMember!(T, "items"), "Vector `" ~ T.stringof ~ "` must implement the `" ~ TT.stringof ~ "[] items()` function.");
+    static assert(hasMember!(T, "items"), "Vector `" ~ T.stringof ~ "` must implement the `" ~ TT.stringof ~ "[] items()` function or have a member called that.");
 
-    pragma(inline, true)
-    T opUnary(IStr op)() {
-        static if (N == 2) {
-            return T(
-                mixin(op, form[0]),
-                mixin(op, form[1]),
-            );
-        } else static if (N == 3) {
-            return T(
-                mixin(op, form[0]),
-                mixin(op, form[1]),
-                mixin(op, form[2]),
-            );
-        } else static if (N == 4) {
-            return T(
-                mixin(op, form[0]),
-                mixin(op, form[1]),
-                mixin(op, form[2]),
-                mixin(op, form[3]),
-            );
+    pragma(inline, true) @trusted nothrow @nogc {
+        T opUnary(IStr op)() {
+            static if (N == 2) {
+                return T(
+                    mixin(op, form[0]),
+                    mixin(op, form[1]),
+                );
+            } else static if (N == 3) {
+                return T(
+                    mixin(op, form[0]),
+                    mixin(op, form[1]),
+                    mixin(op, form[2]),
+                );
+            } else static if (N == 4) {
+                return T(
+                    mixin(op, form[0]),
+                    mixin(op, form[1]),
+                    mixin(op, form[2]),
+                    mixin(op, form[3]),
+                );
+            }
         }
-    }
 
-    pragma(inline, true)
-    T opBinary(IStr op)(T rhs) {
-        static if (N == 2) {
-            return T(
-                cast(TT) mixin(form[0], op, "rhs.", form[0]),
-                cast(TT) mixin(form[1], op, "rhs.", form[1]),
-            );
-        } else static if (N == 3) {
-            return T(
-                cast(TT) mixin(form[0], op, "rhs.", form[0]),
-                cast(TT) mixin(form[1], op, "rhs.", form[1]),
-                cast(TT) mixin(form[2], op, "rhs.", form[2]),
-            );
-        } else static if (N == 4) {
-            return T(
-                cast(TT) mixin(form[0], op, "rhs.", form[0]),
-                cast(TT) mixin(form[1], op, "rhs.", form[1]),
-                cast(TT) mixin(form[2], op, "rhs.", form[2]),
-                cast(TT) mixin(form[3], op, "rhs.", form[3]),
-            );
+        T opBinary(IStr op)(T rhs) {
+            static if (N == 2) {
+                return T(
+                    cast(TT) mixin(form[0], op, "rhs.", form[0]),
+                    cast(TT) mixin(form[1], op, "rhs.", form[1]),
+                );
+            } else static if (N == 3) {
+                return T(
+                    cast(TT) mixin(form[0], op, "rhs.", form[0]),
+                    cast(TT) mixin(form[1], op, "rhs.", form[1]),
+                    cast(TT) mixin(form[2], op, "rhs.", form[2]),
+                );
+            } else static if (N == 4) {
+                return T(
+                    cast(TT) mixin(form[0], op, "rhs.", form[0]),
+                    cast(TT) mixin(form[1], op, "rhs.", form[1]),
+                    cast(TT) mixin(form[2], op, "rhs.", form[2]),
+                    cast(TT) mixin(form[3], op, "rhs.", form[3]),
+                );
+            }
         }
-    }
 
-    pragma(inline, true)
-    void opOpAssign(IStr op)(T rhs) {
-        static if (N == 2) {
-            mixin(form[0], op, "=rhs.", form[0], ";");
-            mixin(form[1], op, "=rhs.", form[1], ";");
-        } else static if (N == 3) {
-            mixin(form[0], op, "=rhs.", form[0], ";");
-            mixin(form[1], op, "=rhs.", form[1], ";");
-            mixin(form[2], op, "=rhs.", form[2], ";");
-        } else static if (N == 4) {
-            mixin(form[0], op, "=rhs.", form[0], ";");
-            mixin(form[1], op, "=rhs.", form[1], ";");
-            mixin(form[2], op, "=rhs.", form[2], ";");
-            mixin(form[3], op, "=rhs.", form[3], ";");
+        void opOpAssign(IStr op)(T rhs) {
+            static if (N == 2) {
+                mixin(form[0], op, "=rhs.", form[0], ";");
+                mixin(form[1], op, "=rhs.", form[1], ";");
+            } else static if (N == 3) {
+                mixin(form[0], op, "=rhs.", form[0], ";");
+                mixin(form[1], op, "=rhs.", form[1], ";");
+                mixin(form[2], op, "=rhs.", form[2], ";");
+            } else static if (N == 4) {
+                mixin(form[0], op, "=rhs.", form[0], ";");
+                mixin(form[1], op, "=rhs.", form[1], ";");
+                mixin(form[2], op, "=rhs.", form[2], ";");
+                mixin(form[3], op, "=rhs.", form[3], ";");
+            }
         }
-    }
 
-    pragma(inline, true)
-    TT[] opSlice(Sz dim)(Sz i, Sz j) {
-        return items[i .. j];
-    }
+        TT[] opSlice(Sz dim)(Sz i, Sz j) {
+            return items[i .. j];
+        }
 
-    pragma(inline, true)
-    TT[] opIndex() {
-        return items;
-    }
+        TT[] opIndex() {
+            return items;
+        }
 
-    // D calls this function when the slice operator is used. Does something but I do not remember what lol.
-    pragma(inline, true)
-    TT[] opIndex(TT[] slice) {
-        return slice;
-    }
+        TT[] opIndex(TT[] slice) {
+            return slice;
+        }
 
-    // D will let you get the pointer of the array item if you return a ref value.
-    pragma(inline, true)
-    ref TT opIndex(Sz i) {
-        return items[i];
-    }
+        ref TT opIndex(Sz i) {
+            return items[i];
+        }
 
-    pragma(inline, true) @trusted
-    void opIndexAssign(const(TT) rhs, Sz i) {
-        items[i] = cast(TT) rhs;
-    }
+        void opIndexAssign(const(TT) rhs, Sz i) {
+            items[i] = cast(TT) rhs;
+        }
 
-    pragma(inline, true) @trusted
-    void opIndexOpAssign(IStr op)(const(TT) rhs, Sz i) {
-        mixin("items[i]", op, "= cast(TT) rhs;");
-    }
+        void opIndexOpAssign(IStr op)(const(TT) rhs, Sz i) {
+            mixin("items[i]", op, "= cast(TT) rhs;");
+        }
 
-    pragma(inline, true)
-    Sz opDollar(Sz dim)() {
-        return N;
+        Sz opDollar(Sz dim)() {
+            return N;
+        }
     }
 }
 

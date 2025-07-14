@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
-// Version: v0.0.29
 // ---
 
 /// The `containers` module provides various data structures that allocate on the heap.
@@ -32,46 +31,11 @@ struct List(T) {
 
     @safe nothrow:
 
+    mixin addSliceOps!(List!T, T);
+
     pragma(inline, true)
     this(const(T)[] args...) {
         append(args);
-    }
-
-    pragma(inline, true) @nogc
-    T[] opSlice(Sz dim)(Sz i, Sz j) {
-        return items[i .. j];
-    }
-
-    pragma(inline, true) @nogc
-    T[] opIndex() {
-        return items;
-    }
-
-    // D calls this function when the slice operator is used. Does something but I do not remember what lol.
-    pragma(inline, true) @nogc
-    T[] opIndex(T[] slice) {
-        return slice;
-    }
-
-    // D will let you get the pointer of the array item if you return a ref value.
-    pragma(inline, true) @nogc
-    ref T opIndex(Sz i) {
-        return items[i];
-    }
-
-    pragma(inline, true) @trusted @nogc
-    void opIndexAssign(const(T) rhs, Sz i) {
-        items[i] = cast(T) rhs;
-    }
-
-    pragma(inline, true) @trusted @nogc
-    void opIndexOpAssign(IStr op)(const(T) rhs, Sz i) {
-        mixin("items[i]", op, "= cast(T) rhs;");
-    }
-
-    pragma(inline, true) @nogc
-    Sz opDollar(Sz dim)() {
-        return items.length;
     }
 
     pragma(inline, true) @nogc
@@ -188,12 +152,14 @@ struct List(T) {
 
 /// A dynamic array allocated on the stack.
 struct FixedList(T, Sz N) {
-    align(T.alignof) ubyte[T.sizeof * N] data = void;
+    Array!(T, N) data = void;
     Sz length;
 
     enum capacity = N;
 
     @safe nothrow @nogc:
+
+    mixin addSliceOps!(FixedList!(T, N), T);
 
     pragma(inline, true)
     this(const(T)[] args...) {
@@ -201,50 +167,13 @@ struct FixedList(T, Sz N) {
     }
 
     pragma(inline, true)
-    T[] opSlice(Sz dim)(Sz i, Sz j) {
-        return items[i .. j];
-    }
-
-    pragma(inline, true)
-    T[] opIndex() {
-        return items[];
-    }
-
-    // D calls this function when the slice operator is used. Does something but I do not remember what lol.
-    pragma(inline, true)
-    T[] opIndex(T[] slice) {
-        return slice;
-    }
-
-    // D will let you get the pointer of the array item if you return a ref value.
-    pragma(inline, true)
-    ref T opIndex(Sz i) {
-        return items[i];
-    }
-
-    pragma(inline, true) @trusted
-    void opIndexAssign(const(T) rhs, Sz i) {
-        items[i] = cast(T) rhs;
-    }
-
-    pragma(inline, true) @trusted
-    void opIndexOpAssign(IStr op)(const(T) rhs, Sz i) {
-        mixin("items[i]", op, "= cast(T) rhs;");
-    }
-
-    pragma(inline, true)
-    Sz opDollar(Sz dim)() {
-        return items.length;
-    }
-
-    pragma(inline, true) @trusted
     T[] items() {
-        return (cast(T*) data.ptr)[0 .. length];
+        return data.items[0 .. length];
     }
 
-    pragma(inline, true) @trusted
+    pragma(inline, true)
     T* ptr() {
-        return cast(T*) data.ptr;
+        return data.ptr;
     }
 
     bool isEmpty() {
@@ -817,28 +746,24 @@ struct Arena {
     }
 }
 
-pragma(inline, true)
-extern(C) @nogc
+pragma(inline, true) extern(C) @nogc
 Sz jokaFindListCapacity(Sz length) {
     Sz result = defaultListCapacity;
     while (result < length) result += result;
     return result;
 }
 
-pragma(inline, true)
-extern(C) @nogc
+pragma(inline, true) extern(C) @nogc
 Sz jokaFindGridIndex(Sz row, Sz col, Sz colCount) {
     return colCount * row + col;
 }
 
-pragma(inline, true)
-extern(C) @nogc
+pragma(inline, true) extern(C) @nogc
 Sz jokaFindGridRow(Sz gridIndex, Sz colCount) {
     return gridIndex % colCount;
 }
 
-pragma(inline, true)
-extern(C) @nogc
+pragma(inline, true) extern(C) @nogc
 Sz jokaFindGridCol(Sz gridIndex, Sz colCount) {
     return gridIndex / colCount;
 }
