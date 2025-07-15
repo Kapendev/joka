@@ -802,7 +802,7 @@ struct GRect(T) {
     @safe nothrow @nogc:
 
     IStr toStr() {
-        return "({} {})".fmt(position, size);
+        return "{} {}".fmt(position, size);
     }
 
     IStr toString() {
@@ -854,6 +854,9 @@ struct GRect(T) {
     /// The height of the rectangle.
     pragma(inline, true)
     @trusted ref T h() => size.y;
+
+    pragma(inline, true)
+    bool hasSize() => !size.isZero;
 
     pragma(inline, true)
     GRect!T abs() {
@@ -1187,7 +1190,7 @@ struct GCirc(T) {
     @safe nothrow @nogc:
 
     IStr toStr() {
-        return "({} {})".fmt(position, radius);
+        return "{} ({})".fmt(position, radius);
     }
 
     IStr toString() {
@@ -1216,7 +1219,7 @@ struct GLine(T) {
     @safe nothrow @nogc:
 
     IStr toStr() {
-        return "({} {})".fmt(a, b);
+        return "{} {}".fmt(a, b);
     }
 
     IStr toString() {

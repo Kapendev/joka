@@ -29,7 +29,7 @@ struct ArgToken {
     @safe nothrow @nogc:
 
     IStr toStr() {
-        return "{\"{}\": \"{}\"}".fmt(name, value);
+        return "{\"{}\":\"{}\"}".fmt(name, value);
     }
 
     IStr toString() {
