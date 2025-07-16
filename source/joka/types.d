@@ -128,7 +128,7 @@ struct Result(T) {
     }
 }
 
-union UnionValue(A...) {
+union UnionData(A...) {
     static assert(A.length != 0, "Arguments must contain at least one element.");
 
     static foreach (i, T; A) {
@@ -144,7 +144,7 @@ union UnionValue(A...) {
 }
 
 struct Union(A...) {
-    UnionValue!A value;
+    UnionData!A data;
     UnionType type;
 
     alias Types = A;
@@ -154,40 +154,48 @@ struct Union(A...) {
 
     static foreach (i, T; A) {
         @trusted
-        this(T value) {
-            auto temp = UnionValue!A();
-            *(cast(T*) &temp) = value;
-            this.value = temp;
+        this(T data) {
+            auto temp = UnionData!A();
+            *(cast(T*) &temp) = data;
+            this.data = temp;
             this.type = i;
         }
 
         @trusted
         void opAssign(T rhs) {
-            auto temp = UnionValue!A();
+            auto temp = UnionData!A();
             *(cast(T*) &temp) = rhs;
-            value = temp;
+            data = temp;
             type = i;
         }
     }
 
     IStr typeName() {
         static foreach (i, T; A) {
-            if (type == i) {
-                return T.stringof;
-            }
+            if (type == i) return T.stringof;
         }
         assert(0, "WTF!");
     }
 
+    pragma(inline, true)
     bool isType(T)() {
         static assert(isInAliasArgs!(T, A), "Type `" ~ T.stringof ~ "` is not part of the variant.");
         return type == findInAliasArgs!(T, A);
     }
 
-    @trusted
-    ref T get(T)() {
+    pragma(inline, true) @trusted
+    ref Base base() {
+        return data.m0;
+    }
+
+    pragma(inline, true) @trusted
+    ref T as(T)() {
+        mixin("return data.m", findInAliasArgs!(T, A), ";");
+    }
+
+    ref T to(T)() {
         if (isType!T) {
-            mixin("return value.m", findInAliasArgs!(T, A), ";");
+            return as!T;
         } else {
             static foreach (i, TT; A) {
                 if (i == type) {
@@ -198,20 +206,15 @@ struct Union(A...) {
         }
     }
 
-    @trusted
-    ref Base base() {
-        return value.m0;
-    }
-
-    deprecated("Will be replaced with base.")
-    alias getBase = base;
+    deprecated("Will be replaced with `to`.")
+    alias get = to;
 
     @trusted
     auto call(IStr func, AA...)(AA args) {
         switch (type) {
             static foreach (i, T; A) {
                 static assert(hasMember!(T, func), funcImplementationErrorMessage!(T, func));
-                mixin("case ", i, ": return value.m", toCleanNumber!i, ".", func, "(args);");
+                mixin("case ", i, ": return data.m", toCleanNumber!i, ".", func, "(args);");
             }
             default: assert(0, "WTF!");
         }
