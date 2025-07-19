@@ -77,31 +77,58 @@ struct Array(T, Sz N) {
 
 /// Represents a result of a function.
 struct Result(T) {
-    static if (isNumberType!T) T value = 0;
-    else T value;             /// The value of the result.
-    Fault fault = Fault.some; /// The error of the result.
+    static if (isNumberType!T) {
+        T value = 0;
+    } else {
+        T value;              /// The value of the result.
+    }
+    Fault fault = Fault.some; /// The error code of the result.
 
     pragma(inline, true) @safe nothrow @nogc:
 
-    this(T value) {
-        this.value = value;
-        this.fault = Fault.none;
+    this(const(T) value) {
+        opAssign(value);
     }
 
     this(Fault fault) {
-        this.fault = fault;
+        opAssign(fault);
     }
 
-    this(T value, Fault fault) {
-        if (fault) {
-            this.fault = fault;
-        } else {
-            this.value = value;
-            this.fault = Fault.none;
-        }
+    this(const(T) value, Fault fault) {
+        if (fault) this(fault);
+        else this(value);
     }
 
-    /// Returns the result value. Asserts when the result is an error.
+    void opAssign(Result!T rhs) {
+        value = rhs.value;
+        fault = rhs.fault;
+    }
+
+    @trusted
+    void opAssign(const(T) rhs) {
+        value = cast(T) rhs;
+        fault = Fault.none;
+    }
+
+    void opAssign(Fault rhs) {
+        fault = rhs;
+    }
+
+    static Result!T some(T newValue) {
+        return Result!T(newValue);
+    }
+
+    static Result!T none(Fault newFault = Fault.some) {
+        return Result!T(newFault);
+    }
+
+    /// Returns the result value and traps the fault if it exists.
+    T get(ref Fault trap) {
+        trap = fault;
+        return value;
+    }
+
+    /// Returns the result value, or asserts if a fault exists.
     T get() {
         if (fault) assert(0, "Fault was detected.");
         return value;
@@ -153,18 +180,15 @@ struct Union(A...) {
     @safe nothrow @nogc:
 
     static foreach (i, T; A) {
-        @trusted
-        this(T data) {
-            auto temp = UnionData!A();
-            *(cast(T*) &temp) = data;
-            this.data = temp;
-            this.type = i;
+        pragma(inline, true)
+        this(const(T) value) {
+            opAssign(value);
         }
 
-        @trusted
-        void opAssign(T rhs) {
+        pragma(inline, true) @trusted
+        void opAssign(const(T) rhs) {
             auto temp = UnionData!A();
-            *(cast(T*) &temp) = rhs;
+            *(cast(T*) &temp) = cast(T) rhs;
             data = temp;
             type = i;
         }
@@ -412,12 +436,19 @@ IStr toCleanNumber(alias i)() {
     }
 }
 
+pragma(inline, true) @trusted
+Sz offsetOf(T, IStr member)() {
+    static assert(hasMember!(T, member), "Member doesn't exist.");
+    T temp = void;
+    return (cast(ubyte*) mixin("&temp.", member)) - (cast(ubyte*) &temp);
+}
+
 template toStaticArray(alias slice) {
     enum toStaticArray = cast(typeof(slice[0])[slice.length]) slice;
 }
 
 mixin template addSliceOps(T, TT) {
-    static assert(hasMember!(T, "items"), "Slice `" ~ T.stringof ~ "` must implement the `" ~ TT.stringof ~ "[] items()` function or have a member called that.");
+    static assert(hasMember!(T, "items"), "Slice must implement the `" ~ TT.stringof ~ "[] items()` function or have a member called that.");
 
     pragma(inline, true) @trusted nothrow @nogc {
         TT[] opSlice(Sz dim)(Sz i, Sz j) {
@@ -451,9 +482,9 @@ mixin template addSliceOps(T, TT) {
 }
 
 mixin template addXyzwOps(T, TT, Sz N, IStr form = "xyzw") {
-    static assert(N >= 2 && N <= 4, "Vector `" ~ T.stringof ~ "` must have a dimension between 2 and 4.");
-    static assert(N == form.length, "Vector `" ~ T.stringof ~ "` must have a dimension that is equal to the given form length.");
-    static assert(hasMember!(T, "items"), "Vector `" ~ T.stringof ~ "` must implement the `" ~ TT.stringof ~ "[] items()` function or have a member called that.");
+    static assert(N >= 2 && N <= 4, "Vector must have a dimension between 2 and 4.");
+    static assert(N == form.length, "Vector must have a dimension that is equal to the given form length.");
+    static assert(hasMember!(T, "items"), "Vector must implement the `" ~ TT.stringof ~ "[] items()` function or have a member called that.");
 
     pragma(inline, true) @trusted nothrow @nogc {
         T opUnary(IStr op)() {
@@ -549,21 +580,28 @@ mixin template addXyzwOps(T, TT, Sz N, IStr form = "xyzw") {
 // Function test.
 unittest {
     alias Number = Union!(float, double);
+    struct Foo { int x; byte y; byte z; int w; }
 
     assert(toFault(false) == Fault.none);
     assert(toFault(true) == Fault.some);
     assert(toFault(false, Fault.invalid) == Fault.none);
     assert(toFault(true, Fault.invalid) == Fault.invalid);
 
+    assert(toUnion!Number(Number.typeOf!float).as!float == 0);
+    assert(toUnion!Number(Number.typeOf!double).as!double == 0);
+    assert(toUnion!Number(Number.typeNameOf!float).as!float == 0);
+    assert(toUnion!Number(Number.typeNameOf!double).as!double == 0);
+
     assert(isInAliasArgs!(int, AliasArgs!(float)) == false);
     assert(isInAliasArgs!(int, AliasArgs!(float, int)) == true);
+
     assert(isArrayType!(int[3]) == true);
     assert(isArrayType!(typeof(toStaticArray!([1, 2, 3]))));
 
-    assert(toUnion!Number(Number.typeOf!float).get!float() == 0);
-    assert(toUnion!Number(Number.typeOf!double).get!double() == 0);
-    assert(toUnion!Number(Number.typeNameOf!float).get!float() == 0);
-    assert(toUnion!Number(Number.typeNameOf!double).get!double() == 0);
+    assert(offsetOf!(Foo, "x") == 0);
+    assert(offsetOf!(Foo, "y") == 4);
+    assert(offsetOf!(Foo, "z") == 5);
+    assert(offsetOf!(Foo, "w") == 8);
 }
 
 // Result test.
@@ -598,15 +636,15 @@ unittest {
     assert(Number().typeName == "float");
     assert(Number().isType!float == true);
     assert(Number().isType!double == false);
-    assert(Number().get!float() == 0);
+    assert(Number().as!float == 0);
     assert(Number(0.0f).typeName == "float");
     assert(Number(0.0f).isType!float == true);
     assert(Number(0.0f).isType!double == false);
-    assert(Number(0.0f).get!float() == 0);
+    assert(Number(0.0f).as!float == 0);
     assert(Number(0.0).isType!float == false);
     assert(Number(0.0).isType!double == true);
     assert(Number(0.0).typeName == "double");
-    assert(Number(0.0).get!double() == 0);
+    assert(Number(0.0).as!double == 0);
     assert(Number.typeOf!float == 0);
     assert(Number.typeOf!double == 1);
     assert(Number.typeNameOf!float == "float");
@@ -614,13 +652,13 @@ unittest {
 
     auto number = Number();
     number = 0.0;
-    assert(number.get!double() == 0);
+    assert(number.as!double == 0);
     number = 0.0f;
-    assert(number.get!float() == 0);
-    number.get!float() += 69.0f;
-    assert(number.get!float() == 69);
+    assert(number.as!float == 0);
+    number.as!float += 69.0f;
+    assert(number.as!float == 69);
 
-    auto numberPtr = &number.get!float();
+    auto numberPtr = &number.as!float();
     *numberPtr *= 10;
-    assert(number.get!float() == 690);
+    assert(number.as!float == 690);
 }

@@ -1,4 +1,4 @@
-/// This example shows how to use Joka's union.
+/// This example shows how to use Joka's union type.
 
 import joka;
 
