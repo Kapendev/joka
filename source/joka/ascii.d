@@ -545,8 +545,8 @@ IStr skipLine(ref inout(char)[] str) {
 }
 
 /// Converts the boolean value to its string representation.
-IStr boolToStr(bool value) {
-    return value ? "true" : "false";
+IStr boolToStr(bool value, bool shortMode = false) {
+    return value ? (shortMode ? "T" : "true") : (shortMode ? "F" : "false");
 }
 
 /// Converts the character to its string representation.
@@ -671,23 +671,23 @@ IStr enumToStr(T)(T value) {
 }
 
 /// Converts the string to a bool.
-Result!bool toBool(IStr str) {
-    if (str == "false") {
-        return Result!bool(false);
-    } else if (str == "true") {
-        return Result!bool(true);
+Maybe!bool toBool(IStr str) {
+    if (str == "false" || str == "F") {
+        return Maybe!bool(false);
+    } else if (str == "true" || str == "T") {
+        return Maybe!bool(true);
     } else {
-        return Result!bool(Fault.cantParse);
+        return Maybe!bool(Fault.cantParse);
     }
 }
 
 /// Converts the string to a ulong.
-Result!ulong toUnsigned(IStr str) {
+Maybe!ulong toUnsigned(IStr str) {
     if (str.length == 0 || str.length >= 18) {
-        return Result!ulong(Fault.overflow);
+        return Maybe!ulong(Fault.overflow);
     } else {
         if (str.length == 1 && str[0] == '+') {
-            return Result!ulong(Fault.cantParse);
+            return Maybe!ulong(Fault.cantParse);
         }
         ulong value = 0;
         ulong level = 1;
@@ -696,96 +696,96 @@ Result!ulong toUnsigned(IStr str) {
                 value += (c - '0') * level;
                 level *= 10;
             } else {
-                return Result!ulong(Fault.cantParse);
+                return Maybe!ulong(Fault.cantParse);
             }
         }
-        return Result!ulong(value);
+        return Maybe!ulong(value);
     }
 }
 
 /// Converts the character to a ulong.
-Result!ulong toUnsigned(char c) {
+Maybe!ulong toUnsigned(char c) {
     if (isDigit(c)) {
-        return Result!ulong(c - '0');
+        return Maybe!ulong(c - '0');
     } else {
-        return Result!ulong(Fault.cantParse);
+        return Maybe!ulong(Fault.cantParse);
     }
 }
 
 /// Converts the string to a long.
-Result!long toSigned(IStr str) {
+Maybe!long toSigned(IStr str) {
     if (str.length == 0 || str.length >= 18) {
-        return Result!long(Fault.overflow);
+        return Maybe!long(Fault.overflow);
     } else {
         auto temp = toUnsigned(str[(str[0] == '-' ? 1 : 0) .. $]);
-        return Result!long(str[0] == '-' ? -temp.value : temp.value, temp.fault);
+        return Maybe!long(str[0] == '-' ? -temp.value : temp.value, temp.fault);
     }
 }
 
 /// Converts the character to a long.
-Result!long toSigned(char c) {
+Maybe!long toSigned(char c) {
     if (isDigit(c)) {
-        return Result!long(c - '0');
+        return Maybe!long(c - '0');
     } else {
-        return Result!long(Fault.cantParse);
+        return Maybe!long(Fault.cantParse);
     }
 }
 
 /// Converts the string to a double.
-Result!double toDouble(IStr str) {
+Maybe!double toDouble(IStr str) {
     auto dotIndex = findStart(str, '.');
     if (dotIndex == -1) {
         auto temp = toSigned(str);
-        return Result!double(temp.value, temp.fault);
+        return Maybe!double(temp.value, temp.fault);
     } else {
         auto left = toSigned(str[0 .. dotIndex]);
         auto right = toSigned(str[dotIndex + 1 .. $]);
         if (left.isNone || right.isNone) {
-            return Result!double(Fault.cantParse);
+            return Maybe!double(Fault.cantParse);
         } else if (str[dotIndex + 1] == '-' || str[dotIndex + 1] == '+') {
-            return Result!double(Fault.cantParse);
+            return Maybe!double(Fault.cantParse);
         } else {
             auto sign = str[0] == '-' ? -1 : 1;
             auto level = 10;
             foreach (i; 1 .. str[dotIndex + 1 .. $].length) {
                 level *= 10;
             }
-            return Result!double(left.value + sign * (right.value / (cast(double) level)));
+            return Maybe!double(left.value + sign * (right.value / (cast(double) level)));
         }
     }
 }
 
 /// Converts the character to a double.
-Result!double toDouble(char c) {
+Maybe!double toDouble(char c) {
     if (isDigit(c)) {
-        return Result!double(c - '0');
+        return Maybe!double(c - '0');
     } else {
-        return Result!double(Fault.cantParse);
+        return Maybe!double(Fault.cantParse);
     }
 }
 
 /// Converts the string to an enum value.
-Result!T toEnum(T)(IStr str) {
+Maybe!T toEnum(T)(IStr str) {
     switch (str) {
         static foreach (m; __traits(allMembers, T)) {
-            mixin("case m: return Result!T(T.", m, ");");
+            mixin("case m: return Maybe!T(T.", m, ");");
         }
-        default: return Result!T(Fault.cantParse);
+        default: return Maybe!T(Fault.cantParse);
     }
 }
 
 /// Converts the string to a C string.
 @trusted
-Result!ICStr toCStr(IStr str) {
+Maybe!ICStr toCStr(IStr str) {
     static char[defaultAsciiBufferSize] buffer = void;
 
     if (buffer.length < str.length) {
-        return Result!ICStr(Fault.cantParse);
+        return Maybe!ICStr(Fault.cantParse);
     } else {
         auto value = buffer[];
         value.copyChars(str);
         value[str.length] = '\0';
-        return Result!ICStr(value.ptr);
+        return Maybe!ICStr(value.ptr);
     }
 }
 
@@ -895,6 +895,8 @@ unittest {
 
     assert(boolToStr(false) == "false");
     assert(boolToStr(true) == "true");
+    assert(boolToStr(false, true) == "F");
+    assert(boolToStr(true, true) == "T");
     assert(charToStr('L') == "L");
 
     assert(unsignedToStr(0) == "0");
@@ -927,10 +929,14 @@ unittest {
     assert(enumToStr(TestEnum.one) == "one");
     assert(enumToStr(TestEnum.two) == "two");
 
-    assert(toBool("F").isSome == false);
+    assert(toBool("f").isSome == false);
+    assert(toBool("f").getOr() == false);
+    assert(toBool("t").isSome == false);
+    assert(toBool("t").getOr() == false);
+    assert(toBool("F").isSome == true);
     assert(toBool("F").getOr() == false);
-    assert(toBool("T").isSome == false);
-    assert(toBool("T").getOr() == false);
+    assert(toBool("T").isSome == true);
+    assert(toBool("T").getOr() == true);
     assert(toBool("false").isSome == true);
     assert(toBool("false").getOr() == false);
     assert(toBool("true").isSome == true);

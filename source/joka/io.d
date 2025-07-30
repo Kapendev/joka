@@ -48,7 +48,12 @@ void trace(Sz line = __LINE__, IStr file = __FILE__, A...)(A args) {
 }
 
 @safe
-noreturn todo(IStr text, Sz line = __LINE__, IStr file = __FILE__) {
+void warn(IStr text = "Not implemented.", Sz line = __LINE__, IStr file = __FILE__) {
+    printf("WARN({}:{}): {}\n", file, line, text);
+}
+
+@safe
+noreturn todo(IStr text = "Not implemented.", Sz line = __LINE__, IStr file = __FILE__) {
     assert(0, "TODO({}:{}): {}".fmt(file, line, text));
 }
 
@@ -80,10 +85,10 @@ Fault readTextIntoBuffer(IStr path, ref LStr buffer) {
     return Fault.none;
 }
 
-Result!LStr readText(IStr path) {
+Maybe!LStr readText(IStr path) {
     LStr value;
     auto fault = readTextIntoBuffer(path, value);
-    return Result!LStr(value, fault);
+    return Maybe!LStr(value, fault);
 }
 
 // NOTE: Also maybe think about errno lol.

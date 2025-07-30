@@ -1,22 +1,24 @@
-/// This example shows how to use Joka's result type.
+/// This example shows how to use Joka's maybe type.
 
 import joka;
 
 // Create the result.
-alias Number = Result!int;
+alias Number = Maybe!int;
 
 Number foo(int a) {
     // A default result is by default none.
     return a > 0 ? Number(50) : Number();
 }
 
-Number boo(int a, int b) { with (Number) {
-    // Both `none` and `some` are static functions of the result.
-    Fault trap;
-    auto x = foo(a).get(trap); if (trap) return none;
-    auto y = foo(b).get(trap); if (trap) return none;
-    return some(x + y);
-}}
+Number boo(int a, int b) {
+    with (Number) {
+        // Both `none` and `some` are static functions of the result.
+        Fault trap;
+        auto x = foo(a).get(trap); if (trap) return none;
+        auto y = foo(b).get(trap); if (trap) return none;
+        return some(x + y);
+    }
+}
 
 void main() {
     Number[4] numbers = [

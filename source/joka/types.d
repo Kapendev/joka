@@ -31,6 +31,7 @@ alias UnionType = ubyte;
 alias AliasArgs(A...) = A;
 
 /// A type representing error values.
+// NOTE: Should cantParse be cannotParse? Who cares? We already write Rgba instead of RGBA for example.
 enum Fault : ubyte {
     none,      /// Not an error.
     some,      /// A generic error.
@@ -76,13 +77,17 @@ struct Array(T, Sz N) {
 }
 
 /// Represents a result of a function.
-struct Result(T) {
+deprecated("Will be replaced with `Maybe`.")
+alias Result(T) = Maybe!T;
+
+/// Represents an optional value.
+struct Maybe(T) {
     static if (isNumberType!T) {
         T value = 0;
     } else {
-        T value;              /// The value of the result.
+        T value;              /// The value.
     }
-    Fault fault = Fault.some; /// The error code of the result.
+    Fault fault = Fault.some; /// The error code.
 
     pragma(inline, true) @safe nothrow @nogc:
 
@@ -99,7 +104,7 @@ struct Result(T) {
         else this(value);
     }
 
-    void opAssign(Result!T rhs) {
+    void opAssign(Maybe!T rhs) {
         value = rhs.value;
         fault = rhs.fault;
     }
@@ -114,42 +119,42 @@ struct Result(T) {
         fault = rhs;
     }
 
-    static Result!T some(T newValue) {
-        return Result!T(newValue);
+    static Maybe!T some(T newValue) {
+        return Maybe!T(newValue);
     }
 
-    static Result!T none(Fault newFault = Fault.some) {
-        return Result!T(newFault);
+    static Maybe!T none(Fault newFault = Fault.some) {
+        return Maybe!T(newFault);
     }
 
-    /// Returns the result value and traps the fault if it exists.
-    T get(ref Fault trap) {
+    /// Returns the value and traps the error if it exists.
+    ref T get(ref Fault trap) {
         trap = fault;
         return value;
     }
 
-    /// Returns the result value, or asserts if a fault exists.
-    T get() {
+    /// Returns the value, or asserts if an error exists.
+    ref T get() {
         if (fault) assert(0, "Fault was detected.");
         return value;
     }
 
-    /// Returns the result value. Returns a default value when the result is an error.
+    /// Returns the value. Returns a default value when there is an error.
     T getOr(T other) {
         return fault ? other : value;
     }
 
-    /// Returns the result value. Returns a default value when the result is an error.
+    /// Returns the value. Returns a default value when there is an error.
     T getOr() {
         return value;
     }
 
-    /// Returns true when the result is an error.
+    /// Returns true when there is an error.
     bool isNone() {
         return fault != 0;
     }
 
-    /// Returns true when the result is a value.
+    /// Returns true when there is a value.
     bool isSome() {
         return fault == 0;
     }
@@ -176,6 +181,17 @@ struct Union(A...) {
 
     alias Types = A;
     alias Base = A[0];
+
+    @trusted
+    auto call(IStr func, AA...)(AA args) {
+        switch (type) {
+            static foreach (i, T; A) {
+                static assert(hasMember!(T, func), funcImplementationErrorMessage!(T, func));
+                mixin("case ", i, ": return data.m", toCleanNumber!i, ".", func, "(args);");
+            }
+            default: assert(0, "WTF!");
+        }
+    }
 
     @safe nothrow @nogc:
 
@@ -232,17 +248,6 @@ struct Union(A...) {
 
     deprecated("Will be replaced with `to`.")
     alias get = to;
-
-    @trusted
-    auto call(IStr func, AA...)(AA args) {
-        switch (type) {
-            static foreach (i, T; A) {
-                static assert(hasMember!(T, func), funcImplementationErrorMessage!(T, func));
-                mixin("case ", i, ": return data.m", toCleanNumber!i, ".", func, "(args);");
-            }
-            default: assert(0, "WTF!");
-        }
-    }
 
     template typeOf(T) {
         static assert(isInAliasArgs!(T, A), "Type `" ~ T.stringof ~ "` is not part of the variant.");
@@ -604,29 +609,29 @@ unittest {
     assert(offsetOf!(Foo, "w") == 8);
 }
 
-// Result test.
+// Maybe test.
 unittest {
-    assert(Result!int().isNone == true);
-    assert(Result!int().isSome == false);
-    assert(Result!int().getOr() == 0);
-    assert(Result!int(0).isNone == false);
-    assert(Result!int(0).isSome == true);
-    assert(Result!int(0).getOr() == 0);
-    assert(Result!int(69).isNone == false);
-    assert(Result!int(69).isSome == true);
-    assert(Result!int(69).getOr() == 69);
-    assert(Result!int(Fault.none).isNone == false);
-    assert(Result!int(Fault.none).isSome == true);
-    assert(Result!int(Fault.none).getOr() == 0);
-    assert(Result!int(Fault.some).isNone == true);
-    assert(Result!int(Fault.some).isSome == false);
-    assert(Result!int(Fault.some).getOr() == 0);
-    assert(Result!int(69, Fault.none).isNone == false);
-    assert(Result!int(69, Fault.none).isSome == true);
-    assert(Result!int(69, Fault.none).getOr() == 69);
-    assert(Result!int(69, Fault.some).isNone == true);
-    assert(Result!int(69, Fault.some).isSome == false);
-    assert(Result!int(69, Fault.some).getOr() == 0);
+    assert(Maybe!int().isNone == true);
+    assert(Maybe!int().isSome == false);
+    assert(Maybe!int().getOr() == 0);
+    assert(Maybe!int(0).isNone == false);
+    assert(Maybe!int(0).isSome == true);
+    assert(Maybe!int(0).getOr() == 0);
+    assert(Maybe!int(69).isNone == false);
+    assert(Maybe!int(69).isSome == true);
+    assert(Maybe!int(69).getOr() == 69);
+    assert(Maybe!int(Fault.none).isNone == false);
+    assert(Maybe!int(Fault.none).isSome == true);
+    assert(Maybe!int(Fault.none).getOr() == 0);
+    assert(Maybe!int(Fault.some).isNone == true);
+    assert(Maybe!int(Fault.some).isSome == false);
+    assert(Maybe!int(Fault.some).getOr() == 0);
+    assert(Maybe!int(69, Fault.none).isNone == false);
+    assert(Maybe!int(69, Fault.none).isSome == true);
+    assert(Maybe!int(69, Fault.none).getOr() == 69);
+    assert(Maybe!int(69, Fault.some).isNone == true);
+    assert(Maybe!int(69, Fault.some).isSome == false);
+    assert(Maybe!int(69, Fault.some).getOr() == 0);
 }
 
 // Variant test.
