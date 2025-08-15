@@ -16,6 +16,11 @@ void main() {
     foreach (i; 0 .. e.length) e[i] *= 2;
     println(e);
 
+    // Swizzle operations.
+    auto f = IVec3(2, 0, 4);
+    println(f.swizzle(2, 0, 1));
+    println(f.swizzle("zxy"));
+
     // Create a rectangle and change its position and size.
     auto rect = IRect(a, 30, 32);
     rect.position.x += 1;

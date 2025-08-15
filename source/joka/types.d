@@ -580,6 +580,34 @@ mixin template addXyzwOps(T, TT, Sz N, IStr form = "xyzw") {
             return N;
         }
     }
+
+    @trusted nothrow @nogc {
+        T _swizzle_n(G)(const(G)[] args...) {
+            if (args.length != N) assert(0, "Wrong swizzle length.");
+            T result;
+            foreach (i, arg; args) result.items[i] = items[arg];
+            return result;
+        }
+
+        T _swizzle_c(IStr args...) {
+            if (args.length != N) assert(0, "Wrong swizzle length.");
+            Sz[N] data = void;
+            foreach (i, arg; args) {
+                auto hasBadArg = true;
+                foreach (j, c; form) if (c == arg) { data[i] = j; hasBadArg = false; break; }
+                if (hasBadArg) assert(0, "Invalid swizzle component.");
+            }
+            return swizzle(data);
+        }
+
+        T swizzle(G)(const(G)[] args...) {
+            static if (isCharType!G) {
+                return _swizzle_c(args);
+            } else {
+                return _swizzle_n(args);
+            }
+        }
+    }
 }
 
 // Function test.
