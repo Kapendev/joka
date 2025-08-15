@@ -856,7 +856,7 @@ struct GRect(T) {
     @trusted ref T h() => size.y;
 
     pragma(inline, true)
-    bool hasSize() => !size.isZero;
+    bool hasSize() => size.x != 0 && size.y != 0;
 
     pragma(inline, true)
     GRect!T abs() {
@@ -920,127 +920,125 @@ struct GRect(T) {
         }
     }
 
-    GRect!T area(Hook hook) {
-        return GRect!T(
-            position - origin(hook),
-            size,
-        );
-    }
+    pragma(inline, true) {
+        GRect!T area(Hook hook) {
+            return GRect!T(
+                position - origin(hook),
+                size,
+            );
+        }
 
-    GVec2!T point(Hook hook) {
-        return position + origin(hook);
-    }
+        GVec2!T point(Hook hook) {
+            return position + origin(hook);
+        }
 
-    GVec2!T topLeftPoint() {
-        return point(Hook.topLeft);
-    }
+        GVec2!T topLeftPoint() {
+            return point(Hook.topLeft);
+        }
 
-    GVec2!T topPoint() {
-        return point(Hook.top);
-    }
+        GVec2!T topPoint() {
+            return point(Hook.top);
+        }
 
-    GVec2!T topRightPoint() {
-        return point(Hook.topRight);
-    }
+        GVec2!T topRightPoint() {
+            return point(Hook.topRight);
+        }
 
-    GVec2!T leftPoint() {
-        return point(Hook.left);
-    }
+        GVec2!T leftPoint() {
+            return point(Hook.left);
+        }
 
-    GVec2!T centerPoint() {
-        return point(Hook.center);
-    }
+        GVec2!T centerPoint() {
+            return point(Hook.center);
+        }
 
-    GVec2!T rightPoint() {
-        return point(Hook.right);
-    }
+        GVec2!T rightPoint() {
+            return point(Hook.right);
+        }
 
-    GVec2!T bottomLeftPoint() {
-        return point(Hook.bottomLeft);
-    }
+        GVec2!T bottomLeftPoint() {
+            return point(Hook.bottomLeft);
+        }
 
-    GVec2!T bottomPoint() {
-        return point(Hook.bottom);
-    }
+        GVec2!T bottomPoint() {
+            return point(Hook.bottom);
+        }
 
-    GVec2!T bottomRightPoint() {
-        return point(Hook.bottomRight);
-    }
+        GVec2!T bottomRightPoint() {
+            return point(Hook.bottomRight);
+        }
 
-    GRect!T topLeftArea() {
-        return area(Hook.topLeft);
-    }
+        GRect!T topLeftArea() {
+            return area(Hook.topLeft);
+        }
 
-    GRect!T topArea() {
-        return area(Hook.top);
-    }
+        GRect!T topArea() {
+            return area(Hook.top);
+        }
 
-    GRect!T topRightArea() {
-        return area(Hook.topRight);
-    }
+        GRect!T topRightArea() {
+            return area(Hook.topRight);
+        }
 
-    GRect!T leftArea() {
-        return area(Hook.left);
-    }
+        GRect!T leftArea() {
+            return area(Hook.left);
+        }
 
-    GRect!T centerArea() {
-        return area(Hook.center);
-    }
+        GRect!T centerArea() {
+            return area(Hook.center);
+        }
 
-    GRect!T rightArea() {
-        return area(Hook.right);
-    }
+        GRect!T rightArea() {
+            return area(Hook.right);
+        }
 
-    GRect!T bottomLeftArea() {
-        return area(Hook.bottomLeft);
-    }
+        GRect!T bottomLeftArea() {
+            return area(Hook.bottomLeft);
+        }
 
-    GRect!T bottomArea() {
-        return area(Hook.bottom);
-    }
+        GRect!T bottomArea() {
+            return area(Hook.bottom);
+        }
 
-    GRect!T bottomRightArea() {
-        return area(Hook.bottomRight);
-    }
+        GRect!T bottomRightArea() {
+            return area(Hook.bottomRight);
+        }
 
-    pragma(inline, true);
-    bool hasPoint(GVec2!T point) {
-        return (
-            point.x > position.x &&
-            point.x < position.x + size.x &&
-            point.y > position.y &&
-            point.y < position.y + size.y
-        );
-    }
+        bool hasPoint(GVec2!T point) {
+            return (
+                point.x > position.x &&
+                point.x < position.x + size.x &&
+                point.y > position.y &&
+                point.y < position.y + size.y
+            );
+        }
 
-    pragma(inline, true);
-    bool hasPointInclusive(GVec2!T point) {
-        return (
-            point.x >= position.x &&
-            point.x <= position.x + size.x &&
-            point.y >= position.y &&
-            point.y <= position.y + size.y
-        );
-    }
+        bool hasPointInclusive(GVec2!T point) {
+            return (
+                point.x >= position.x &&
+                point.x <= position.x + size.x &&
+                point.y >= position.y &&
+                point.y <= position.y + size.y
+            );
+        }
 
-    pragma(inline, true);
-    bool hasIntersection(GRect!T area) {
-        return (
-            position.x + size.x > area.position.x &&
-            position.x < area.position.x + area.size.x &&
-            position.y + size.y > area.position.y &&
-            position.y < area.position.y + area.size.y
-        );
-    }
+        bool hasIntersection(GRect!T area) {
+            return (
+                position.x + size.x > area.position.x &&
+                position.x < area.position.x + area.size.x &&
+                position.y + size.y > area.position.y &&
+                position.y < area.position.y + area.size.y
+            );
+        }
 
-    pragma(inline, true);
-    bool hasIntersectionInclusive(GRect!T area) {
-        return (
-            position.x + size.x >= area.position.x &&
-            position.x <= area.position.x + area.size.x &&
-            position.y + size.y >= area.position.y &&
-            position.y <= area.position.y + area.size.y
-        );
+        bool hasIntersectionInclusive(GRect!T area) {
+            return (
+                position.x + size.x >= area.position.x &&
+                position.x <= area.position.x + area.size.x &&
+                position.y + size.y >= area.position.y &&
+                position.y <= area.position.y + area.size.y
+            );
+        }
     }
 
     GRect!T intersection(GRect!T area) {
@@ -2043,7 +2041,7 @@ double toDegrees64(double radians) {
     return radians * dpi180;
 }
 
-pragma(inline, true);
+pragma(inline, true)
 Rgba toRgb(uint rgb) {
     return Rgba(
         (rgb & 0xFF0000) >> 16,
@@ -2054,7 +2052,7 @@ Rgba toRgb(uint rgb) {
 
 alias toColor = toRgba;
 
-pragma(inline, true);
+pragma(inline, true)
 Rgba toRgba(uint rgba) {
     return Rgba(
         (rgba & 0xFF000000) >> 24,
@@ -2064,7 +2062,7 @@ Rgba toRgba(uint rgba) {
     );
 }
 
-pragma(inline, true);
+pragma(inline, true)
 Rgba toRgba(Vec3 vec) {
     return Rgba(
         cast(ubyte) clamp(vec.x, 0.0f, 255.0f),
@@ -2074,7 +2072,7 @@ Rgba toRgba(Vec3 vec) {
     );
 }
 
-pragma(inline, true);
+pragma(inline, true)
 Rgba toRgba(Vec4 vec) {
     return Rgba(
         cast(ubyte) clamp(vec.x, 0.0f, 255.0f),
@@ -2084,47 +2082,47 @@ Rgba toRgba(Vec4 vec) {
     );
 }
 
-pragma(inline, true);
+pragma(inline, true)
 IVec2 toIVec(Vec2 vec) {
     return IVec2(cast(int) vec.x, cast(int) vec.y);
 }
 
-pragma(inline, true);
+pragma(inline, true)
 IVec3 toIVec(Vec3 vec) {
     return IVec3(cast(int) vec.x, cast(int) vec.y, cast(int) vec.z);
 }
 
-pragma(inline, true);
+pragma(inline, true)
 IVec4 toIVec(Vec4 vec) {
     return IVec4(cast(int) vec.x, cast(int) vec.y, cast(int) vec.z, cast(int) vec.w);
 }
 
-pragma(inline, true);
+pragma(inline, true)
 Vec2 toVec(IVec2 vec) {
     return Vec2(vec.x, vec.y);
 }
 
-pragma(inline, true);
+pragma(inline, true)
 Vec3 toVec(IVec3 vec) {
     return Vec3(vec.x, vec.y, vec.z);
 }
 
-pragma(inline, true);
+pragma(inline, true)
 Vec4 toVec(IVec4 vec) {
     return Vec4(vec.x, vec.y, vec.z, vec.w);
 }
 
-pragma(inline, true);
+pragma(inline, true)
 Vec4 toVec(Rgba color) {
     return Vec4(color.r, color.g, color.b, color.a);
 }
 
-pragma(inline, true);
+pragma(inline, true)
 IRect toIRect(Rect rect) {
     return IRect(rect.position.toIVec(), rect.size.toIVec());
 }
 
-pragma(inline, true);
+pragma(inline, true)
 Rect toRect(IRect rect) {
     return Rect(rect.position.toVec(), rect.size.toVec());
 }

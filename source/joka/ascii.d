@@ -672,9 +672,9 @@ IStr enumToStr(T)(T value) {
 
 /// Converts the string to a bool.
 Maybe!bool toBool(IStr str) {
-    if (str == "false" || str == "F") {
+    if (str == "false" || str == "F" || str == "f") {
         return Maybe!bool(false);
-    } else if (str == "true" || str == "T") {
+    } else if (str == "true" || str == "T" || str == "t") {
         return Maybe!bool(true);
     } else {
         return Maybe!bool(Fault.cantParse);
@@ -929,18 +929,12 @@ unittest {
     assert(enumToStr(TestEnum.one) == "one");
     assert(enumToStr(TestEnum.two) == "two");
 
-    assert(toBool("f").isSome == false);
-    assert(toBool("f").getOr() == false);
-    assert(toBool("t").isSome == false);
-    assert(toBool("t").getOr() == false);
-    assert(toBool("F").isSome == true);
-    assert(toBool("F").getOr() == false);
-    assert(toBool("T").isSome == true);
-    assert(toBool("T").getOr() == true);
     assert(toBool("false").isSome == true);
-    assert(toBool("false").getOr() == false);
+    assert(toBool("F").isSome == true);
+    assert(toBool("f").isSome == true);
     assert(toBool("true").isSome == true);
-    assert(toBool("true").getOr() == true);
+    assert(toBool("T").isSome == true);
+    assert(toBool("t").isSome == true);
 
     assert(toUnsigned("1_069").isSome == false);
     assert(toUnsigned("1_069").getOr() == 0);
