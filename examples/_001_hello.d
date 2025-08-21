@@ -5,17 +5,12 @@ import joka;
 struct Person {
     // An `IStr` is a `const(char)[]`.
     IStr name;
-    int age;
-
-    // This method will be used by the print functions.
-    // The print functions also support `toString` methods.
-    IStr toStr() {
-        return "({} {})".fmt(name, age);
-    }
+    // Will be used by the print functions. They also support `toString` methods.
+    IStr toStr() => "*{}*".fmt(name);
 }
 
 void main() {
-    println("Hellooo!");
-    printfln("Person: {}", Person("Joka", 40));
-    trace(1 + 1);
+    println("Now, it is simply my turn to reject the world.");
+    printfln("I am {}.", Person("Ghadius"));
+    trace(1, 2, 3, "GO!");
 }

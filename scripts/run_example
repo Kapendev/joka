@@ -1,0 +1,13 @@
+#!/bin/env sh
+
+exe_path='./examples/.temp'
+app_path='./examples/_001_hello.d'
+compiler='dmd'
+extra_flags=''
+
+[ -n "$1" ] && app_path="$1"
+[ -n "$2" ] && compiler="$2"
+$compiler \
+    -of=$exe_path \
+    -I=source -i $extra_flags \
+    -run $app_path

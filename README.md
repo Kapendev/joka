@@ -29,8 +29,10 @@ If you encounter errors with BetterC, try using the `-i` flag.
 Start with the [examples](./examples/) folder for a quick overview.
 To try an example, run:
 
-```cmd
-ldc2 -I=source -i -run examples/_001_hello.d
+```sh
+./scripts/run_example examples/_001_hello.d
+# Or: .\scripts\run_example.bat examples\_001_hello.d
+# Or: ./scripts/run_example examples/_001_hello.d ldc2
 ```
 
 ## Frequently Asked Questions
