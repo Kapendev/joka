@@ -30,10 +30,10 @@ void main() {
 
     println("Numbers:");
     foreach (i, number; numbers) {
-        // The `value` member will return something without fault checking.
+        // The `xx` function will return something without fault checking.
         // Use the `get` function if you want safer access.
         if (number.isSome) {
-            printfln(" [{}]: {}", i, number.value);
+            printfln(" [{}]: {}", i, number.xx);
         } else {
             printfln(" [{}]: Fault.{}", i, number.fault);
         }

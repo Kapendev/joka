@@ -15,14 +15,11 @@ void freeze(ref Temperature t) {
     // Use the `to` function if you want safer access.
     with (t) switch (type) {
         case typeOf!Fahrenheit:
-            as!Fahrenheit.degrees = 32;
-            break;
+            as!Fahrenheit.degrees = 32; break;
         case typeOf!Celsius:
-            as!Celsius.degrees = 0;
-            break;
+            as!Celsius.degrees = 0; break;
         case typeOf!Kelvin:
-            as!Kelvin.degrees = 273;
-            break;
+            as!Kelvin.degrees = 273; break;
         default:
     }
 }
@@ -31,5 +28,6 @@ void main() {
     Temperature t = Kelvin(98);
     freeze(t);
     // If all types share the same base (e.g. `float`), use the `base` function to access it.
-    println("Degrees: ", t.base);
+    println("Temperature: ", t.base);
+    println("Type: ", t.typeName);
 }

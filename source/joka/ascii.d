@@ -718,7 +718,7 @@ Maybe!long toSigned(IStr str) {
         return Maybe!long(Fault.overflow);
     } else {
         auto temp = toUnsigned(str[(str[0] == '-' ? 1 : 0) .. $]);
-        return Maybe!long(str[0] == '-' ? -temp.value : temp.value, temp.fault);
+        return Maybe!long(str[0] == '-' ? -temp.xx : temp.xx, temp.fault);
     }
 }
 
@@ -736,7 +736,7 @@ Maybe!double toDouble(IStr str) {
     auto dotIndex = findStart(str, '.');
     if (dotIndex == -1) {
         auto temp = toSigned(str);
-        return Maybe!double(temp.value, temp.fault);
+        return Maybe!double(temp.xx, temp.fault);
     } else {
         auto left = toSigned(str[0 .. dotIndex]);
         auto right = toSigned(str[dotIndex + 1 .. $]);
@@ -750,7 +750,7 @@ Maybe!double toDouble(IStr str) {
             foreach (i; 1 .. str[dotIndex + 1 .. $].length) {
                 level *= 10;
             }
-            return Maybe!double(left.value + sign * (right.value / (cast(double) level)));
+            return Maybe!double(left.xx + sign * (right.xx / (cast(double) level)));
         }
     }
 }

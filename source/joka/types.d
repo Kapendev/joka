@@ -50,7 +50,7 @@ enum Fault : ubyte {
 /// A static array.
 // It exists mainly because of weird BetterC stuff.
 struct Array(T, Sz N) {
-    align(T.alignof) ubyte[T.sizeof * N] data;
+    align(T.alignof) ubyte[T.sizeof * N] _data;
 
     enum length = N;
     enum capacity = N;
@@ -67,12 +67,12 @@ struct Array(T, Sz N) {
 
     /// Returns the items of the array.
     T[] items() {
-        return (cast(T*) data.ptr)[0 .. N];
+        return (cast(T*) _data.ptr)[0 .. N];
     }
 
     /// Returns the pointer of the array.
     T* ptr() {
-        return cast(T*) data.ptr;
+        return cast(T*) _data.ptr;
     }
 }
 
@@ -83,11 +83,11 @@ alias Result(T) = Maybe!T;
 /// Represents an optional value.
 struct Maybe(T) {
     static if (isNumberType!T) {
-        T value = 0;
+        T _data = 0;
     } else {
-        T value;              /// The value.
+        T _data; /// The value.
     }
-    Fault fault = Fault.some; /// The error code.
+    Fault _fault = Fault.some; /// The error code.
 
     pragma(inline, true) @safe nothrow @nogc:
 
@@ -105,18 +105,18 @@ struct Maybe(T) {
     }
 
     void opAssign(Maybe!T rhs) {
-        value = rhs.value;
-        fault = rhs.fault;
+        _data = rhs._data;
+        _fault = rhs._fault;
     }
 
     @trusted
     void opAssign(const(T) rhs) {
-        value = cast(T) rhs;
-        fault = Fault.none;
+        _data = cast(T) rhs;
+        _fault = Fault.none;
     }
 
     void opAssign(Fault rhs) {
-        fault = rhs;
+        _fault = rhs;
     }
 
     static Maybe!T some(T newValue) {
@@ -127,36 +127,46 @@ struct Maybe(T) {
         return Maybe!T(newFault);
     }
 
+    /// Returns the value without fault checking.
+    ref T xx() {
+        return _data;
+    }
+
+    /// Returns the fault.
+    Fault fault() {
+        return _fault;
+    }
+
     /// Returns the value and traps the error if it exists.
     ref T get(ref Fault trap) {
-        trap = fault;
-        return value;
+        trap = _fault;
+        return _data;
     }
 
     /// Returns the value, or asserts if an error exists.
     ref T get() {
-        if (fault) assert(0, "Fault was detected.");
-        return value;
+        if (_fault) assert(0, "Fault was detected.");
+        return _data;
     }
 
     /// Returns the value. Returns a default value when there is an error.
     T getOr(T other) {
-        return fault ? other : value;
+        return _fault ? other : _data;
     }
 
     /// Returns the value. Returns a default value when there is an error.
     T getOr() {
-        return value;
+        return _data;
     }
 
     /// Returns true when there is an error.
     bool isNone() {
-        return fault != 0;
+        return _fault != 0;
     }
 
     /// Returns true when there is a value.
     bool isSome() {
-        return fault == 0;
+        return _fault == 0;
     }
 }
 
@@ -165,9 +175,9 @@ union UnionData(A...) {
 
     static foreach (i, T; A) {
         static if (i == 0 && isNumberType!T) {
-            mixin("T m", toCleanNumber!i, "= 0;");
+            mixin("T _m", toCleanNumber!i, "= 0;");
         }  else {
-            mixin("T m", toCleanNumber!i, ";");
+            mixin("T _m", toCleanNumber!i, ";");
         }
     }
 
@@ -176,61 +186,62 @@ union UnionData(A...) {
 }
 
 struct Union(A...) {
-    UnionData!A data;
-    UnionType type;
+    UnionData!A _data;
+    UnionType _type;
 
     alias Types = A;
     alias Base = A[0];
 
     @trusted
     auto call(IStr func, AA...)(AA args) {
-        switch (type) {
+        switch (_type) {
             static foreach (i, T; A) {
                 static assert(hasMember!(T, func), funcImplementationErrorMessage!(T, func));
-                mixin("case ", i, ": return data.m", toCleanNumber!i, ".", func, "(args);");
+                mixin("case ", i, ": return _data._m", toCleanNumber!i, ".", func, "(args);");
             }
             default: assert(0, "WTF!");
         }
     }
 
-    @safe nothrow @nogc:
+    pragma(inline, true) @trusted nothrow @nogc:
 
     static foreach (i, T; A) {
-        pragma(inline, true)
         this(const(T) value) {
             opAssign(value);
         }
 
-        pragma(inline, true) @trusted
         void opAssign(const(T) rhs) {
             auto temp = UnionData!A();
             *(cast(T*) &temp) = cast(T) rhs;
-            data = temp;
-            type = i;
+            _data = temp;
+            _type = i;
         }
+    }
+
+    UnionType type() {
+        return _type;
     }
 
     IStr typeName() {
-        static foreach (i, T; A) {
-            if (type == i) return T.stringof;
+        switch (_type) {
+            static foreach (i, T; A) {
+                mixin("case ", i, ": return T.stringof;");
+            }
+            default: assert(0, "WTF!");
         }
-        assert(0, "WTF!");
     }
 
-    pragma(inline, true)
     bool isType(T)() {
         static assert(isInAliasArgs!(T, A), "Type `" ~ T.stringof ~ "` is not part of the variant.");
-        return type == findInAliasArgs!(T, A);
+        return _type == findInAliasArgs!(T, A);
     }
 
-    pragma(inline, true) @trusted
     ref Base base() {
-        return data.m0;
+        return _data._m0;
     }
 
-    pragma(inline, true) @trusted
     ref T as(T)() {
-        mixin("return data.m", findInAliasArgs!(T, A), ";");
+        mixin("return _data._m", findInAliasArgs!(T, A), ";");
     }
 
     ref T to(T)() {
@@ -238,16 +249,13 @@ struct Union(A...) {
             return as!T;
         } else {
             static foreach (i, TT; A) {
-                if (i == type) {
+                if (i == _type) {
                     assert(0, "Value is `" ~ A[i].stringof ~ "` and not `" ~ T.stringof ~ "`.");
                 }
             }
             assert(0, "WTF!");
         }
     }
-
-    deprecated("Will be replaced with `to`.")
-    alias get = to;
 
     template typeOf(T) {
         static assert(isInAliasArgs!(T, A), "Type `" ~ T.stringof ~ "` is not part of the variant.");
