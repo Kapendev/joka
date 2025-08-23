@@ -666,7 +666,7 @@ IStr enumToStr(T)(T value) {
         static foreach (m; __traits(allMembers, T)) {
             mixin("case T.", m, ": return m;");
         }
-        default: assert(0, "WTF!");
+        default: return "?";
     }
 }
 

@@ -1145,7 +1145,7 @@ struct GLine(T) {
     }
 }
 
-pragma(inline, true) {
+pragma(inline, true) @trusted {
     T abs(T)(T x) {
         return cast(T) (x < 0 ? -x : x);
     }
@@ -1175,850 +1175,725 @@ pragma(inline, true) {
     }
 
     T sign(T)(T x) {
-        return x < 0 ? -1 : 1;
+        return x < 0
+            ? -1
+            : x > 0
+            ? 1
+            : 0;
     }
 
     T clamp(T)(T x, T a, T b) {
         return max(x, a).min(b);
     }
-}
 
-T wrap(T)(T x, T a, T b) {
-    auto result = x;
-    auto range = cast(T) (b - a);
-    static if (isUnsignedType!T) {
-        result = cast(T) wrap!long(x, a, b);
-    } else static if (isFloatingType!T) {
-        result = fmod(x - a, range);
-        if (result < 0) result += range;
-        result += a;
-    } else {
-        result = cast(T) ((x - a) % range);
-        if (result < 0) result += range;
-        result += a;
+    T wrap(T)(T x, T a, T b) {
+        T result = void;
+        auto range = cast(T) (b - a);
+        static if (isUnsignedType!T) {
+            result = cast(T) wrap!long(x, a, b);
+        } else static if (isFloatingType!T) {
+            result = fmod(x - a, range);
+            if (result < 0) result += range;
+            result += a;
+        } else {
+            result = cast(T) ((x - a) % range);
+            if (result < 0) result += range;
+            result += a;
+        }
+        return result;
     }
-    return result;
-}
 
-// TODO: Look at this again because I feel it returns weird values sometimes.
-T snap(T)(T x, T step) {
-    static if (isIntegerType!T) {
-        return cast(T) snap!double(cast(double) x, cast(double) step).round();
-    } else {
-        return (x / step).round() * step;
+    // TODO: Look at this again because I feel it returns weird values sometimes.
+    T snap(T)(T x, T step) {
+        static if (isIntegerType!T) {
+            return cast(T) snap!double(cast(double) x, cast(double) step).round();
+        } else {
+            return (x / step).round() * step;
+        }
     }
-}
-
-@trusted
-float fmod(float x, float y) {
-    return stdc.fmodf(x, y);
-}
-
-@trusted
-double fmod64(double x, double y) {
-    return stdc.fmod(x, y);
-}
-
-@trusted
-float remainder(float x, float y) {
-    return stdc.remainderf(x, y);
-}
-
-@trusted
-double remainder64(double x, double y) {
-    return stdc.remainder(x, y);
-}
-
-@trusted
-float exp(float x) {
-    return stdc.expf(x);
-}
-
-@trusted
-double exp64(double x) {
-    return stdc.exp(x);
-}
-
-@trusted
-float exp2(float x) {
-    return stdc.exp2f(x);
-}
-
-@trusted
-double exp264(double x) {
-    return stdc.exp2(x);
-}
-
-@trusted
-float expm1(float x) {
-    return stdc.expm1f(x);
-}
-
-@trusted
-double expm164(double x) {
-    return stdc.expm1(x);
-}
-
-@trusted
-float log(float x) {
-    return stdc.logf(x);
-}
-
-@trusted
-double log64(double x) {
-    return stdc.log(x);
-}
-
-@trusted
-float log10(float x) {
-    return stdc.log10f(x);
-}
-
-@trusted
-double log1064(double x) {
-    return stdc.log10(x);
-}
-
-@trusted
-float log2(float x) {
-    return stdc.log2f(x);
-}
-
-@trusted
-double log264(double x) {
-    return stdc.log2(x);
-}
-
-@trusted
-float log1p(float x) {
-    return stdc.log1pf(x);
-}
-
-@trusted
-double log1p64(double x) {
-    return stdc.log1p(x);
-}
-
-@trusted
-float pow(float base, float exponent) {
-    return stdc.powf(base, exponent);
-}
-
-@trusted
-double pow64(double base, double exponent) {
-    return stdc.pow(base, exponent);
-}
-
-@trusted
-float atan2(float y, float x) {
-    return stdc.atan2f(y, x);
-}
-
-@trusted
-double atan264(double y, double x) {
-    return stdc.atan2(y, x);
-}
-
-pragma(inline, true)
-@trusted
-float cbrt(float x) {
-    return stdc.cbrtf(x);
-}
-
-pragma(inline, true)
-@trusted
-double cbrt64(double x) {
-    return stdc.cbrt(x);
-}
-
-pragma(inline, true)
-float floorX(float x) {
-    return (x <= 0.0f && (cast(float) cast(int) x) != x)
-        ? (cast(float) cast(int) x) - 1.0f
-        : (cast(float) cast(int) x);
-}
-
-pragma(inline, true)
-double floorX64(double x) {
-    return (x <= 0.0 && (cast(double) cast(long) x) != x)
-        ? (cast(double) cast(long) x) - 1.0
-        : (cast(double) cast(long) x);
-}
-
-pragma(inline, true)
-@trusted
-float floor(float x) {
-    return stdc.floorf(x);
-}
-
-pragma(inline, true)
-@trusted
-double floor64(double  x) {
-    return stdc.floor(x);
-}
-
-pragma(inline, true)
-float ceilX(float x) {
-    return (x <= 0.0f || (cast(float) cast(int) x) == x)
-        ? (cast(float) cast(int) x)
-        : (cast(float) cast(int) x) + 1.0f;
-}
-
-pragma(inline, true)
-double ceilX64(double x) {
-    return (x <= 0.0 || (cast(double) cast(long) x) == x)
-        ? (cast(double) cast(long) x)
-        : (cast(double) cast(long) x) + 1.0;
-}
-
-pragma(inline, true)
-@trusted
-float ceil(float x) {
-    return stdc.ceilf(x);
-}
-
-pragma(inline, true)
-@trusted
-double ceil64(double x) {
-    return stdc.ceil(x);
-}
-
-pragma(inline, true)
-float roundX(float x) {
-    return (x <= 0.0f)
-        ? cast(float) cast(int) (x - 0.5f)
-        : cast(float) cast(int) (x + 0.5f);
-}
-
-pragma(inline, true)
-double roundX64(double x) {
-    return (x <= 0.0)
-        ? cast(double) cast(long) (x - 0.5)
-        : cast(double) cast(long) (x + 0.5);
-}
-
-pragma(inline, true)
-@trusted
-float round(float x) {
-    return stdc.roundf(x);
-}
-
-pragma(inline, true)
-@trusted
-double round64(double x) {
-    return stdc.round(x);
-}
-
-pragma(inline, true)
-@trusted
-float sqrt(float x) {
-    return stdc.sqrtf(x);
-}
-
-pragma(inline, true)
-@trusted
-double sqrt64(double x) {
-    return stdc.sqrt(x);
-}
-
-pragma(inline, true)
-@trusted
-float sin(float x) {
-    return stdc.sinf(x);
-}
-
-pragma(inline, true)
-@trusted
-double sin64(double x) {
-    return stdc.sin(x);
-}
-
-pragma(inline, true)
-@trusted
-float cos(float x) {
-    return stdc.cosf(x);
-}
-
-pragma(inline, true)
-@trusted
-double cos64(double x) {
-    return stdc.cos(x);
-}
-
-pragma(inline, true)
-@trusted
-float tan(float x) {
-    return stdc.tanf(x);
-}
-
-pragma(inline, true)
-@trusted
-double tan64(double x) {
-    return stdc.tan(x);
-}
-
-pragma(inline, true)
-@trusted
-float asin(float x) {
-    return stdc.asinf(x);
-}
-
-pragma(inline, true)
-@trusted
-double asin64(double x) {
-    return stdc.asin(x);
-}
-
-pragma(inline, true)
-@trusted
-float acos(float x) {
-    return stdc.acosf(x);
-}
-
-pragma(inline, true)
-@trusted
-double acos64(double x) {
-    return stdc.acos(x);
-}
-
-pragma(inline, true)
-@trusted
-float atan(float x) {
-    return stdc.atanf(x);
-}
-
-pragma(inline, true)
-@trusted
-double atan64(double x) {
-    return stdc.atan(x);
-}
-
-pragma(inline, true)
-float lerp(float from, float to, float weight) {
-    return from + (to - from) * weight;
-}
-
-pragma(inline, true)
-double lerp64(double from, double to, double weight) {
-    return from + (to - from) * weight;
-}
-
-float smoothstep(float from, float to, float weight) {
-    auto v = weight * weight * (3.0f - 2.0f * weight);
-    return (to * v) + (from * (1.0f - v));
-}
-
-double smoothstep64(double from, double to, double weight) {
-    auto v = weight * weight * (3.0 - 2.0 * weight);
-    return (to * v) + (from * (1.0 - v));
-}
-
-float smootherstep(float from, float to, float weight) {
-    auto v = weight * weight * weight * (weight * (weight * 6.0f - 15.0f) + 10.0f);
-    return (to * v) + (from * (1.0f - v));
-}
-
-double smootherstep64(double from, double to, double weight) {
-    auto v = weight * weight * weight * (weight * (weight * 6.0 - 15.0) + 10.0);
-    return (to * v) + (from * (1.0 - v));
-}
-
-pragma(inline, true)
-float easeInSine(float x) {
-    return 1.0f - cos((x * pi) / 2.0f);
-}
-
-pragma(inline, true)
-float easeOutSine(float x) {
-    return sin((x * pi) / 2.0f);
-}
-
-pragma(inline, true)
-float easeInOutSine(float x) {
-    return -(cos(pi * x) - 1.0f) / 2.0f;
-}
-
-pragma(inline, true)
-float easeInCubic(float x) {
-    return x * x * x;
-}
-
-pragma(inline, true)
-float easeOutCubic(float x) {
-    return 1.0f - pow(1.0f - x, 3.0f);
-}
-
-pragma(inline, true)
-float easeInOutCubic(float x) {
-    return x < 0.5f ? 4.0f * x * x * x : 1.0f - pow(-2.0f * x + 2.0f, 3.0f) / 2.0f;
-}
-
-pragma(inline, true)
-float easeInQuint(float x) {
-    return x * x * x * x * x;
-}
-
-pragma(inline, true)
-float easeOutQuint(float x) {
-    return 1.0f - pow(1.0f - x, 5.0f);
-}
-
-pragma(inline, true)
-float easeInOutQuint(float x) {
-    return x < 0.5f ? 16.0f * x * x * x * x * x : 1.0f - pow(-2.0f * x + 2.0f, 5.0f) / 2.0f;
-}
-
-pragma(inline, true)
-float easeInCirc(float x) {
-    return 1.0f - sqrt(1.0f - pow(x, 2.0f));
-}
-
-pragma(inline, true)
-float easeOutCirc(float x) {
-    return sqrt(1.0f - pow(x - 1.0f, 2.0f));
-}
-
-pragma(inline, true)
-float easeInOutCirc(float x) {
-    return x < 0.5f
-        ? (1.0f - sqrt(1.0f - pow(2.0f * x, 2.0f))) / 2.0f
-        : (sqrt(1.0f - pow(-2.0f * x + 2.0f, 2.0f)) + 1.0f) / 2.0f;
-}
-
-pragma(inline, true)
-float easeInElastic(float x) {
-    enum c4 = (2.0f * pi) / 3.0f;
-
-    return x == 0.0f
-        ? 0.0f
-        : x == 1.0f
-        ? 1.0f
-        : -pow(2.0f, 10.0f * x - 10.0f) * sin((x * 10.0f - 10.75f) * c4);
-}
-
-pragma(inline, true)
-float easeOutElastic(float x) {
-    enum c4 = (2.0f * pi) / 3.0f;
-
-    return x == 0.0f
-        ? 0.0f
-        : x == 1.0f
-        ? 1.0f
-        : pow(2.0f, -10.0f * x) * sin((x * 10.0f - 0.75f) * c4) + 1.0f;
-}
-
-pragma(inline, true)
-float easeInOutElastic(float x) {
-    enum c5 = (2.0f * pi) / 4.5f;
-
-    return x == 0.0f
-        ? 0.0f
-        : x == 1.0f
-        ? 1.0f
-        : x < 0.5f
-        ? -(pow(2.0f, 20.0f * x - 10.0f) * sin((20.0f * x - 11.125f) * c5)) / 2.0f
-        : (pow(2.0f, -20.0f * x + 10.0f) * sin((20.0f * x - 11.125f) * c5)) / 2.0f + 1.0f;
-}
-
-pragma(inline, true)
-float easeInQuad(float x) {
-    return x * x;
-}
-
-pragma(inline, true)
-float easeOutQuad(float x) {
-    return 1.0f - (1.0f - x) * (1.0f - x);
-}
-
-pragma(inline, true)
-float easeInOutQuad(float x) {
-    return x < 0.5f ? 2.0f * x * x : 1.0f - pow(-2.0f * x + 2.0f, 2.0f) / 2.0f;
-}
-
-pragma(inline, true)
-float easeInQuart(float x) {
-    return x * x * x * x;
-}
-
-pragma(inline, true)
-float easeOutQuart(float x) {
-    return 1.0f - pow(1.0f - x, 4.0f);
-}
-
-pragma(inline, true)
-float easeInOutQuart(float x) {
-    return x < 0.5f ? 8.0f * x * x * x * x : 1.0f - pow(-2.0f * x + 2.0f, 4.0f) / 2.0f;
-}
-
-pragma(inline, true)
-float easeInExpo(float x) {
-    return x == 0.0f ? 0.0f : pow(2.0f, 10.0f * x - 10.0f);
-}
-
-pragma(inline, true)
-float easeOutExpo(float x) {
-    return x == 1.0f ? 1.0f : 1.0f - pow(2.0f, -10.0f * x);
-}
-
-pragma(inline, true)
-float easeInOutExpo(float x) {
-    return x == 0.0f
-        ? 0.0f
-        : x == 1.0f
-        ? 1.0f
-        : x < 0.5f ? pow(2.0f, 20.0f * x - 10.0f) / 2.0f
-        : (2.0f - pow(2.0f, -20.0f * x + 10.0f)) / 2.0f;
-}
-
-pragma(inline, true)
-float easeInBack(float x) {
-    enum c1 = 1.70158f;
-    enum c3 = c1 + 1.0f;
-
-    return c3 * x * x * x - c1 * x * x;
-}
-
-pragma(inline, true)
-float easeOutBack(float x) {
-    enum c1 = 1.70158f;
-    enum c3 = c1 + 1.0f;
-
-    return 1.0f + c3 * pow(x - 1.0f, 3.0f) + c1 * pow(x - 1.0f, 2.0f);
-}
-
-pragma(inline, true)
-float easeInOutBack(float x) {
-    enum c1 = 1.70158f;
-    enum c2 = c1 * 1.525f;
-
-    return x < 0.5f
-        ? (pow(2.0f * x, 2.0f) * ((c2 + 1.0f) * 2.0f * x - c2)) / 2.0f
-        : (pow(2.0f * x - 2.0f, 2.0f) * ((c2 + 1.0f) * (x * 2.0f - 2.0f) + c2) + 2.0f) / 2.0f;
-}
-
-pragma(inline, true)
-float easeInBounce(float x) {
-    return 1.0f - easeOutBounce(1.0f - x);
-}
-
-pragma(inline, true)
-float easeOutBounce(float x) {
-    enum n1 = 7.5625f;
-    enum d1 = 2.75f;
-
-    return (x < 1.0f / d1)
-        ? n1 * x * x
-        : (x < 2.0f / d1)
-        ? n1 * (x -= 1.5f / d1) * x + 0.75f
-        : (x < 2.5f / d1)
-        ? n1 * (x -= 2.25f / d1) * x + 0.9375f
-        : n1 * (x -= 2.625f / d1) * x + 0.984375f;
-}
-
-pragma(inline, true)
-float easeInOutBounce(float x) {
-    return x < 0.5f
-        ? (1.0f - easeOutBounce(1.0f - 2.0f * x)) / 2.0f
-        : (1.0f + easeOutBounce(2.0f * x - 1.0f)) / 2.0f;
-}
-
-pragma(inline, true)
-float moveTo(float from, float to, float delta) {
-    return (abs(to - from) > abs(delta))
-        ? from + sign(to - from) * delta
-        : to;
-}
-
-pragma(inline, true)
-float moveTo64(double from, double to, double delta) {
-    return (abs(to - from) > abs(delta))
-        ? from + sign(to - from) * delta
-        : to;
-}
-
-Vec2 moveTo(Vec2 from, Vec2 to, Vec2 delta) {
-    Vec2 result = Vec2();
-    auto offset = from.directionTo(to) * delta;
-    if (abs(to.x - from.x) > abs(offset.x)) result.x = from.x + offset.x;
-    else result.x = to.x;
-    if (abs(to.y - from.y) > abs(offset.y)) result.y = from.y + offset.y;
-    else result.y = to.y;
-    return result;
-}
-
-Vec3 moveTo(Vec3 from, Vec3 to, Vec3 delta) {
-    Vec3 result = Vec3();
-    auto offset = from.directionTo(to) * delta;
-    if (abs(to.x - from.x) > abs(offset.x)) result.x = from.x + offset.x;
-    else result.x = to.x;
-    if (abs(to.y - from.y) > abs(offset.y)) result.y = from.y + offset.y;
-    else result.y = to.y;
-    if (abs(to.z - from.z) > abs(offset.z)) result.z = from.z + offset.z;
-    else result.z = to.z;
-    return result;
-}
-
-Vec4 moveTo(Vec4 from, Vec4 to, Vec4 delta) {
-    Vec4 result = Vec4();
-    auto offset = from.directionTo(to) * delta;
-    if (abs(to.x - from.x) > abs(offset.x)) result.x = from.x + offset.x;
-    else result.x = to.x;
-    if (abs(to.y - from.y) > abs(offset.y)) result.y = from.y + offset.y;
-    else result.y = to.y;
-    if (abs(to.z - from.z) > abs(offset.z)) result.z = from.z + offset.z;
-    else result.z = to.z;
-    if (abs(to.w - from.w) > abs(offset.w)) result.w = from.w + offset.w;
-    else result.w = to.w;
-    return result;
-}
-
-DVec2 moveTo(DVec2 from, DVec2 to, DVec2 delta) {
-    DVec2 result = DVec2();
-    auto offset = from.directionTo(to) * delta;
-    if (abs(to.x - from.x) > abs(offset.x)) result.x = from.x + offset.x;
-    else result.x = to.x;
-    if (abs(to.y - from.y) > abs(offset.y)) result.y = from.y + offset.y;
-    else result.y = to.y;
-    return result;
-}
-
-DVec3 moveTo(DVec3 from, DVec3 to, DVec3 delta) {
-    DVec3 result = DVec3();
-    auto offset = from.directionTo(to) * delta;
-    if (abs(to.x - from.x) > abs(offset.x)) result.x = from.x + offset.x;
-    else result.x = to.x;
-    if (abs(to.y - from.y) > abs(offset.y)) result.y = from.y + offset.y;
-    else result.y = to.y;
-    if (abs(to.z - from.z) > abs(offset.z)) result.z = from.z + offset.z;
-    else result.z = to.z;
-    return result;
-}
-
-DVec4 moveTo(DVec4 from, DVec4 to, DVec4 delta) {
-    DVec4 result = DVec4();
-    auto offset = from.directionTo(to) * delta;
-    if (abs(to.x - from.x) > abs(offset.x)) result.x = from.x + offset.x;
-    else result.x = to.x;
-    if (abs(to.y - from.y) > abs(offset.y)) result.y = from.y + offset.y;
-    else result.y = to.y;
-    if (abs(to.z - from.z) > abs(offset.z)) result.z = from.z + offset.z;
-    else result.z = to.z;
-    if (abs(to.w - from.w) > abs(offset.w)) result.w = from.w + offset.w;
-    else result.w = to.w;
-    return result;
-}
-
-float moveToWithSlowdown(float from, float to, float delta, float slowdown) {
-    if (from.fequals(to)) return to;
-    auto target = ((from * (slowdown - 1.0f)) + to) / slowdown;
-    return from + (target - from) * delta;
-}
-
-float moveToWithSlowdown64(double from, double to, double delta, double slowdown) {
-    if (from.fequals64(to)) return to;
-    auto target = ((from * (slowdown - 1.0)) + to) / slowdown;
-    return from + (target - from) * delta;
-}
-
-Vec2 moveToWithSlowdown(Vec2 from, Vec2 to, Vec2 delta, float slowdown) {
-    return Vec2(
-        moveToWithSlowdown(from.x, to.x, delta.x, slowdown),
-        moveToWithSlowdown(from.y, to.y, delta.y, slowdown),
-    );
-}
-
-Vec3 moveToWithSlowdown(Vec3 from, Vec3 to, Vec3 delta, float slowdown) {
-    return Vec3(
-        moveToWithSlowdown(from.x, to.x, delta.x, slowdown),
-        moveToWithSlowdown(from.y, to.y, delta.y, slowdown),
-        moveToWithSlowdown(from.z, to.z, delta.z, slowdown),
-    );
-}
-
-Vec4 moveToWithSlowdown(Vec4 from, Vec4 to, Vec4 delta, float slowdown) {
-    return Vec4(
-        moveToWithSlowdown(from.x, to.x, delta.x, slowdown),
-        moveToWithSlowdown(from.y, to.y, delta.y, slowdown),
-        moveToWithSlowdown(from.z, to.z, delta.z, slowdown),
-        moveToWithSlowdown(from.w, to.w, delta.w, slowdown),
-    );
-}
-
-DVec2 moveToWithSlowdown(DVec2 from, DVec2 to, DVec2 delta, double slowdown) {
-    return DVec2(
-        moveToWithSlowdown64(from.x, to.x, delta.x, slowdown),
-        moveToWithSlowdown64(from.y, to.y, delta.y, slowdown),
-    );
-}
-
-DVec3 moveToWithSlowdown(DVec3 from, DVec3 to, DVec3 delta, double slowdown) {
-    return DVec3(
-        moveToWithSlowdown64(from.x, to.x, delta.x, slowdown),
-        moveToWithSlowdown64(from.y, to.y, delta.y, slowdown),
-        moveToWithSlowdown64(from.z, to.z, delta.z, slowdown),
-    );
-}
-
-DVec4 moveToWithSlowdown(DVec4 from, DVec4 to, DVec4 delta, double slowdown) {
-    return DVec4(
-        moveToWithSlowdown64(from.x, to.x, delta.x, slowdown),
-        moveToWithSlowdown64(from.y, to.y, delta.y, slowdown),
-        moveToWithSlowdown64(from.z, to.z, delta.z, slowdown),
-        moveToWithSlowdown64(from.w, to.w, delta.w, slowdown),
-    );
-}
-
-deprecated("Use `fequals` instead.")
-alias equals = fequals;
-
-pragma(inline, true)
-bool fequals(float a, float b, float localEpsilon = epsilon) {
-    return abs(a - b) < localEpsilon;
-}
-
-pragma(inline, true)
-bool fequals64(double a, double b, double localEpsilon = epsilon) {
-    return abs(a - b) < localEpsilon;
-}
-
-pragma(inline, true)
-bool fequals(Vec2 a, Vec2 b, float localEpsilon = epsilon) {
-    return fequals(a.x, b.x, localEpsilon) && fequals(a.y, b.y, localEpsilon);
-}
-
-pragma(inline, true)
-bool fequals(Vec3 a, Vec3 b, float localEpsilon = epsilon) {
-    return fequals(a.x, b.x, localEpsilon) && fequals(a.y, b.y, localEpsilon) && fequals(a.z, b.z, localEpsilon);
-}
-
-pragma(inline, true)
-bool fequals(Vec4 a, Vec4 b, float localEpsilon = epsilon) {
-    return fequals(a.x, b.x, localEpsilon) && fequals(a.y, b.y, localEpsilon) && fequals(a.z, b.z, localEpsilon) && fequals(a.w, b.w, localEpsilon);
-}
-
-pragma(inline, true)
-bool fequals(DVec2 a, DVec2 b, double localEpsilon = epsilon) {
-    return fequals(a.x, b.x, localEpsilon) && fequals(a.y, b.y, localEpsilon);
-}
-
-pragma(inline, true)
-bool fequals(DVec3 a, DVec3 b, double localEpsilon = epsilon) {
-    return fequals(a.x, b.x, localEpsilon) && fequals(a.y, b.y, localEpsilon) && fequals(a.z, b.z, localEpsilon);
-}
-
-pragma(inline, true)
-bool fequals(DVec4 a, DVec4 b, double localEpsilon = epsilon) {
-    return fequals(a.x, b.x, localEpsilon) && fequals(a.y, b.y, localEpsilon) && fequals(a.z, b.z, localEpsilon) && fequals(a.w, b.w, localEpsilon);
-}
-
-pragma(inline, true)
-float toRadians(float degrees) {
-    return degrees * pi180;
-}
-
-pragma(inline, true)
-double toRadians64(double degrees) {
-    return degrees * pi180;
-}
-
-pragma(inline, true)
-float toDegrees(float radians) {
-    return radians * dpi180;
-}
-
-pragma(inline, true)
-double toDegrees64(double radians) {
-    return radians * dpi180;
-}
-
-pragma(inline, true)
-Rgba toRgb(uint rgb) {
-    return Rgba(
-        (rgb & 0xFF0000) >> 16,
-        (rgb & 0xFF00) >> 8,
-        (rgb & 0xFF),
-    );
-}
-
-alias toColor = toRgba;
-
-pragma(inline, true)
-Rgba toRgba(uint rgba) {
-    return Rgba(
-        (rgba & 0xFF000000) >> 24,
-        (rgba & 0xFF0000) >> 16,
-        (rgba & 0xFF00) >> 8,
-        (rgba & 0xFF),
-    );
-}
-
-pragma(inline, true)
-Rgba toRgba(Vec3 vec) {
-    return Rgba(
-        cast(ubyte) clamp(vec.x, 0.0f, 255.0f),
-        cast(ubyte) clamp(vec.y, 0.0f, 255.0f),
-        cast(ubyte) clamp(vec.z, 0.0f, 255.0f),
-        255,
-    );
-}
-
-pragma(inline, true)
-Rgba toRgba(Vec4 vec) {
-    return Rgba(
-        cast(ubyte) clamp(vec.x, 0.0f, 255.0f),
-        cast(ubyte) clamp(vec.y, 0.0f, 255.0f),
-        cast(ubyte) clamp(vec.z, 0.0f, 255.0f),
-        cast(ubyte) clamp(vec.w, 0.0f, 255.0f),
-    );
-}
-
-pragma(inline, true)
-IVec2 toIVec(Vec2 vec) {
-    return IVec2(cast(int) vec.x, cast(int) vec.y);
-}
-
-pragma(inline, true)
-IVec3 toIVec(Vec3 vec) {
-    return IVec3(cast(int) vec.x, cast(int) vec.y, cast(int) vec.z);
-}
-
-pragma(inline, true)
-IVec4 toIVec(Vec4 vec) {
-    return IVec4(cast(int) vec.x, cast(int) vec.y, cast(int) vec.z, cast(int) vec.w);
-}
-
-pragma(inline, true)
-Vec2 toVec(IVec2 vec) {
-    return Vec2(vec.x, vec.y);
-}
-
-pragma(inline, true)
-Vec3 toVec(IVec3 vec) {
-    return Vec3(vec.x, vec.y, vec.z);
-}
-
-pragma(inline, true)
-Vec4 toVec(IVec4 vec) {
-    return Vec4(vec.x, vec.y, vec.z, vec.w);
-}
-
-pragma(inline, true)
-Vec4 toVec(Rgba color) {
-    return Vec4(color.r, color.g, color.b, color.a);
-}
-
-pragma(inline, true)
-IRect toIRect(Rect rect) {
-    return IRect(rect.position.toIVec(), rect.size.toIVec());
-}
-
-pragma(inline, true)
-Rect toRect(IRect rect) {
-    return Rect(rect.position.toVec(), rect.size.toVec());
+
+    float fmod(float x, float y) {
+        return stdc.fmodf(x, y);
+    }
+
+    double fmod64(double x, double y) {
+        return stdc.fmod(x, y);
+    }
+
+    float remainder(float x, float y) {
+        return stdc.remainderf(x, y);
+    }
+
+    double remainder64(double x, double y) {
+        return stdc.remainder(x, y);
+    }
+
+    float exp(float x) {
+        return stdc.expf(x);
+    }
+
+    double exp64(double x) {
+        return stdc.exp(x);
+    }
+
+    float exp2(float x) {
+        return stdc.exp2f(x);
+    }
+
+    double exp264(double x) {
+        return stdc.exp2(x);
+    }
+
+    float expm1(float x) {
+        return stdc.expm1f(x);
+    }
+
+    double expm164(double x) {
+        return stdc.expm1(x);
+    }
+
+    float log(float x) {
+        return stdc.logf(x);
+    }
+
+    double log64(double x) {
+        return stdc.log(x);
+    }
+
+    float log10(float x) {
+        return stdc.log10f(x);
+    }
+
+    double log1064(double x) {
+        return stdc.log10(x);
+    }
+
+    float log2(float x) {
+        return stdc.log2f(x);
+    }
+
+    double log264(double x) {
+        return stdc.log2(x);
+    }
+
+    float log1p(float x) {
+        return stdc.log1pf(x);
+    }
+
+    double log1p64(double x) {
+        return stdc.log1p(x);
+    }
+
+    float pow(float base, float exponent) {
+        return stdc.powf(base, exponent);
+    }
+
+    double pow64(double base, double exponent) {
+        return stdc.pow(base, exponent);
+    }
+
+    float atan2(float y, float x) {
+        return stdc.atan2f(y, x);
+    }
+
+    double atan264(double y, double x) {
+        return stdc.atan2(y, x);
+    }
+
+    float cbrt(float x) {
+        return stdc.cbrtf(x);
+    }
+
+    double cbrt64(double x) {
+        return stdc.cbrt(x);
+    }
+
+    float floorX(float x) {
+        return (x <= 0.0f && (cast(float) cast(int) x) != x)
+            ? (cast(float) cast(int) x) - 1.0f
+            : (cast(float) cast(int) x);
+    }
+
+    double floorX64(double x) {
+        return (x <= 0.0 && (cast(double) cast(long) x) != x)
+            ? (cast(double) cast(long) x) - 1.0
+            : (cast(double) cast(long) x);
+    }
+
+    float floor(float x) {
+        return stdc.floorf(x);
+    }
+
+    double floor64(double  x) {
+        return stdc.floor(x);
+    }
+
+    float ceilX(float x) {
+        return (x <= 0.0f || (cast(float) cast(int) x) == x)
+            ? (cast(float) cast(int) x)
+            : (cast(float) cast(int) x) + 1.0f;
+    }
+
+    double ceilX64(double x) {
+        return (x <= 0.0 || (cast(double) cast(long) x) == x)
+            ? (cast(double) cast(long) x)
+            : (cast(double) cast(long) x) + 1.0;
+    }
+
+    float ceil(float x) {
+        return stdc.ceilf(x);
+    }
+
+    double ceil64(double x) {
+        return stdc.ceil(x);
+    }
+
+    float roundX(float x) {
+        return (x <= 0.0f)
+            ? cast(float) cast(int) (x - 0.5f)
+            : cast(float) cast(int) (x + 0.5f);
+    }
+
+    double roundX64(double x) {
+        return (x <= 0.0)
+            ? cast(double) cast(long) (x - 0.5)
+            : cast(double) cast(long) (x + 0.5);
+    }
+
+    float round(float x) {
+        return stdc.roundf(x);
+    }
+
+    double round64(double x) {
+        return stdc.round(x);
+    }
+
+    float sqrt(float x) {
+        return stdc.sqrtf(x);
+    }
+
+    double sqrt64(double x) {
+        return stdc.sqrt(x);
+    }
+
+    float sin(float x) {
+        return stdc.sinf(x);
+    }
+
+    double sin64(double x) {
+        return stdc.sin(x);
+    }
+
+    float cos(float x) {
+        return stdc.cosf(x);
+    }
+
+    double cos64(double x) {
+        return stdc.cos(x);
+    }
+
+    float tan(float x) {
+        return stdc.tanf(x);
+    }
+
+    double tan64(double x) {
+        return stdc.tan(x);
+    }
+
+    float asin(float x) {
+        return stdc.asinf(x);
+    }
+
+    double asin64(double x) {
+        return stdc.asin(x);
+    }
+
+    float acos(float x) {
+        return stdc.acosf(x);
+    }
+
+    double acos64(double x) {
+        return stdc.acos(x);
+    }
+
+    float atan(float x) {
+        return stdc.atanf(x);
+    }
+
+    double atan64(double x) {
+        return stdc.atan(x);
+    }
+
+    float lerp(float from, float to, float weight) {
+        return from + (to - from) * weight;
+    }
+
+    double lerp64(double from, double to, double weight) {
+        return from + (to - from) * weight;
+    }
+
+    float smoothstep(float from, float to, float weight) {
+        auto v = weight * weight * (3.0f - 2.0f * weight);
+        return (to * v) + (from * (1.0f - v));
+    }
+
+    double smoothstep64(double from, double to, double weight) {
+        auto v = weight * weight * (3.0 - 2.0 * weight);
+        return (to * v) + (from * (1.0 - v));
+    }
+
+    float smootherstep(float from, float to, float weight) {
+        auto v = weight * weight * weight * (weight * (weight * 6.0f - 15.0f) + 10.0f);
+        return (to * v) + (from * (1.0f - v));
+    }
+
+    double smootherstep64(double from, double to, double weight) {
+        auto v = weight * weight * weight * (weight * (weight * 6.0 - 15.0) + 10.0);
+        return (to * v) + (from * (1.0 - v));
+    }
+
+    float easeInSine(float x) {
+        return 1.0f - cos((x * pi) / 2.0f);
+    }
+
+    float easeOutSine(float x) {
+        return sin((x * pi) / 2.0f);
+    }
+
+    float easeInOutSine(float x) {
+        return -(cos(pi * x) - 1.0f) / 2.0f;
+    }
+
+    float easeInCubic(float x) {
+        return x * x * x;
+    }
+
+    float easeOutCubic(float x) {
+        return 1.0f - pow(1.0f - x, 3.0f);
+    }
+
+    float easeInOutCubic(float x) {
+        return x < 0.5f ? 4.0f * x * x * x : 1.0f - pow(-2.0f * x + 2.0f, 3.0f) / 2.0f;
+    }
+
+    float easeInQuint(float x) {
+        return x * x * x * x * x;
+    }
+
+    float easeOutQuint(float x) {
+        return 1.0f - pow(1.0f - x, 5.0f);
+    }
+
+    float easeInOutQuint(float x) {
+        return x < 0.5f ? 16.0f * x * x * x * x * x : 1.0f - pow(-2.0f * x + 2.0f, 5.0f) / 2.0f;
+    }
+
+    float easeInCirc(float x) {
+        return 1.0f - sqrt(1.0f - pow(x, 2.0f));
+    }
+
+    float easeOutCirc(float x) {
+        return sqrt(1.0f - pow(x - 1.0f, 2.0f));
+    }
+
+    float easeInOutCirc(float x) {
+        return x < 0.5f
+            ? (1.0f - sqrt(1.0f - pow(2.0f * x, 2.0f))) / 2.0f
+            : (sqrt(1.0f - pow(-2.0f * x + 2.0f, 2.0f)) + 1.0f) / 2.0f;
+    }
+
+    float easeInElastic(float x) {
+        enum c4 = (2.0f * pi) / 3.0f;
+
+        return x == 0.0f
+            ? 0.0f
+            : x == 1.0f
+            ? 1.0f
+            : -pow(2.0f, 10.0f * x - 10.0f) * sin((x * 10.0f - 10.75f) * c4);
+    }
+
+    float easeOutElastic(float x) {
+        enum c4 = (2.0f * pi) / 3.0f;
+
+        return x == 0.0f
+            ? 0.0f
+            : x == 1.0f
+            ? 1.0f
+            : pow(2.0f, -10.0f * x) * sin((x * 10.0f - 0.75f) * c4) + 1.0f;
+    }
+
+    float easeInOutElastic(float x) {
+        enum c5 = (2.0f * pi) / 4.5f;
+
+        return x == 0.0f
+            ? 0.0f
+            : x == 1.0f
+            ? 1.0f
+            : x < 0.5f
+            ? -(pow(2.0f, 20.0f * x - 10.0f) * sin((20.0f * x - 11.125f) * c5)) / 2.0f
+            : (pow(2.0f, -20.0f * x + 10.0f) * sin((20.0f * x - 11.125f) * c5)) / 2.0f + 1.0f;
+    }
+
+    float easeInQuad(float x) {
+        return x * x;
+    }
+
+    float easeOutQuad(float x) {
+        return 1.0f - (1.0f - x) * (1.0f - x);
+    }
+
+    float easeInOutQuad(float x) {
+        return x < 0.5f ? 2.0f * x * x : 1.0f - pow(-2.0f * x + 2.0f, 2.0f) / 2.0f;
+    }
+
+    float easeInQuart(float x) {
+        return x * x * x * x;
+    }
+
+    float easeOutQuart(float x) {
+        return 1.0f - pow(1.0f - x, 4.0f);
+    }
+
+    float easeInOutQuart(float x) {
+        return x < 0.5f ? 8.0f * x * x * x * x : 1.0f - pow(-2.0f * x + 2.0f, 4.0f) / 2.0f;
+    }
+
+    float easeInExpo(float x) {
+        return x == 0.0f ? 0.0f : pow(2.0f, 10.0f * x - 10.0f);
+    }
+
+    float easeOutExpo(float x) {
+        return x == 1.0f ? 1.0f : 1.0f - pow(2.0f, -10.0f * x);
+    }
+
+    float easeInOutExpo(float x) {
+        return x == 0.0f
+            ? 0.0f
+            : x == 1.0f
+            ? 1.0f
+            : x < 0.5f ? pow(2.0f, 20.0f * x - 10.0f) / 2.0f
+            : (2.0f - pow(2.0f, -20.0f * x + 10.0f)) / 2.0f;
+    }
+
+    float easeInBack(float x) {
+        enum c1 = 1.70158f;
+        enum c3 = c1 + 1.0f;
+
+        return c3 * x * x * x - c1 * x * x;
+    }
+
+    float easeOutBack(float x) {
+        enum c1 = 1.70158f;
+        enum c3 = c1 + 1.0f;
+
+        return 1.0f + c3 * pow(x - 1.0f, 3.0f) + c1 * pow(x - 1.0f, 2.0f);
+    }
+
+    float easeInOutBack(float x) {
+        enum c1 = 1.70158f;
+        enum c2 = c1 * 1.525f;
+
+        return x < 0.5f
+            ? (pow(2.0f * x, 2.0f) * ((c2 + 1.0f) * 2.0f * x - c2)) / 2.0f
+            : (pow(2.0f * x - 2.0f, 2.0f) * ((c2 + 1.0f) * (x * 2.0f - 2.0f) + c2) + 2.0f) / 2.0f;
+    }
+
+    float easeInBounce(float x) {
+        return 1.0f - easeOutBounce(1.0f - x);
+    }
+
+    float easeOutBounce(float x) {
+        enum n1 = 7.5625f;
+        enum d1 = 2.75f;
+
+        return (x < 1.0f / d1)
+            ? n1 * x * x
+            : (x < 2.0f / d1)
+            ? n1 * (x -= 1.5f / d1) * x + 0.75f
+            : (x < 2.5f / d1)
+            ? n1 * (x -= 2.25f / d1) * x + 0.9375f
+            : n1 * (x -= 2.625f / d1) * x + 0.984375f;
+    }
+
+    float easeInOutBounce(float x) {
+        return x < 0.5f
+            ? (1.0f - easeOutBounce(1.0f - 2.0f * x)) / 2.0f
+            : (1.0f + easeOutBounce(2.0f * x - 1.0f)) / 2.0f;
+    }
+
+    bool fequals(float a, float b, float localEpsilon = epsilon) {
+        return abs(a - b) < localEpsilon;
+    }
+
+    bool fequals64(double a, double b, double localEpsilon = epsilon) {
+        return abs(a - b) < localEpsilon;
+    }
+
+    bool fequals(Vec2 a, Vec2 b, float localEpsilon = epsilon) {
+        return fequals(a.x, b.x, localEpsilon) && fequals(a.y, b.y, localEpsilon);
+    }
+
+    bool fequals(Vec3 a, Vec3 b, float localEpsilon = epsilon) {
+        return fequals(a.x, b.x, localEpsilon) && fequals(a.y, b.y, localEpsilon) && fequals(a.z, b.z, localEpsilon);
+    }
+
+    bool fequals(Vec4 a, Vec4 b, float localEpsilon = epsilon) {
+        return fequals(a.x, b.x, localEpsilon) && fequals(a.y, b.y, localEpsilon) && fequals(a.z, b.z, localEpsilon) && fequals(a.w, b.w, localEpsilon);
+    }
+
+    bool fequals(DVec2 a, DVec2 b, double localEpsilon = epsilon) {
+        return fequals(a.x, b.x, localEpsilon) && fequals(a.y, b.y, localEpsilon);
+    }
+
+    bool fequals(DVec3 a, DVec3 b, double localEpsilon = epsilon) {
+        return fequals(a.x, b.x, localEpsilon) && fequals(a.y, b.y, localEpsilon) && fequals(a.z, b.z, localEpsilon);
+    }
+
+    bool fequals(DVec4 a, DVec4 b, double localEpsilon = epsilon) {
+        return fequals(a.x, b.x, localEpsilon) && fequals(a.y, b.y, localEpsilon) && fequals(a.z, b.z, localEpsilon) && fequals(a.w, b.w, localEpsilon);
+    }
+
+    float toRadians(float degrees) {
+        return degrees * pi180;
+    }
+
+    double toRadians64(double degrees) {
+        return degrees * pi180;
+    }
+
+    float toDegrees(float radians) {
+        return radians * dpi180;
+    }
+
+    double toDegrees64(double radians) {
+        return radians * dpi180;
+    }
+
+    Rgba toRgb(uint rgb) {
+        return Rgba(
+            (rgb & 0xFF0000) >> 16,
+            (rgb & 0xFF00) >> 8,
+            (rgb & 0xFF),
+        );
+    }
+
+    alias toColor = toRgba;
+
+    Rgba toRgba(uint rgba) {
+        return Rgba(
+            (rgba & 0xFF000000) >> 24,
+            (rgba & 0xFF0000) >> 16,
+            (rgba & 0xFF00) >> 8,
+            (rgba & 0xFF),
+        );
+    }
+
+    Rgba toRgba(Vec3 vec) {
+        return Rgba(
+            cast(ubyte) clamp(vec.x, 0.0f, 255.0f),
+            cast(ubyte) clamp(vec.y, 0.0f, 255.0f),
+            cast(ubyte) clamp(vec.z, 0.0f, 255.0f),
+            255,
+        );
+    }
+
+    Rgba toRgba(Vec4 vec) {
+        return Rgba(
+            cast(ubyte) clamp(vec.x, 0.0f, 255.0f),
+            cast(ubyte) clamp(vec.y, 0.0f, 255.0f),
+            cast(ubyte) clamp(vec.z, 0.0f, 255.0f),
+            cast(ubyte) clamp(vec.w, 0.0f, 255.0f),
+        );
+    }
+
+    IVec2 toIVec(Vec2 vec) {
+        return IVec2(cast(int) vec.x, cast(int) vec.y);
+    }
+
+    IVec3 toIVec(Vec3 vec) {
+        return IVec3(cast(int) vec.x, cast(int) vec.y, cast(int) vec.z);
+    }
+
+    IVec4 toIVec(Vec4 vec) {
+        return IVec4(cast(int) vec.x, cast(int) vec.y, cast(int) vec.z, cast(int) vec.w);
+    }
+
+    Vec2 toVec(IVec2 vec) {
+        return Vec2(vec.x, vec.y);
+    }
+
+    Vec3 toVec(IVec3 vec) {
+        return Vec3(vec.x, vec.y, vec.z);
+    }
+
+    Vec4 toVec(IVec4 vec) {
+        return Vec4(vec.x, vec.y, vec.z, vec.w);
+    }
+
+    Vec4 toVec(Rgba color) {
+        return Vec4(color.r, color.g, color.b, color.a);
+    }
+
+    IRect toIRect(Rect rect) {
+        return IRect(rect.position.toIVec(), rect.size.toIVec());
+    }
+
+    Rect toRect(IRect rect) {
+        return Rect(rect.position.toVec(), rect.size.toVec());
+    }
+
+    float moveTo(float from, float to, float delta) {
+        return (abs(to - from) > abs(delta))
+            ? from + sign(to - from) * delta
+            : to;
+    }
+
+    float moveTo64(double from, double to, double delta) {
+        return (abs(to - from) > abs(delta))
+            ? from + sign(to - from) * delta
+            : to;
+    }
+
+    Vec2 moveTo(Vec2 from, Vec2 to, Vec2 delta) {
+        Vec2 result = void;
+        auto offset = from.directionTo(to) * delta;
+        if (abs(to.x - from.x) > abs(offset.x)) result.x = from.x + offset.x;
+        else result.x = to.x;
+        if (abs(to.y - from.y) > abs(offset.y)) result.y = from.y + offset.y;
+        else result.y = to.y;
+        return result;
+    }
+
+    Vec3 moveTo(Vec3 from, Vec3 to, Vec3 delta) {
+        Vec3 result = void;
+        auto offset = from.directionTo(to) * delta;
+        if (abs(to.x - from.x) > abs(offset.x)) result.x = from.x + offset.x;
+        else result.x = to.x;
+        if (abs(to.y - from.y) > abs(offset.y)) result.y = from.y + offset.y;
+        else result.y = to.y;
+        if (abs(to.z - from.z) > abs(offset.z)) result.z = from.z + offset.z;
+        else result.z = to.z;
+        return result;
+    }
+
+    Vec4 moveTo(Vec4 from, Vec4 to, Vec4 delta) {
+        Vec4 result = void;
+        auto offset = from.directionTo(to) * delta;
+        if (abs(to.x - from.x) > abs(offset.x)) result.x = from.x + offset.x;
+        else result.x = to.x;
+        if (abs(to.y - from.y) > abs(offset.y)) result.y = from.y + offset.y;
+        else result.y = to.y;
+        if (abs(to.z - from.z) > abs(offset.z)) result.z = from.z + offset.z;
+        else result.z = to.z;
+        if (abs(to.w - from.w) > abs(offset.w)) result.w = from.w + offset.w;
+        else result.w = to.w;
+        return result;
+    }
+
+    DVec2 moveTo(DVec2 from, DVec2 to, DVec2 delta) {
+        DVec2 result = void;
+        auto offset = from.directionTo(to) * delta;
+        if (abs(to.x - from.x) > abs(offset.x)) result.x = from.x + offset.x;
+        else result.x = to.x;
+        if (abs(to.y - from.y) > abs(offset.y)) result.y = from.y + offset.y;
+        else result.y = to.y;
+        return result;
+    }
+
+    DVec3 moveTo(DVec3 from, DVec3 to, DVec3 delta) {
+        DVec3 result = void;
+        auto offset = from.directionTo(to) * delta;
+        if (abs(to.x - from.x) > abs(offset.x)) result.x = from.x + offset.x;
+        else result.x = to.x;
+        if (abs(to.y - from.y) > abs(offset.y)) result.y = from.y + offset.y;
+        else result.y = to.y;
+        if (abs(to.z - from.z) > abs(offset.z)) result.z = from.z + offset.z;
+        else result.z = to.z;
+        return result;
+    }
+
+    DVec4 moveTo(DVec4 from, DVec4 to, DVec4 delta) {
+        DVec4 result = void;
+        auto offset = from.directionTo(to) * delta;
+        if (abs(to.x - from.x) > abs(offset.x)) result.x = from.x + offset.x;
+        else result.x = to.x;
+        if (abs(to.y - from.y) > abs(offset.y)) result.y = from.y + offset.y;
+        else result.y = to.y;
+        if (abs(to.z - from.z) > abs(offset.z)) result.z = from.z + offset.z;
+        else result.z = to.z;
+        if (abs(to.w - from.w) > abs(offset.w)) result.w = from.w + offset.w;
+        else result.w = to.w;
+        return result;
+    }
+
+    float moveToWithSlowdown(float from, float to, float delta, float slowdown) {
+        if (from.fequals(to)) return to;
+        auto target = ((from * (slowdown - 1.0f)) + to) / slowdown;
+        return from + (target - from) * delta;
+    }
+
+    float moveToWithSlowdown64(double from, double to, double delta, double slowdown) {
+        if (from.fequals64(to)) return to;
+        auto target = ((from * (slowdown - 1.0)) + to) / slowdown;
+        return from + (target - from) * delta;
+    }
+
+    Vec2 moveToWithSlowdown(Vec2 from, Vec2 to, Vec2 delta, float slowdown) {
+        return Vec2(
+            moveToWithSlowdown(from.x, to.x, delta.x, slowdown),
+            moveToWithSlowdown(from.y, to.y, delta.y, slowdown),
+        );
+    }
+
+    Vec3 moveToWithSlowdown(Vec3 from, Vec3 to, Vec3 delta, float slowdown) {
+        return Vec3(
+            moveToWithSlowdown(from.x, to.x, delta.x, slowdown),
+            moveToWithSlowdown(from.y, to.y, delta.y, slowdown),
+            moveToWithSlowdown(from.z, to.z, delta.z, slowdown),
+        );
+    }
+
+    Vec4 moveToWithSlowdown(Vec4 from, Vec4 to, Vec4 delta, float slowdown) {
+        return Vec4(
+            moveToWithSlowdown(from.x, to.x, delta.x, slowdown),
+            moveToWithSlowdown(from.y, to.y, delta.y, slowdown),
+            moveToWithSlowdown(from.z, to.z, delta.z, slowdown),
+            moveToWithSlowdown(from.w, to.w, delta.w, slowdown),
+        );
+    }
+
+    DVec2 moveToWithSlowdown(DVec2 from, DVec2 to, DVec2 delta, double slowdown) {
+        return DVec2(
+            moveToWithSlowdown64(from.x, to.x, delta.x, slowdown),
+            moveToWithSlowdown64(from.y, to.y, delta.y, slowdown),
+        );
+    }
+
+    DVec3 moveToWithSlowdown(DVec3 from, DVec3 to, DVec3 delta, double slowdown) {
+        return DVec3(
+            moveToWithSlowdown64(from.x, to.x, delta.x, slowdown),
+            moveToWithSlowdown64(from.y, to.y, delta.y, slowdown),
+            moveToWithSlowdown64(from.z, to.z, delta.z, slowdown),
+        );
+    }
+
+    DVec4 moveToWithSlowdown(DVec4 from, DVec4 to, DVec4 delta, double slowdown) {
+        return DVec4(
+            moveToWithSlowdown64(from.x, to.x, delta.x, slowdown),
+            moveToWithSlowdown64(from.y, to.y, delta.y, slowdown),
+            moveToWithSlowdown64(from.z, to.z, delta.z, slowdown),
+            moveToWithSlowdown64(from.w, to.w, delta.w, slowdown),
+        );
+    }
 }
 
 // Function test.
 unittest {
+    assert(sign(-69) == -1);
+    assert(sign(0) == 0);
+    assert(sign(420) == 1);
+    assert(sign(float.nan) == 0);
+
     assert(min3(6, 9, 4) == 4);
     assert(max3(6, 9, 4) == 9);
     assert(min4(6, 9, 4, 20) == 4);
