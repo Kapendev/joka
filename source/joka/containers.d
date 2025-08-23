@@ -415,19 +415,14 @@ struct SparseList(T) {
     }
 }
 
-deprecated("Will be replaced with GenIndex.")
-alias GenerationalIndex = GenIndex;
-deprecated("Will be replaced with GenList.")
-alias GenerationalList(T) = GenList!(T);
-
 struct GenIndex {
-    Sz value;
-    Sz generation;
+    uint value;
+    uint generation;
 }
 
 struct GenList(T) {
     SparseList!T data;
-    List!Sz generations;
+    List!uint generations;
 
     @safe nothrow:
 
@@ -477,7 +472,7 @@ struct GenList(T) {
     GenIndex append(const(T) arg) {
         data.append(arg);
         generations.resize(data.data.length);
-        return GenIndex(data.hotIndex, generations[data.hotIndex]);
+        return GenIndex(cast(uint) data.hotIndex, generations[data.hotIndex]);
     }
 
     @nogc
@@ -506,9 +501,9 @@ struct GenList(T) {
     @nogc
     auto ids() {
         static struct Range {
-            Sz[] generations;
+            uint[] generations;
             bool[] flags;
-            Sz id;
+            uint id;
 
             bool empty() {
                 return id == flags.length;
@@ -524,7 +519,7 @@ struct GenList(T) {
             }
         }
 
-        Sz id = 0;
+        uint id = 0;
         while (id < data.flags.length && !data.flags[id]) id += 1;
         return Range(generations.items, data.flags.items, id);
     }
