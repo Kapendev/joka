@@ -598,9 +598,8 @@ IStr signedToStr(long value) {
 IStr doubleToStr(double value, ulong precision = 2) {
     static char[64] buffer = void;
 
-    if (precision == 0) {
-        return signedToStr(cast(long) value);
-    }
+    if (!(value == value)) return "nan";
+    if (precision == 0) return signedToStr(cast(long) value);
 
     auto result = buffer[];
     auto cleanNumber = value;
@@ -733,6 +732,7 @@ Maybe!long toSigned(char c) {
 
 /// Converts the string to a double.
 Maybe!double toDouble(IStr str) {
+    if (str == "nan") return Maybe!double(double.nan);
     auto dotIndex = findStart(str, '.');
     if (dotIndex == -1) {
         auto temp = toSigned(str);
@@ -923,6 +923,7 @@ unittest {
     assert(doubleToStr(-0.69, 1) == "-0.6");
     assert(doubleToStr(-0.69, 2) == "-0.69");
     assert(doubleToStr(-0.69, 3) == "-0.690");
+    assert(doubleToStr(double.nan) == "nan");
 
     assert(cStrToStr("Hello\0") == "Hello");
 
@@ -1002,6 +1003,7 @@ unittest {
     assert(toDouble('0').getOr() == 0);
     assert(toDouble('9').isSome == true);
     assert(toDouble('9').getOr() == 9);
+    assert(!(toDouble("nan").getOr() == double.nan));
 
     assert(toEnum!TestEnum("?").isSome == false);
     assert(toEnum!TestEnum("?").getOr() == TestEnum.one);
