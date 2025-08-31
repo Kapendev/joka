@@ -1685,8 +1685,6 @@ pragma(inline, true) @trusted {
         );
     }
 
-    alias toColor = toRgba;
-
     Rgba toRgba(uint rgba) {
         return Rgba(
             (rgba & 0xFF000000) >> 24,
@@ -1713,6 +1711,31 @@ pragma(inline, true) @trusted {
             cast(ubyte) clamp(vec.w, 0.0f, 255.0f),
         );
     }
+
+    Rgba toRgba(IStr str) {
+        auto startsWithSymbol = str.length == 0 ? false : str[0] == '#';
+        auto isRgb = str.length == 6 + startsWithSymbol;
+        auto isRgba = str.length == 8 + startsWithSymbol;
+        if (!isRgb && !isRgba) return blank;
+        uint hex = 0;
+        foreach (c; str[startsWithSymbol .. $]) {
+            uint digit = 0;
+            if (c >= '0' && c <= '9') {
+                digit = cast(uint) (c - '0');
+            } else if (c >= 'a' && c <= 'f') {
+                digit = cast(uint) (10 + (c - 'a'));
+            } else if (c >= 'A' && c <= 'F') {
+                digit = cast(uint) (10 + (c - 'A'));
+            } else {
+                return blank;
+            }
+            hex = (hex << 4) | digit;
+        }
+        if (isRgb) return hex.toRgb();
+        return hex.toRgba();
+    }
+
+    alias toColor = toRgba;
 
     IVec2 toIVec(Vec2 vec) {
         return IVec2(cast(int) vec.x, cast(int) vec.y);
