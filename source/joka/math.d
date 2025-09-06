@@ -89,6 +89,8 @@ alias ULine = GLine!uint;   /// A 2D line using uints.
 alias Line = GLine!float;   /// A 2D line using floats.
 alias DLine = GLine!double; /// A 2D line using doubles.
 
+alias EaseFunc = float function(float x); /// A function used for easing.
+
 /// A type representing relative points.
 enum Hook : ubyte {
     topLeft,     /// The top left point.
@@ -1440,6 +1442,10 @@ pragma(inline, true) @trusted {
         return from + (to - from) * weight;
     }
 
+    float lerpToggle(float from, float to, ref float weight, bool toggle) { // TODO
+        return from + (to - from) * (toggle ? weight : 1.0f - weight);
+    }
+
     float smoothstep(float from, float to, float weight) {
         auto v = weight * weight * (3.0f - 2.0f * weight);
         return (to * v) + (from * (1.0f - v));
@@ -1771,6 +1777,14 @@ pragma(inline, true) @trusted {
 
     Rect toRect(IRect rect) {
         return Rect(rect.position.toVec(), rect.size.toVec());
+    }
+
+    float moveToState(float from, bool to, float delta) {
+        return to ? min(1.0f, from + delta) : max(0.0f, from - delta);
+    }
+
+    float moveToState64(double from, bool to, double delta) {
+        return to ? min(1.0, from + delta) : max(0.0, from - delta);
     }
 
     float moveTo(float from, float to, float delta) {
