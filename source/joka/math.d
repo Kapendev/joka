@@ -1147,6 +1147,41 @@ struct GLine(T) {
     }
 }
 
+struct SmoothToggle {
+    float progress = 0.0f;
+    bool state;
+
+    @safe nothrow @nogc pure:
+
+    this(bool state) {
+        this.state = state;
+        this.progress = state ? 1.0f : 0.0f;
+    }
+
+    bool isAtStart() {
+        return progress == 0.0f;
+    }
+
+    bool isAtEnd() {
+        return progress == 1.0f;
+    }
+
+    bool toggle() {
+        state = !state;
+        return state;
+    }
+
+    bool toggleSnap() {
+        state = !state;
+        progress = state ? 1.0f : 0.0f;
+        return state;
+    }
+
+    float update(float dt) {
+        return progress.followState(state, dt);
+    }
+}
+
 pragma(inline, true) @trusted {
     T abs(T)(T x) {
         return cast(T) (x < 0 ? -x : x);
@@ -1440,10 +1475,6 @@ pragma(inline, true) @trusted {
 
     double lerp64(double from, double to, double weight) {
         return from + (to - from) * weight;
-    }
-
-    float lerpToggle(float from, float to, ref float weight, bool toggle) { // TODO
-        return from + (to - from) * (toggle ? weight : 1.0f - weight);
     }
 
     float smoothstep(float from, float to, float weight) {
@@ -1785,6 +1816,16 @@ pragma(inline, true) @trusted {
 
     float moveToState64(double from, bool to, double delta) {
         return to ? min(1.0, from + delta) : max(0.0, from - delta);
+    }
+
+    float followState(ref float weight, bool target, float speed) {
+        weight = weight.moveToState(target, speed);
+        return weight;
+    }
+
+    double followState64(ref double weight, bool target, double speed) {
+        weight = weight.moveToState64(target, speed);
+        return weight;
     }
 
     float moveTo(float from, float to, float delta) {
