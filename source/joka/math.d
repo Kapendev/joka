@@ -89,7 +89,58 @@ alias ULine = GLine!uint;   /// A 2D line using uints.
 alias Line = GLine!float;   /// A 2D line using floats.
 alias DLine = GLine!double; /// A 2D line using doubles.
 
+alias Tween = GTween!float;   /// A tween using floats.
+alias Tween2 = GTween!Vec2;   /// A tween using 2D vectors.
+alias Tween3 = GTween!Vec3;   /// A tween using 3D vectors.
+alias Tween4 = GTween!Vec4;   /// A tween using 4D vectors.
+alias DTween = GTween!double; /// A tween using doubles.
+alias DTween2 = GTween!DVec2; /// A tween using 2D vectors with doubles.
+alias DTween3 = GTween!DVec3; /// A tween using 3D vectors with doubles.
+alias DTween4 = GTween!DVec4; /// A tween using 4D vectors with doubles.
+
 alias EaseFunc = float function(float x); /// A function used for easing.
+
+/// A type representing easing functions.
+enum Ease : ubyte {
+    linear,
+    inSine,
+    outSine,
+    inOutSine,
+    inCubic,
+    outCubic,
+    inOutCubic,
+    inQuint,
+    outQuint,
+    inOutQuint,
+    inCirc,
+    outCirc,
+    inOutCirc,
+    inElastic,
+    outElastic,
+    inOutElastic,
+    inQuad,
+    outQuad,
+    inOutQuad,
+    inQuart,
+    outQuart,
+    inOutQuart,
+    inExpo,
+    outExpo,
+    inOutExpo,
+    inBack,
+    outBack,
+    inOutBack,
+    inBounce,
+    outBounce,
+    inOutBounce,
+}
+
+/// A type that describes how a tween should update.
+enum TweenMode : ubyte {
+    bomb, /// It stops updating when it reaches the beginning or end of the animation.
+    loop, /// It returns to the beginning or end of the animation when it reaches the beginning or end of the animation.
+    yoyo, /// It reverses the given delta time when it reaches the beginning or end of the animation.
+}
 
 /// A type representing relative points.
 enum Hook : ubyte {
@@ -1147,6 +1198,98 @@ struct GLine(T) {
     }
 }
 
+/// A generic tween handles the transition from one value to another based on a duration.
+struct GTween(T) {
+    T a;                   /// The first animation value.
+    T b;                   /// The last animation value.
+    float time = 0.0f;     /// The current time, in seconds.
+    float duration = 0.0f; /// The duration, in seconds.
+    TweenMode mode;        /// The mode of the animation.
+    Ease type;             /// The function used to ease from the first to the last value.
+    bool isYoyoing;        /// Controls if the delta given to the update function is reversed.
+
+    @safe nothrow @nogc pure:
+
+    /// Creates a new tween.
+    this(T a, T b, float duration, TweenMode mode = TweenMode.bomb, Ease type = Ease.linear) {
+        this.a = a;
+        this.b = b;
+        this.duration = duration;
+        this.mode = mode;
+        this.type = type;
+    }
+
+    /// Returns true if the current time is equal to zero.
+    /// This function makes sense when the tween mode is set to bomb.
+    bool isAtStart() {
+        return time == 0.0f;
+    }
+
+    /// Returns true if the current time is equal to the duration.
+    /// This function makes sense when the tween mode is set to bomb.
+    bool isAtEnd() {
+        return time >= duration;
+    }
+
+    /// Returns the current value.
+    /// The value is between a and b.
+    T now() {
+        if (time <= 0.0f) {
+            return a;
+        } else if (time >= duration) {
+            return b;
+        } else {
+            return a.lerp(b, ease(type)(progress));
+        }
+    }
+
+    /// Updates the current time by the given delta and returns the current value.
+    T update(float delta) {
+        setTime(time + (isYoyoing ? -delta : delta));
+        return now;
+    }
+
+    /// Resets the current time and returns the current value.
+    T reset() {
+        setTime(0.0f);
+        return now;
+    }
+
+    /// Returns the current progress.
+    /// The progress is between 0.0 and 1.0.
+    float progress() {
+        return duration == 0.0f ? 0.0f : clamp(time / duration, 0.0f, 1.0f);
+    }
+
+    /// Sets the current progress to a specific value.
+    /// The progress is between 0.0 and 1.0.
+    void setProgress(float value) {
+        time = duration * clamp(value, 0.0f, 1.0f);
+    }
+
+    /// Sets the current time to a specific value.
+    /// Takes the tween mode into account.
+    void setTime(float value) {
+        final switch (mode) {
+            case TweenMode.bomb:
+                time = clamp(value, 0.0f, duration);
+                break;
+            case TweenMode.loop:
+                time = wrap(value, 0.0f, duration);
+                break;
+            case TweenMode.yoyo:
+                time = clamp(value, 0.0f, duration);
+                if (value < 0.0f) {
+                    isYoyoing = false;
+                } else if (value > duration) {
+                    isYoyoing = true;
+                }
+                break;
+        }
+    }
+}
+
+// TODO: Add docs.
 struct SmoothToggle {
     float progress = 0.0f;
     bool state;
@@ -1166,6 +1309,29 @@ struct SmoothToggle {
         return progress == 1.0f;
     }
 
+    float now() {
+        if (progress <= 0.0f) {
+            return 0.0f;
+        } else if (progress >= 1.0f) {
+            return 1.0f;
+        } else {
+            return progress;
+        }
+    }
+
+    float update(float delta) {
+        return progress.followState(state, delta);
+    }
+
+    float reset() {
+        setProgress(0.0f);
+        return now;
+    }
+
+    void setProgress(float value) {
+        progress = clamp(value, 0.0f, 1.0f);
+    }
+
     bool toggle() {
         state = !state;
         return state;
@@ -1175,10 +1341,6 @@ struct SmoothToggle {
         state = !state;
         progress = state ? 1.0f : 0.0f;
         return state;
-    }
-
-    float update(float dt) {
-        return progress.followState(state, dt);
     }
 }
 
@@ -1477,6 +1639,54 @@ pragma(inline, true) @trusted {
         return from + (to - from) * weight;
     }
 
+    Vec2 lerp(Vec2 from, Vec2 to, float weight) {
+        return Vec2(
+            lerp(from.x, to.x, weight),
+            lerp(from.y, to.y, weight),
+        );
+    }
+
+    Vec3 lerp(Vec3 from, Vec3 to, float weight) {
+        return Vec3(
+            lerp(from.x, to.x, weight),
+            lerp(from.y, to.y, weight),
+            lerp(from.z, to.z, weight),
+        );
+    }
+
+    Vec4 lerp(Vec4 from, Vec4 to, float weight) {
+        return Vec4(
+            lerp(from.x, to.x, weight),
+            lerp(from.y, to.y, weight),
+            lerp(from.z, to.z, weight),
+            lerp(from.w, to.w, weight),
+        );
+    }
+
+    DVec2 lerp(DVec2 from, DVec2 to, double weight) {
+        return DVec2(
+            lerp64(from.x, to.x, weight),
+            lerp64(from.y, to.y, weight),
+        );
+    }
+
+    DVec3 lerp(DVec3 from, DVec3 to, double weight) {
+        return DVec3(
+            lerp64(from.x, to.x, weight),
+            lerp64(from.y, to.y, weight),
+            lerp64(from.z, to.z, weight),
+        );
+    }
+
+    DVec4 lerp(DVec4 from, DVec4 to, double weight) {
+        return DVec4(
+            lerp64(from.x, to.x, weight),
+            lerp64(from.y, to.y, weight),
+            lerp64(from.z, to.z, weight),
+            lerp64(from.w, to.w, weight),
+        );
+    }
+
     float smoothstep(float from, float to, float weight) {
         auto v = weight * weight * (3.0f - 2.0f * weight);
         return (to * v) + (from * (1.0f - v));
@@ -1495,6 +1705,10 @@ pragma(inline, true) @trusted {
     double smootherstep64(double from, double to, double weight) {
         auto v = weight * weight * weight * (weight * (weight * 6.0 - 15.0) + 10.0);
         return (to * v) + (from * (1.0 - v));
+    }
+
+    float easeLinear(float x) {
+        return x;
     }
 
     float easeInSine(float x) {
@@ -1664,6 +1878,42 @@ pragma(inline, true) @trusted {
         return x < 0.5f
             ? (1.0f - easeOutBounce(1.0f - 2.0f * x)) / 2.0f
             : (1.0f + easeOutBounce(2.0f * x - 1.0f)) / 2.0f;
+    }
+
+    EaseFunc ease(Ease type) {
+        final switch (type) {
+            case Ease.linear: return &easeLinear;
+            case Ease.inSine: return &easeInSine;
+            case Ease.outSine: return &easeOutSine;
+            case Ease.inOutSine: return &easeInOutSine;
+            case Ease.inCubic: return &easeInCubic;
+            case Ease.outCubic: return &easeOutCubic;
+            case Ease.inOutCubic: return &easeInOutCubic;
+            case Ease.inQuint: return &easeInQuint;
+            case Ease.outQuint: return &easeOutQuint;
+            case Ease.inOutQuint: return &easeInOutQuint;
+            case Ease.inCirc: return &easeInCirc;
+            case Ease.outCirc: return &easeOutCirc;
+            case Ease.inOutCirc: return &easeInOutCirc;
+            case Ease.inElastic: return &easeInElastic;
+            case Ease.outElastic: return &easeOutElastic;
+            case Ease.inOutElastic: return &easeInOutElastic;
+            case Ease.inQuad: return &easeInQuad;
+            case Ease.outQuad: return &easeOutQuad;
+            case Ease.inOutQuad: return &easeInOutQuad;
+            case Ease.inQuart: return &easeInQuart;
+            case Ease.outQuart: return &easeOutQuart;
+            case Ease.inOutQuart: return &easeInOutQuart;
+            case Ease.inExpo: return &easeInExpo;
+            case Ease.outExpo: return &easeOutExpo;
+            case Ease.inOutExpo: return &easeInOutExpo;
+            case Ease.inBack: return &easeInBack;
+            case Ease.outBack: return &easeOutBack;
+            case Ease.inOutBack: return &easeInOutBack;
+            case Ease.inBounce: return &easeInBounce;
+            case Ease.outBounce: return &easeOutBounce;
+            case Ease.inOutBounce: return &easeInOutBounce;
+        }
     }
 
     bool fequals(float a, float b, float localEpsilon = epsilon) {
