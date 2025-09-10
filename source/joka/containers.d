@@ -16,13 +16,15 @@ import joka.types;
 
 enum defaultListCapacity = 16; /// The default list capacity. It is also the smallest list capacity.
 
-alias LStr   = List!char;  /// A dynamic string of chars.
-alias LStr16 = List!wchar; /// A dynamic string of wchars.
-alias LStr32 = List!dchar; /// A dynamic string of dchars.
-
+alias LStr         = List!char;            /// A dynamic string of chars.
+alias LStr16       = List!wchar;           /// A dynamic string of wchars.
+alias LStr32       = List!dchar;           /// A dynamic string of dchars.
+alias BStr         = BufferList!char;      /// A dynamic string of chars backed by external memory.
+alias BStr16       = BufferList!wchar;     /// A dynamic string of wchars backed by external memory.
+alias BStr32       = BufferList!dchar;     /// A dynamic string of dchars backed by external memory.
 alias FStr(Sz N)   = FixedList!(char, N);  /// A dynamic string of chars allocated on the stack.
 alias FStr16(Sz N) = FixedList!(wchar, N); /// A dynamic string of wchars allocated on the stack.
-alias FStr32(Sz N) = FizedList!(dchar, N); /// A dynamic string of dchars allocated on the stack.
+alias FStr32(Sz N) = FixedList!(dchar, N); /// A dynamic string of dchars allocated on the stack.
 
 /// A dynamic array.
 struct List(T) {
@@ -33,24 +35,25 @@ struct List(T) {
 
     mixin addSliceOps!(List!T, T);
 
-    pragma(inline, true)
-    this(const(T)[] args...) {
-        append(args);
-    }
+    pragma(inline, true) @trusted {
+        this(const(T)[] args...) {
+            append(args);
+        }
 
-    pragma(inline, true) @nogc
-    Sz length() {
-        return items.length;
-    }
+        @nogc
+        Sz length() {
+            return items.length;
+        }
 
-    pragma(inline, true) @trusted @nogc
-    T* ptr() {
-        return items.ptr;
-    }
+        @nogc
+        T* ptr() {
+            return items.ptr;
+        }
 
-    @nogc
-    bool isEmpty() {
-        return length == 0;
+        @nogc
+        bool isEmpty() {
+            return length == 0;
+        }
     }
 
     @trusted
@@ -150,39 +153,41 @@ struct List(T) {
     }
 }
 
-/// A dynamic array allocated on the stack.
-struct FixedList(T, Sz N) {
-    Array!(T, N) data = void;
+/// A dynamic array that uses external memory provided at runtime.
+struct BufferList(T) {
+    T[] data;
     Sz length;
-
-    enum capacity = N;
 
     @safe nothrow @nogc:
 
-    mixin addSliceOps!(FixedList!(T, N), T);
+    mixin addSliceOps!(BufferList!T, T);
 
-    pragma(inline, true)
-    this(const(T)[] args...) {
-        append(args);
-    }
+    pragma(inline, true) @trusted {
+        this(T[] data, const(T)[] args...) {
+            this.data = data;
+            append(args);
+        }
 
-    pragma(inline, true)
-    T[] items() {
-        return data.items[0 .. length];
-    }
+        T[] items() {
+            return data[0 .. length];
+        }
 
-    pragma(inline, true)
-    T* ptr() {
-        return data.ptr;
-    }
+        Sz capacity() {
+            return data.length;
+        }
 
-    bool isEmpty() {
-        return length == 0;
+        T* ptr() {
+            return data.ptr;
+        }
+
+        bool isEmpty() {
+            return length == 0;
+        }
     }
 
     void appendBlank() {
         length += 1;
-        if (length > N) assert(0, "List is full.");
+        if (length > capacity) assert(0, "List is full.");
     }
 
     @trusted
@@ -223,7 +228,101 @@ struct FixedList(T, Sz N) {
     }
 
     void resizeBlank(Sz newLength) {
-        if (newLength > N) assert(0, "List is full.");
+        if (newLength > capacity) assert(0, "List is full.");
+        length = newLength;
+    }
+
+    void resize(Sz newLength) {
+        auto oldLength = length;
+        resizeBlank(newLength);
+        if (newLength > oldLength) {
+            foreach (i; 0 .. newLength - oldLength) items[$ - i - 1] = T.init;
+        }
+    }
+
+    @trusted
+    void fill(const(T) value) {
+        foreach (ref item; items) item = cast(T) value;
+    }
+
+    void clear() {
+        length = 0;
+    }
+}
+
+/// A dynamic array allocated on the stack.
+struct FixedList(T, Sz N) {
+    Array!(T, N) data = void;
+    Sz length;
+
+    enum capacity = N;
+
+    @safe nothrow @nogc:
+
+    mixin addSliceOps!(FixedList!(T, N), T);
+
+    pragma(inline, true) @trusted {
+        this(const(T)[] args...) {
+            append(args);
+        }
+
+        T[] items() {
+            return data.items[0 .. length];
+        }
+
+        T* ptr() {
+            return data.ptr;
+        }
+
+        bool isEmpty() {
+            return length == 0;
+        }
+    }
+
+    void appendBlank() {
+        length += 1;
+        if (length > capacity) assert(0, "List is full.");
+    }
+
+    @trusted
+    void append(const(T)[] args...) {
+        auto oldLength = length;
+        resizeBlank(length + args.length);
+        jokaMemcpy(ptr + oldLength, args.ptr, args.length * T.sizeof);
+    }
+
+    void remove(Sz i) {
+        items[i] = items[$ - 1];
+        length -= 1;
+    }
+
+    void removeShift(Sz i) {
+        foreach (j; i .. items.length - 1) items[j] = items[j + 1];
+        length -= 1;
+    }
+
+    T pop() {
+        if (length > 0) {
+            T temp = items[$ - 1];
+            remove(length - 1);
+            return temp;
+        } else {
+            return T.init;
+        }
+    }
+
+    T popFront() {
+        if (length > 0) {
+            T temp = items[0];
+            removeShift(0);
+            return temp;
+        } else {
+            return T.init;
+        }
+    }
+
+    void resizeBlank(Sz newLength) {
+        if (newLength > capacity) assert(0, "List is full.");
         length = newLength;
     }
 
@@ -975,6 +1074,49 @@ unittest {
     assert(text.length == 0);
 
     text = FStr!64("Hello world!");
+    assert(text.length == "Hello world!".length);
+    assert(text[] == text.items);
+    assert(text[0] == text.items[0]);
+    assert(text[0 .. $] == text.items[0 .. $]);
+    assert(text[0] == 'H');
+    text[0] = 'h';
+    text[0] += 1;
+    text[0] -= 1;
+    assert(text[0] == 'h');
+    text.append("!!");
+    assert(text[] == "hello world!!!");
+    assert(text.pop() == '!');
+    assert(text.pop() == '!');
+    assert(text[] == "hello world!");
+    text.resize(0);
+    assert(text[] == "");
+    assert(text.length == 0);
+    assert(text.pop() == char.init);
+    text.resize(1);
+    assert(text[0] == char.init);
+    assert(text.length == 1);
+    text.clear();
+}
+
+// TODO: Write better tests.
+// BufferList test.
+unittest {
+    BStr text;
+    char[64] buffer;
+
+    text = BStr(buffer);
+    assert(text.length == 0);
+    text.resize(63);
+    assert(text.length == 63);
+    text.appendBlank();
+    assert(text.length == 64);
+
+    text = BStr(buffer, "abc");
+    assert(text.length == 3);
+    text.clear();
+    assert(text.length == 0);
+
+    text = BStr(buffer, "Hello world!");
     assert(text.length == "Hello world!".length);
     assert(text[] == text.items);
     assert(text[0] == text.items[0]);
