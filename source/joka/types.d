@@ -30,6 +30,13 @@ alias ICStr32 = const(dchar)*;  /// A C string of constant dchars.
 alias UnionType = ubyte;
 alias AliasArgs(A...) = A;
 
+enum kilobyte = 1024;
+enum megabyte = 1024 * kilobyte;
+enum gigabyte = 1024 * megabyte;
+enum terabyte = 1024 * gigabyte;
+enum petabyte = 1024 * terabyte;
+enum exabyte  = 1024 * petabyte;
+
 /// A type representing error values.
 // NOTE: Should cantParse be cannotParse? Who cares? We already write Rgba instead of RGBA for example.
 enum Fault : ubyte {

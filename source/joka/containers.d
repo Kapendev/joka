@@ -764,6 +764,7 @@ struct Arena {
     Sz offset;
     Sz checkpointOffset;
     Arena* next;
+    bool isOwning;
 
     @trusted nothrow:
 
@@ -771,10 +772,29 @@ struct Arena {
         ready(capacity);
     }
 
+    this(ubyte* data, Sz capacity) {
+        ready(data, capacity);
+    }
+
+    this(ubyte[] data) {
+        ready(data);
+    }
+
     void ready(Sz newCapacity) {
         free();
         data = cast(ubyte*) jokaMalloc(newCapacity);
         capacity = newCapacity;
+        isOwning = true;
+    }
+
+    void ready(ubyte* newData, Sz newCapacity) {
+        free();
+        data = newData;
+        capacity = newCapacity;
+    }
+
+    void ready(ubyte[] newData) {
+        ready(newData.ptr, newData.length);
     }
 
     @trusted nothrow @nogc:
@@ -839,10 +859,11 @@ struct Arena {
     }
 
     void free() {
-        jokaFree(data);
+        if (isOwning) jokaFree(data);
         data = null;
         capacity = 0;
         clear();
+        isOwning = false;
     }
 }
 
@@ -963,8 +984,8 @@ alias formatIntoList = fmtIntoList;
 /// Formats a string using a list and returns the resulting formatted string.
 /// The list is cleared before writing.
 /// For details on formatting behavior, see the `formatIntoBuffer` function in the `ascii` module.
-IStr fmtIntoList(A...)(ref LStr buffer, IStr fmtStr, A args) {
-    buffer.clear();
+IStr fmtIntoList(T, A...)(ref T list, IStr fmtStr, A args) {
+    list.clear();
     auto fmtStrIndex = 0;
     auto argIndex = 0;
     while (fmtStrIndex < fmtStr.length) {
@@ -975,7 +996,7 @@ IStr fmtIntoList(A...)(ref LStr buffer, IStr fmtStr, A args) {
             static foreach (i, arg; args) {
                 if (i == argIndex) {
                     auto temp = toStr(arg);
-                    buffer.append(temp);
+                    list.append(temp);
                     fmtStrIndex += 2;
                     argIndex += 1;
                     goto loopExit;
@@ -983,12 +1004,12 @@ IStr fmtIntoList(A...)(ref LStr buffer, IStr fmtStr, A args) {
             }
             loopExit:
         } else {
-            buffer.append(c1);
+            list.append(c1);
             fmtStrIndex += 1;
         }
     }
     if (argIndex != args.length) assert(0, "An argument doesn't have a placeholder.");
-    return buffer[];
+    return list[];
 }
 
 // Function test.
@@ -1313,9 +1334,11 @@ unittest {
 unittest {
     Arena arena;
     int* number;
+    ubyte[512] buffer;
 
-    arena = Arena(1024);
-    assert(arena.capacity == 1024);
+    arena = Arena(512);
+    assert(arena.isOwning == true);
+    assert(arena.capacity == 512);
     assert(arena.offset == 0);
     assert(arena.data != null);
     number = arena.make(69);
@@ -1325,10 +1348,31 @@ unittest {
     arena.clear();
     assert(arena.offset == 0);
     assert(arena.data != null);
-    assert(arena.malloc(1024, 1) != null);
-    assert(arena.malloc(1024, 1) == null);
+    assert(arena.malloc(512, 1) != null);
+    assert(arena.malloc(512, 1) == null);
     arena.free();
     assert(arena.capacity == 0);
     assert(arena.offset == 0);
     assert(arena.data == null);
+    assert(arena.isOwning == false);
+
+    arena = Arena(buffer);
+    assert(arena.isOwning == false);
+    assert(arena.capacity == 512);
+    assert(arena.offset == 0);
+    assert(arena.data != null);
+    number = arena.make(69);
+    assert(*number == 69);
+    number = arena.make(420);
+    assert(*number == 420);
+    arena.clear();
+    assert(arena.offset == 0);
+    assert(arena.data != null);
+    assert(arena.malloc(512, 1) != null);
+    assert(arena.malloc(512, 1) == null);
+    arena.free();
+    assert(arena.capacity == 0);
+    assert(arena.offset == 0);
+    assert(arena.data == null);
+    assert(arena.isOwning == false);
 }

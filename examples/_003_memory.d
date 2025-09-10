@@ -14,10 +14,18 @@ void main() {
     trace(slice.length);
 
     // Allocate 1KB of memory using an arena.
-    auto arena = Arena(1024);
-    scope (exit) arena.free();
-    auto a = arena.make!char('D');
-    auto b = arena.make!long(4);
+    auto arena1 = Arena(1024);
+    scope (exit) arena1.free();
+    auto a = arena1.make!char('D');
+    auto b = arena1.make!long(4);
     trace(*a, *b);
-    arena.clear();
+    arena1.clear();
+
+    // Arenas can also use external memory.
+    ubyte[1024] buffer = void;
+    auto arena2 = Arena(buffer);
+    a = arena2.make!char('C');
+    b = arena2.make!long(3);
+    trace(*a, *b);
+    arena2.clear();
 }
