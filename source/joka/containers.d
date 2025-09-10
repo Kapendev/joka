@@ -663,24 +663,24 @@ struct Arena {
     ubyte* data;
     Sz capacity;
     Sz offset;
+    Sz checkpointOffset;
+    Arena* next;
 
-    @safe nothrow:
+    @trusted nothrow:
 
     this(Sz capacity) {
-        mallocSelf(capacity);
+        ready(capacity);
     }
 
-    @trusted
-    void mallocSelf(Sz newCapacity) {
+    void ready(Sz newCapacity) {
         free();
         data = cast(ubyte*) jokaMalloc(newCapacity);
         capacity = newCapacity;
-        offset = 0;
     }
 
-    @system @nogc
+    @trusted nothrow @nogc:
+
     void* malloc(Sz size, Sz alignment) {
-        if (size == 0 || alignment == 0) assert(0, "Size or alignment is zero.");
         Sz alignedOffset = void;
         if (offset == 0) {
             auto ptr = cast(Sz) data;
@@ -693,7 +693,6 @@ struct Arena {
         return cast(void*) (data + alignedOffset);
     }
 
-    @system @nogc
     void* realloc(void* ptr, Sz oldSize, Sz newSize, Sz alignment) {
         if (ptr == null) return malloc(newSize, alignment);
         auto newPtr = malloc(newSize, alignment);
@@ -703,41 +702,137 @@ struct Arena {
         return newPtr;
     }
 
-    @trusted @nogc
     T* makeBlank(T)() {
         return cast(T*) malloc(T.sizeof, T.alignof);
     }
 
-    @nogc
     T* make(T)(const(T) value = T.init) {
         auto result = makeBlank!T();
         *result = cast(T) value;
         return result;
     }
 
-    @trusted @nogc
     T[] makeSliceBlank(T)(Sz length) {
         return (cast(T*) malloc(T.sizeof * length, T.alignof))[0 .. length];
     }
 
-    @nogc
     T[] makeSlice(T)(Sz length, const(T) value = T.init) {
         auto result = makeSliceBlank!T(length);
         foreach (ref item; result) item = value;
         return result;
     }
 
-    @nogc
-    void clear() {
-        offset = 0;
+    void checkpoint() {
+        checkpointOffset = offset;
     }
 
-    @trusted @nogc
-    free() {
+    void rollback() {
+        offset = checkpointOffset;
+    }
+
+    void dropCheckpoint() {
+        checkpointOffset = 0;
+    }
+
+    void clear() {
+        offset = 0;
+        checkpointOffset = 0;
+    }
+
+    void free() {
         jokaFree(data);
         data = null;
         capacity = 0;
-        offset = 0;
+        clear();
+    }
+}
+
+struct GrowingArena {
+    Arena* head;
+    Arena* current;
+    Sz chunkCapacity;
+
+    @trusted nothrow:
+
+    this(Sz chunkCapacity, Sz chunkCount = 1) {
+        ready(chunkCapacity, chunkCount);
+    }
+
+    void ready(Sz newChunkCapacity, Sz newChunkCount = 1) {
+        free();
+        head = jokaMake(Arena(newChunkCapacity));
+        current = head;
+        chunkCapacity = newChunkCapacity;
+        auto chunk = head;
+        foreach (i; 1 .. newChunkCount) {
+            chunk.next = jokaMake(Arena(newChunkCapacity));
+            chunk = chunk.next;
+        }
+    }
+
+    void* malloc(Sz size, Sz alignment) {
+        void* p = current.malloc(size, alignment);
+        if (p == null) {
+            auto chunk = current.next ? current.next : jokaMake(Arena(size > chunkCapacity ? size : chunkCapacity));
+            p = chunk.malloc(size, alignment);
+            current.next = chunk;
+            current = chunk;
+        }
+        return p;
+    }
+
+    void* realloc(void* ptr, Sz oldSize, Sz newSize, Sz alignment) {
+        void* p = current.realloc(ptr, oldSize, newSize, alignment);
+        if (p == null) {
+            auto chunk = current.next ? current.next : jokaMake(Arena(newSize > chunkCapacity ? newSize : chunkCapacity));
+            p = chunk.realloc(ptr, oldSize, newSize, alignment);
+            current.next = chunk;
+            current = chunk;
+        }
+        return p;
+    }
+
+    T* makeBlank(T)() {
+        return cast(T*) malloc(T.sizeof, T.alignof);
+    }
+
+    T* make(T)(const(T) value = T.init) {
+        auto result = makeBlank!T();
+        *result = cast(T) value;
+        return result;
+    }
+
+    T[] makeSliceBlank(T)(Sz length) {
+        return (cast(T*) malloc(T.sizeof * length, T.alignof))[0 .. length];
+    }
+
+    T[] makeSlice(T)(Sz length, const(T) value = T.init) {
+        auto result = makeSliceBlank!T(length);
+        foreach (ref item; result) item = value;
+        return result;
+    }
+
+    @trusted nothrow @nogc:
+
+    void clear() {
+        auto chunk = head;
+        while (chunk) {
+            chunk.clear();
+            chunk = chunk.next;
+        }
+        current = head;
+    }
+
+    void free() {
+        auto chunk = head;
+        while (chunk) {
+            chunk.free();
+            jokaFree(chunk);
+            chunk = chunk.next;
+        }
+        head = null;
+        current = null;
+        chunkCapacity = 0;
     }
 }
 
