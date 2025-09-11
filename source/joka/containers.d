@@ -1069,6 +1069,11 @@ IStr fmtIntoList(T, A...)(ref T list, IStr fmtStr, A args) {
     return list[];
 }
 
+void freeWithItems(T)(ref T container) {
+    foreach (ref item; container.items) item.free();
+    container.free();
+}
+
 // Function test.
 unittest {
     assert(jokaFindListCapacity(0) == defaultListCapacity);

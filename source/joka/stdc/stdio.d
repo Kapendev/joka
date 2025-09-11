@@ -11,7 +11,7 @@ import joka.stdc.config;
 
 extern(C) nothrow @nogc:
 
-struct FILE {};
+struct FILE;
 
 enum SEEK_SET = 0;
 enum SEEK_CUR = 1;

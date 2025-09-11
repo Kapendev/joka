@@ -61,7 +61,9 @@ noreturn todo(IStr text = "Not implemented.", IStr file = __FILE__, Sz line = __
 @trusted
 void printMemoryTrackingInfo(bool canShowEmpty = false) {
     static if (_isTrackingMemory) {
-        if (canShowEmpty ? true : _mallocInfoTable.length != 0) printfln("Leaks: {}", _mallocInfoTable.length);
+        auto leakTotal = 0;
+        foreach (key, value; _mallocInfoTable) leakTotal += value.size;
+        if (canShowEmpty ? true : _mallocInfoTable.length != 0) printfln("Leaks: {} (total {} bytes)", _mallocInfoTable.length, leakTotal);
         foreach (key, value; _mallocInfoTable) {
             printfln(" {}:{}: {}", value.file, value.line, value.size);
         }
