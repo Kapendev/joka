@@ -75,14 +75,15 @@ struct List(T) {
     }
 
     @trusted
-    void _debugAppend(IStr file = __FILE__, Sz line = __LINE__, const(T)[] args...) {
+    void appendSource(IStr file = __FILE__, Sz line = __LINE__, const(T)[] args...) {
         auto oldLength = length;
         resizeBlank(length + args.length, file, line);
         jokaMemcpy(ptr + oldLength, args.ptr, args.length * T.sizeof);
     }
 
-    void debugAppend(IStr file = __FILE__, Sz line = __LINE__)(const(T)[] args...) {
-        _debugAppend(file, line, args);
+    @trusted
+    void push(const(T) arg, IStr file = __FILE__, Sz line = __LINE__) {
+        appendSource(file, line, arg);
     }
 
     @nogc
@@ -196,6 +197,7 @@ struct BufferList(T) {
         }
     }
 
+    @trusted
     void appendBlank() {
         length += 1;
         if (length > capacity) assert(0, "List is full.");
@@ -206,6 +208,11 @@ struct BufferList(T) {
         auto oldLength = length;
         resizeBlank(length + args.length);
         jokaMemcpy(ptr + oldLength, args.ptr, args.length * T.sizeof);
+    }
+
+    @trusted
+    void push(const(T) arg) {
+        append(arg);
     }
 
     void remove(Sz i) {
@@ -290,6 +297,7 @@ struct FixedList(T, Sz N) {
         }
     }
 
+    @trusted
     void appendBlank() {
         length += 1;
         if (length > capacity) assert(0, "List is full.");
@@ -300,6 +308,11 @@ struct FixedList(T, Sz N) {
         auto oldLength = length;
         resizeBlank(length + args.length);
         jokaMemcpy(ptr + oldLength, args.ptr, args.length * T.sizeof);
+    }
+
+    @trusted
+    void push(const(T) arg) {
+        append(arg);
     }
 
     void remove(Sz i) {
@@ -442,11 +455,11 @@ struct SparseList(T) {
     }
 
     @trusted
-    void _debugAppend(IStr file = __FILE__, Sz line = __LINE__, const(T)[] args...) {
+    void appendSource(IStr file = __FILE__, Sz line = __LINE__, const(T)[] args...) {
         foreach (arg; args) {
             if (openIndex == flags.length) {
-                data._debugAppend(file, line, arg);
-                flags._debugAppend(file, line, true);
+                data.appendSource(file, line, arg);
+                flags.appendSource(file, line, true);
                 hotIndex = openIndex;
                 openIndex = flags.length;
                 length += 1;
@@ -463,8 +476,8 @@ struct SparseList(T) {
                     }
                 }
                 if (isFull) {
-                    data._debugAppend(file, line, arg);
-                    flags._debugAppend(file, line, true);
+                    data.appendSource(file, line, arg);
+                    flags.appendSource(file, line, true);
                     hotIndex = flags.length - 1;
                     openIndex = flags.length;
                 }
@@ -473,8 +486,9 @@ struct SparseList(T) {
         }
     }
 
-    void debugAppend(IStr file = __FILE__, Sz line = __LINE__)(const(T)[] args...) {
-        _debugAppend(file, line, args);
+    @trusted
+    void push(const(T) arg, IStr file = __FILE__, Sz line = __LINE__) {
+        appendSource(file, line, arg);
     }
 
     @nogc
@@ -615,20 +629,14 @@ struct GenList(T) {
         return data.has(i.value) && generations[i.value] == i.generation;
     }
 
-    GenIndex append(const(T) arg) {
-        data.append(arg);
-        generations.resize(data.data.length);
-        return GenIndex(cast(uint) data.hotIndex, generations[data.hotIndex]);
-    }
-
-    GenIndex _debugAppend(IStr file = __FILE__, Sz line = __LINE__, const(T) arg) {
-        data._debugAppend(file, line, arg);
+    GenIndex append(const(T) arg, IStr file = __FILE__, Sz line = __LINE__) {
+        data.appendSource(file, line, arg);
         generations.resize(data.data.length, file, line);
         return GenIndex(cast(uint) data.hotIndex, generations[data.hotIndex]);
     }
 
-    void debugAppend(IStr file = __FILE__, Sz line = __LINE__)(const(T) arg) {
-        _debugAppend(file, line, arg);
+    GenIndex push(const(T) arg, IStr file = __FILE__, Sz line = __LINE__) {
+        return append(arg, file, line);
     }
 
     @nogc

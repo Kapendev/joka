@@ -58,28 +58,9 @@ noreturn todo(IStr text = "Not implemented.", IStr file = __FILE__, Sz line = __
     assert(0, "TODO({}:{}): {}".fmt(file, line, text));
 }
 
-@trusted
-void printMemoryTrackingInfo(bool canShowEmpty = false) {
-    static if (_isTrackingMemory) {
-        auto leakTotal = 0;
-        foreach (key, value; _mallocInfoTable) leakTotal += value.size;
-        if (canShowEmpty ? true : _mallocInfoTable.length != 0) printfln("Leaks: {} (total {} bytes)", _mallocInfoTable.length, leakTotal);
-        foreach (key, value; _mallocInfoTable) {
-            printfln(" {}:{}: {}", value.file, value.line, value.size);
-        }
-        if (canShowEmpty ? true : _mallocInvalidFreeTable.length != 0) printfln("Invalid Frees: {}", _mallocInvalidFreeTable.length);
-        foreach (value; _mallocInvalidFreeTable) {
-            printfln(" {}:{}", value.file, value.line);
-        }
-    } else {
-        debug {
-            version (D_BetterC) {
-                println("No memory tracking data available in BetterC builds.");
-            }
-        } else {
-            println("No memory tracking data available in release builds.");
-        }
-    }
+@safe
+void printMemoryTrackingInfo(IStr filter = "", bool canShowEmpty = false) {
+    print(memoryTrackingInfo(filter, canShowEmpty));
 }
 
 @safe nothrow:
