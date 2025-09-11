@@ -11,6 +11,7 @@ module joka.io;
 import joka.ascii;
 import joka.containers;
 import joka.types;
+import joka.memory;
 import stdc = joka.stdc.stdio;
 
 @trusted
@@ -36,25 +37,47 @@ void println(A...)(A args) {
 }
 
 @safe
-void tracef(Sz line = __LINE__, IStr file = __FILE__, A...)(IStr text, A args) {
+void tracef(IStr file = __FILE__, Sz line = __LINE__, A...)(IStr text, A args) {
     printf("TRACE({}:{}): {}\n", file, line, text.fmt(args));
 }
 
 @safe
-void trace(Sz line = __LINE__, IStr file = __FILE__, A...)(A args) {
+void trace(IStr file = __FILE__, Sz line = __LINE__, A...)(A args) {
     printf("TRACE({}:{}):", file, line);
     static foreach (arg; args) printf(" {}", arg);
     printf("\n");
 }
 
 @safe
-void warn(IStr text = "Not implemented.", Sz line = __LINE__, IStr file = __FILE__) {
+void warn(IStr text = "Not implemented.", IStr file = __FILE__, Sz line = __LINE__) {
     printf("WARN({}:{}): {}\n", file, line, text);
 }
 
 @safe
-noreturn todo(IStr text = "Not implemented.", Sz line = __LINE__, IStr file = __FILE__) {
+noreturn todo(IStr text = "Not implemented.", IStr file = __FILE__, Sz line = __LINE__) {
     assert(0, "TODO({}:{}): {}".fmt(file, line, text));
+}
+
+@trusted
+void printMemoryTrackingInfo(bool canShowEmpty = false) {
+    static if (_isTrackingMemory) {
+        if (canShowEmpty ? true : _mallocInfoTable.length != 0) printfln("Leaks: {}", _mallocInfoTable.length);
+        foreach (key, value; _mallocInfoTable) {
+            printfln(" {}:{}: {}", value.file, value.line, value.size);
+        }
+        if (canShowEmpty ? true : _mallocInvalidFreeTable.length != 0) printfln("Invalid Frees: {}", _mallocInvalidFreeTable.length);
+        foreach (value; _mallocInvalidFreeTable) {
+            printfln(" {}:{}", value.file, value.line);
+        }
+    } else {
+        debug {
+            version (D_BetterC) {
+                println("No memory tracking data available in BetterC builds.");
+            }
+        } else {
+            println("No memory tracking data available in release builds.");
+        }
+    }
 }
 
 @safe nothrow:

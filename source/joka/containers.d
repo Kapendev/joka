@@ -57,11 +57,11 @@ struct List(T) {
     }
 
     @trusted
-    void appendBlank() {
+    void appendBlank(IStr file = __FILE__, Sz line = __LINE__) {
         Sz newLength = length + 1;
         if (newLength > capacity) {
             capacity = jokaFindListCapacity(newLength);
-            items = (cast(T*) jokaRealloc(items.ptr, capacity * T.sizeof))[0 .. newLength];
+            items = (cast(T*) jokaRealloc(items.ptr, capacity * T.sizeof, file, line))[0 .. newLength];
         } else {
             items = items.ptr[0 .. newLength];
         }
@@ -72,6 +72,17 @@ struct List(T) {
         auto oldLength = length;
         resizeBlank(length + args.length);
         jokaMemcpy(ptr + oldLength, args.ptr, args.length * T.sizeof);
+    }
+
+    @trusted
+    void _debugAppend(IStr file = __FILE__, Sz line = __LINE__, const(T)[] args...) {
+        auto oldLength = length;
+        resizeBlank(length + args.length, file, line);
+        jokaMemcpy(ptr + oldLength, args.ptr, args.length * T.sizeof);
+    }
+
+    void debugAppend(IStr file = __FILE__, Sz line = __LINE__)(const(T)[] args...) {
+        _debugAppend(file, line, args);
     }
 
     @nogc
@@ -109,27 +120,27 @@ struct List(T) {
     }
 
     @trusted
-    void reserve(Sz newCapacity) {
+    void reserve(Sz newCapacity, IStr file = __FILE__, Sz line = __LINE__) {
         auto targetCapacity = jokaFindListCapacity(newCapacity);
         if (targetCapacity > capacity) {
             capacity = targetCapacity;
-            items = (cast(T*) jokaRealloc(items.ptr, capacity * T.sizeof))[0 .. length];
+            items = (cast(T*) jokaRealloc(items.ptr, capacity * T.sizeof, file, line))[0 .. length];
         }
     }
 
     @trusted
-    void resizeBlank(Sz newLength) {
+    void resizeBlank(Sz newLength, IStr file = __FILE__, Sz line = __LINE__) {
         if (newLength <= length) {
             items = items[0 .. newLength];
         } else {
-            reserve(newLength);
+            reserve(newLength, file, line);
             items = items.ptr[0 .. newLength];
         }
     }
 
-    void resize(Sz newLength) {
+    void resize(Sz newLength, IStr file = __FILE__, Sz line = __LINE__) {
         auto oldLength = length;
-        resizeBlank(newLength);
+        resizeBlank(newLength, file, line);
         if (newLength > oldLength) {
             foreach (i; 0 .. newLength - oldLength) items[$ - i - 1] = T.init;
         }
@@ -146,8 +157,8 @@ struct List(T) {
     }
 
     @trusted @nogc
-    void free() {
-        jokaFree(items.ptr);
+    void free(IStr file = __FILE__, Sz line = __LINE__) {
+        jokaFree(items.ptr, file, line);
         items = null;
         capacity = 0;
     }
@@ -430,6 +441,42 @@ struct SparseList(T) {
         }
     }
 
+    @trusted
+    void _debugAppend(IStr file = __FILE__, Sz line = __LINE__, const(T)[] args...) {
+        foreach (arg; args) {
+            if (openIndex == flags.length) {
+                data._debugAppend(file, line, arg);
+                flags._debugAppend(file, line, true);
+                hotIndex = openIndex;
+                openIndex = flags.length;
+                length += 1;
+            } else {
+                auto isFull = true;
+                foreach (i; openIndex .. flags.length) {
+                    if (!flags[i]) {
+                        data[i] = arg;
+                        flags[i] = true;
+                        hotIndex = i;
+                        openIndex = i;
+                        isFull = false;
+                        break;
+                    }
+                }
+                if (isFull) {
+                    data._debugAppend(file, line, arg);
+                    flags._debugAppend(file, line, true);
+                    hotIndex = flags.length - 1;
+                    openIndex = flags.length;
+                }
+                length += 1;
+            }
+        }
+    }
+
+    void debugAppend(IStr file = __FILE__, Sz line = __LINE__)(const(T)[] args...) {
+        _debugAppend(file, line, args);
+    }
+
     @nogc
     void remove(Sz i) {
         if (!has(i)) assert(0, "Index `[{}]` does not exist.".fmt(i));
@@ -439,9 +486,9 @@ struct SparseList(T) {
         length -= 1;
     }
 
-    void reserve(Sz capacity) {
-        data.reserve(capacity);
-        flags.reserve(capacity);
+    void reserve(Sz capacity, IStr file = __FILE__, Sz line = __LINE__) {
+        data.reserve(capacity, file, line);
+        flags.reserve(capacity, file, line);
     }
 
     @nogc
@@ -454,9 +501,9 @@ struct SparseList(T) {
     }
 
     @nogc
-    void free() {
-        data.free();
-        flags.free();
+    void free(IStr file = __FILE__, Sz line = __LINE__) {
+        data.free(file, line);
+        flags.free(file, line);
         hotIndex = 0;
         openIndex = 0;
         length = 0;
@@ -574,6 +621,16 @@ struct GenList(T) {
         return GenIndex(cast(uint) data.hotIndex, generations[data.hotIndex]);
     }
 
+    GenIndex _debugAppend(IStr file = __FILE__, Sz line = __LINE__, const(T) arg) {
+        data._debugAppend(file, line, arg);
+        generations.resize(data.data.length, file, line);
+        return GenIndex(cast(uint) data.hotIndex, generations[data.hotIndex]);
+    }
+
+    void debugAppend(IStr file = __FILE__, Sz line = __LINE__)(const(T) arg) {
+        _debugAppend(file, line, arg);
+    }
+
     @nogc
     void remove(GenIndex i) {
         if (!has(i)) assert(0, "Index `[{}]` with generation `{}` does not exist.".fmt(i.value, i.generation));
@@ -581,9 +638,9 @@ struct GenList(T) {
         generations[data.hotIndex] += 1;
     }
 
-    void reserve(Sz capacity) {
-        data.reserve(capacity);
-        generations.reserve(capacity);
+    void reserve(Sz capacity, IStr file = __FILE__, Sz line = __LINE__) {
+        data.reserve(capacity, file, line);
+        generations.reserve(capacity, file, line);
     }
 
     @nogc
@@ -592,9 +649,9 @@ struct GenList(T) {
     }
 
     @nogc
-    void free() {
-        data.free();
-        generations.free();
+    void free(IStr file = __FILE__, Sz line = __LINE__) {
+        data.free(file, line);
+        generations.free(file, line);
     }
 
     @nogc
@@ -657,8 +714,8 @@ struct Grid(T) {
 
     @safe nothrow:
 
-    this(Sz rowCount, Sz colCount, T value = T.init) {
-        resizeBlank(rowCount, colCount);
+    this(Sz rowCount, Sz colCount, T value = T.init, IStr file = __FILE__, Sz line = __LINE__) {
+        resizeBlank(rowCount, colCount, file, line);
         fill(value);
     }
 
@@ -721,18 +778,18 @@ struct Grid(T) {
         return row < rowCount && col < colCount;
     }
 
-    void reserve(Sz newCapacity) {
-        tiles.reserve(newCapacity);
+    void reserve(Sz newCapacity, IStr file = __FILE__, Sz line = __LINE__) {
+        tiles.reserve(newCapacity, file, line);
     }
 
-    void resizeBlank(Sz newRowCount, Sz newColCount) {
-        tiles.resizeBlank(newRowCount * newColCount);
+    void resizeBlank(Sz newRowCount, Sz newColCount, IStr file = __FILE__, Sz line = __LINE__) {
+        tiles.resizeBlank(newRowCount * newColCount, file, line);
         rowCount = newRowCount;
         colCount = newColCount;
     }
 
-    void resize(Sz newRowCount, Sz newColCount) {
-        tiles.resizeBlank(newRowCount * newColCount);
+    void resize(Sz newRowCount, Sz newColCount, IStr file = __FILE__, Sz line = __LINE__) {
+        tiles.resizeBlank(newRowCount * newColCount, file, line);
         tiles.fill(T.init);
         rowCount = newRowCount;
         colCount = newColCount;
@@ -751,8 +808,8 @@ struct Grid(T) {
     }
 
     @trusted @nogc
-    void free() {
-        tiles.free();
+    void free(IStr file = __FILE__, Sz line = __LINE__) {
+        tiles.free(file, line);
         rowCount = 0;
         colCount = 0;
     }
@@ -768,8 +825,8 @@ struct Arena {
 
     @trusted nothrow:
 
-    this(Sz capacity) {
-        ready(capacity);
+    this(Sz capacity, IStr file = __FILE__, Sz line = __LINE__) {
+        ready(capacity, file, line);
     }
 
     this(ubyte* data, Sz capacity) {
@@ -780,9 +837,9 @@ struct Arena {
         ready(data);
     }
 
-    void ready(Sz newCapacity) {
+    void ready(Sz newCapacity, IStr file = __FILE__, Sz line = __LINE__) {
         free();
-        data = cast(ubyte*) jokaMalloc(newCapacity);
+        data = cast(ubyte*) jokaMalloc(newCapacity, file, line);
         capacity = newCapacity;
         isOwning = true;
     }
@@ -858,8 +915,8 @@ struct Arena {
         checkpointOffset = 0;
     }
 
-    void free() {
-        if (isOwning) jokaFree(data);
+    void free(IStr file = __FILE__, Sz line = __LINE__) {
+        if (isOwning) jokaFree(data, file, line);
         data = null;
         capacity = 0;
         clear();
@@ -874,26 +931,26 @@ struct GrowingArena {
 
     @trusted nothrow:
 
-    this(Sz chunkCapacity, Sz chunkCount = 1) {
-        ready(chunkCapacity, chunkCount);
+    this(Sz chunkCapacity, Sz chunkCount = 1, IStr file = __FILE__, Sz line = __LINE__) {
+        ready(chunkCapacity, chunkCount, file, line);
     }
 
-    void ready(Sz newChunkCapacity, Sz newChunkCount = 1) {
+    void ready(Sz newChunkCapacity, Sz newChunkCount = 1, IStr file = __FILE__, Sz line = __LINE__) {
         free();
-        head = jokaMake(Arena(newChunkCapacity));
+        head = jokaMake(Arena(newChunkCapacity, file, line), file, line);
         current = head;
         chunkCapacity = newChunkCapacity;
         auto chunk = head;
         foreach (i; 1 .. newChunkCount) {
-            chunk.next = jokaMake(Arena(newChunkCapacity));
+            chunk.next = jokaMake(Arena(newChunkCapacity, file, line), file, line);
             chunk = chunk.next;
         }
     }
 
-    void* malloc(Sz size, Sz alignment) {
+    void* malloc(Sz size, Sz alignment, IStr file = __FILE__, Sz line = __LINE__) {
         void* p = current.malloc(size, alignment);
         if (p == null) {
-            auto chunk = current.next ? current.next : jokaMake(Arena(size > chunkCapacity ? size : chunkCapacity));
+            auto chunk = current.next ? current.next : jokaMake(Arena(size > chunkCapacity ? size : chunkCapacity, file, line), file, line);
             p = chunk.malloc(size, alignment);
             current.next = chunk;
             current = chunk;
@@ -901,10 +958,10 @@ struct GrowingArena {
         return p;
     }
 
-    void* realloc(void* ptr, Sz oldSize, Sz newSize, Sz alignment) {
+    void* realloc(void* ptr, Sz oldSize, Sz newSize, Sz alignment, IStr file = __FILE__, Sz line = __LINE__) {
         void* p = current.realloc(ptr, oldSize, newSize, alignment);
         if (p == null) {
-            auto chunk = current.next ? current.next : jokaMake(Arena(newSize > chunkCapacity ? newSize : chunkCapacity));
+            auto chunk = current.next ? current.next : jokaMake(Arena(newSize > chunkCapacity ? newSize : chunkCapacity, file, line), file, line);
             p = chunk.realloc(ptr, oldSize, newSize, alignment);
             current.next = chunk;
             current = chunk;
@@ -912,22 +969,22 @@ struct GrowingArena {
         return p;
     }
 
-    T* makeBlank(T)() {
-        return cast(T*) malloc(T.sizeof, T.alignof);
+    T* makeBlank(T)(IStr file = __FILE__, Sz line = __LINE__) {
+        return cast(T*) malloc(T.sizeof, T.alignof, file, line);
     }
 
-    T* make(T)(const(T) value = T.init) {
-        auto result = makeBlank!T();
+    T* make(T)(const(T) value = T.init, IStr file = __FILE__, Sz line = __LINE__) {
+        auto result = makeBlank!T(file, line);
         *result = cast(T) value;
         return result;
     }
 
-    T[] makeSliceBlank(T)(Sz length) {
-        return (cast(T*) malloc(T.sizeof * length, T.alignof))[0 .. length];
+    T[] makeSliceBlank(T)(Sz length, IStr file = __FILE__, Sz line = __LINE__) {
+        return (cast(T*) malloc(T.sizeof * length, T.alignof, file, line))[0 .. length];
     }
 
-    T[] makeSlice(T)(Sz length, const(T) value = T.init) {
-        auto result = makeSliceBlank!T(length);
+    T[] makeSlice(T)(Sz length, const(T) value = T.init, IStr file = __FILE__, Sz line = __LINE__) {
+        auto result = makeSliceBlank!T(length, file, line);
         foreach (ref item; result) item = value;
         return result;
     }
@@ -943,11 +1000,11 @@ struct GrowingArena {
         current = head;
     }
 
-    void free() {
+    void free(IStr file = __FILE__, Sz line = __LINE__) {
         auto chunk = head;
         while (chunk) {
-            chunk.free();
-            jokaFree(chunk);
+            chunk.free(file, line);
+            jokaFree(chunk, file, line);
             chunk = chunk.next;
         }
         head = null;

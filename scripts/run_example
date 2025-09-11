@@ -3,10 +3,13 @@
 exe_path='./examples/.temp'
 app_path='./examples/_001_hello.d'
 compiler='dmd'
-extra_flags=''
+extra_flags='-debug'
 
 [ -n "$1" ] && app_path="$1"
 [ -n "$2" ] && compiler="$2"
+
+[ "$compiler" = "ldc2" ] && extra_flags="--d-debug"
+
 $compiler \
     -of=$exe_path \
     -I=source -i $extra_flags \
