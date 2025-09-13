@@ -16,28 +16,35 @@ import stdc = joka.stdc;
 
 debug {
     version (D_BetterC) {
-        enum _isTrackingMemory = false;
+        enum isTrackingMemory = false;
     } else {
-        enum _isTrackingMemory = true;
+        enum isTrackingMemory = true;
 
         struct _MallocInfo {
             IStr file;
             Sz line;
             Sz size;
+            bool canIgnore;
         }
 
         struct _MallocGroupInfo {
             Sz size;
-            Sz count;
+            Sz count = 1;
         }
 
-        Str _memoryTrackingInfo;
-        _MallocGroupInfo[_MallocInfo] _memoryTrackingGroups;
-        _MallocInfo[void*] _mallocTable;
-        _MallocInfo[] _mallocInvalidFreeTable;
+        struct _MemoryTrackingState {
+            Str infoBuffer;
+            _MallocGroupInfo[_MallocInfo] groupBuffer;
+            _MallocInfo[void*] table;
+            _MallocInfo[] invalidFreeTable;
+            Sz totalBytes;
+            bool canIgnoreInvalidFree;
+        }
+
+        _MemoryTrackingState _memoryTrackingState;
     }
 } else {
-    enum _isTrackingMemory = false;
+    enum isTrackingMemory = false;
 }
 
 version (JokaCustomMemory) {
@@ -64,15 +71,16 @@ version (JokaCustomMemory) {
     }
 
     extern(C) @nogc
-    void jokaFree(void* ptr) {
-        // Nothing to see here.
-    }
+    void jokaFree(void* ptr) {}
 } else {
     extern(C)
     void* jokaMalloc(Sz size, IStr file = __FILE__, Sz line = __LINE__) {
         auto result = stdc.malloc(size);
-        static if (_isTrackingMemory) {
-            if (result) _mallocTable[result] = _MallocInfo(file, line, size);
+        static if (isTrackingMemory) {
+            if (result) {
+                _memoryTrackingState.table[result] = _MallocInfo(file, line, size);
+                _memoryTrackingState.totalBytes += size;
+            }
         }
         return result;
     }
@@ -81,15 +89,20 @@ version (JokaCustomMemory) {
     void* jokaRealloc(void* ptr, Sz size, IStr file = __FILE__, Sz line = __LINE__) {
         void* result;
         if (ptr) {
-            static if (_isTrackingMemory) {
-                if (auto info = ptr in _mallocTable) {
+            static if (isTrackingMemory) {
+                if (auto mallocValue = ptr in _memoryTrackingState.table) {
                     result = stdc.realloc(ptr, size);
                     if (result) {
-                        _mallocTable.remove(ptr);
-                        _mallocTable[result] = _MallocInfo(file, line, size);
+                        _memoryTrackingState.table[result] = _MallocInfo(file, line, size, mallocValue.canIgnore);
+                        _memoryTrackingState.totalBytes += size - mallocValue.size;
+                        if (ptr != result) _memoryTrackingState.table.remove(ptr);
                     }
                 } else {
-                    _mallocInvalidFreeTable ~= _MallocInfo(file, line, size);
+                    if (_memoryTrackingState.canIgnoreInvalidFree) {
+                        _memoryTrackingState.invalidFreeTable ~= _MallocInfo(file, line, size);
+                    } else {
+                        assert(0, "Invalid free: {}:{}".fmt(file, line));
+                    }
                 }
             } else {
                 result = stdc.realloc(ptr, size);
@@ -102,17 +115,48 @@ version (JokaCustomMemory) {
 
     extern(C) @nogc
     void jokaFree(void* ptr, IStr file = __FILE__, Sz line = __LINE__) {
-        if (ptr == null) return; // I know you don't need it, but might be nice for copy-pasting.
-        static if (_isTrackingMemory) {
-            if (auto info = ptr in _mallocTable) {
+        static if (isTrackingMemory) {
+            if (auto mallocValue = ptr in _memoryTrackingState.table) {
                 stdc.free(ptr);
-                debug { _mallocTable.remove(ptr); }
+                debug {
+                    _memoryTrackingState.totalBytes -= mallocValue.size;
+                    _memoryTrackingState.table.remove(ptr);
+                }
             } else {
-                debug { _mallocInvalidFreeTable ~= _MallocInfo(file, line, 0); }
+                debug {
+                    if (_memoryTrackingState.canIgnoreInvalidFree) {
+                        _memoryTrackingState.invalidFreeTable ~= _MallocInfo(file, line, 0);
+                    } else {
+                        assert(0, "Invalid free: {}:{}".fmt(file, line));
+                    }
+                }
             }
         } else {
             stdc.free(ptr);
         }
+    }
+}
+
+@trusted @nogc
+T ignoreLeak(T)(T ptr) {
+    static if (isSliceType!T) {
+        static if (isTrackingMemory) {
+            if (auto mallocValue = ptr.ptr in _memoryTrackingState.table) {
+                mallocValue.canIgnore = true;
+            }
+        }
+        return ptr;
+    } else static if (isPtrType!T) {
+        static if (isTrackingMemory) {
+            if (auto mallocValue = ptr in _memoryTrackingState.table) {
+                mallocValue.canIgnore = true;
+            }
+        }
+        return ptr;
+    } else static if (hasMember!(T, "ignoreLeak")) {
+        return ptr.ignoreLeak();
+    } else {
+        static assert(0, funcImplementationErrorMessage!(T, "ignoreLeak"));
     }
 }
 
@@ -152,46 +196,49 @@ T[] jokaMakeSlice(T)(Sz length, const(T) value = T.init, IStr file = __FILE__, S
 
 @trusted
 IStr memoryTrackingInfo(IStr filter = "", bool canShowEmpty = false) {
-    static void _updateMemoryTrackingGroups(T)(ref T table) {
-        _memoryTrackingGroups.clear();
+    static void _updateGroupBuffer(T)(ref T table) {
+        _memoryTrackingState.groupBuffer.clear();
         foreach (key, value; table) {
+            if (value.canIgnore) continue;
             auto groupKey = _MallocInfo(value.file, value.line);
-            if (auto groupValue = groupKey in _memoryTrackingGroups) {
-                _memoryTrackingGroups[groupKey].size += value.size;
-                _memoryTrackingGroups[groupKey].count += 1;
+            if (auto groupValue = groupKey in _memoryTrackingState.groupBuffer) {
+                groupValue.size += value.size;
+                groupValue.count += 1;
             } else {
-                _memoryTrackingGroups[groupKey] = _MallocGroupInfo(value.size, 1);
+                _memoryTrackingState.groupBuffer[groupKey] = _MallocGroupInfo(value.size);
             }
         }
     }
 
-    static if (_isTrackingMemory) {
+    static if (isTrackingMemory) {
         try {
-            _memoryTrackingInfo.length = 0;
-            auto leakTotal = 0;
-            foreach (key, value; _mallocTable) leakTotal += value.size;
+            _memoryTrackingState.infoBuffer.length = 0;
+            auto finalLength = _memoryTrackingState.table.length;
+            foreach (key, value; _memoryTrackingState.table) if (value.canIgnore) finalLength -= 1;
+            auto ignoreCount = _memoryTrackingState.table.length - finalLength;
+            auto ignoreText = ignoreCount ? ", {} ignored".fmt(ignoreCount) : "";
+            auto filterText = filter.length ? fmt("Filter: \"{}\"\n", filter) : "";
 
-            if (canShowEmpty ? true : _mallocTable.length != 0) {
-                _memoryTrackingInfo ~= fmt("Memory Leaks: {} (total {} bytes)\n{}", _mallocTable.length, leakTotal, filter.length ? fmt("Filter: \"{}\"\n", filter) : "");
+            if (canShowEmpty ? true : finalLength != 0) {
+                _memoryTrackingState.infoBuffer ~= fmt("Memory Leaks: {} (total {} bytes{})\n{}", finalLength, _memoryTrackingState.totalBytes, ignoreText, filterText);
             }
-            _updateMemoryTrackingGroups(_mallocTable);
-            foreach (key, value; _memoryTrackingGroups) {
+            _updateGroupBuffer(_memoryTrackingState.table);
+            foreach (key, value; _memoryTrackingState.groupBuffer) {
                 if (filter.length && key.file.findEnd(filter) == -1) continue;
-                _memoryTrackingInfo ~= fmt("  {} leak, {} bytes, {}:{}\n", value.count, value.size, key.file, key.line);
+                _memoryTrackingState.infoBuffer ~= fmt("  {} leak, {} bytes, {}:{}\n", value.count, value.size, key.file, key.line);
             }
-
-            if (canShowEmpty ? true : _mallocInvalidFreeTable.length != 0) {
-                _memoryTrackingInfo ~= fmt("Invalid Frees: {}\n{}", _mallocInvalidFreeTable.length, filter.length ? fmt("Filter: \"{}\"\n", filter) : "");
+            if (canShowEmpty ? true : _memoryTrackingState.invalidFreeTable.length != 0) {
+                _memoryTrackingState.infoBuffer ~= fmt("Invalid Frees: {}\n{}", _memoryTrackingState.invalidFreeTable.length, filterText);
             }
-            _updateMemoryTrackingGroups(_mallocInvalidFreeTable);
-            foreach (key, value; _memoryTrackingGroups) {
+            _updateGroupBuffer(_memoryTrackingState.invalidFreeTable);
+            foreach (key, value; _memoryTrackingState.groupBuffer) {
                 if (filter.length && key.file.findEnd(filter) == -1) continue;
-                _memoryTrackingInfo ~= fmt("  {} free, {}:{}\n", value.count, key.file, key.line);
+                _memoryTrackingState.infoBuffer ~= fmt("  {} free, {}:{}\n", value.count, key.file, key.line);
             }
         } catch (Exception e) {
             return "No memory tracking data available.\n";
         }
-        return _memoryTrackingInfo;
+        return _memoryTrackingState.infoBuffer;
     } else {
         debug {
             version (D_BetterC) {

@@ -30,6 +30,7 @@ alias FStr32(Sz N) = FixedList!(dchar, N); /// A dynamic string of dchars alloca
 struct List(T) {
     T[] items;
     Sz capacity;
+    bool canIgnoreLeak;
 
     @safe nothrow:
 
@@ -61,7 +62,9 @@ struct List(T) {
         Sz newLength = length + 1;
         if (newLength > capacity) {
             capacity = jokaFindListCapacity(newLength);
-            items = (cast(T*) jokaRealloc(items.ptr, capacity * T.sizeof, file, line))[0 .. newLength];
+            auto rawPtr = jokaRealloc(items.ptr, capacity * T.sizeof, file, line);
+            if (canIgnoreLeak) rawPtr.ignoreLeak();
+            items = (cast(T*) rawPtr)[0 .. newLength];
         } else {
             items = items.ptr[0 .. newLength];
         }
@@ -71,14 +74,14 @@ struct List(T) {
     void append(const(T)[] args...) {
         auto oldLength = length;
         resizeBlank(length + args.length);
-        jokaMemcpy(ptr + oldLength, args.ptr, args.length * T.sizeof);
+        jokaMemcpy(items.ptr + oldLength, args.ptr, args.length * T.sizeof);
     }
 
     @trusted
     void appendSource(IStr file = __FILE__, Sz line = __LINE__, const(T)[] args...) {
         auto oldLength = length;
         resizeBlank(length + args.length, file, line);
-        jokaMemcpy(ptr + oldLength, args.ptr, args.length * T.sizeof);
+        jokaMemcpy(items.ptr + oldLength, args.ptr, args.length * T.sizeof);
     }
 
     @trusted
@@ -125,7 +128,9 @@ struct List(T) {
         auto targetCapacity = jokaFindListCapacity(newCapacity);
         if (targetCapacity > capacity) {
             capacity = targetCapacity;
-            items = (cast(T*) jokaRealloc(items.ptr, capacity * T.sizeof, file, line))[0 .. length];
+            auto rawPtr = jokaRealloc(items.ptr, capacity * T.sizeof, file, line);
+            if (canIgnoreLeak) rawPtr.ignoreLeak();
+            items = (cast(T*) rawPtr)[0 .. length];
         }
     }
 
@@ -162,6 +167,14 @@ struct List(T) {
         jokaFree(items.ptr, file, line);
         items = null;
         capacity = 0;
+        canIgnoreLeak = false;
+    }
+
+    @nogc
+    List!T ignoreLeak() {
+        canIgnoreLeak = true;
+        items.ignoreLeak();
+        return this;
     }
 }
 
@@ -368,10 +381,17 @@ struct FixedList(T, Sz N) {
     }
 }
 
+/// An item of a sparse array.
+struct SparseListItem(T) {
+    T value;
+    bool flag;
+}
+
 /// A dynamic sparse array.
 struct SparseList(T) {
-    List!T data;
-    List!bool flags;
+    alias Item = SparseListItem!T;
+
+    List!Item data;
     Sz hotIndex;
     Sz openIndex;
     Sz length;
@@ -387,19 +407,19 @@ struct SparseList(T) {
         if (!has(i)) {
             assert(0, "Index `[{}]` does not exist.".fmt(i));
         }
-        return data[i];
+        return data[i].value;
     }
 
     @trusted @nogc
     void opIndexAssign(const(T) rhs, Sz i) {
         if (!has(i)) assert(0, "Index `[{}]` does not exist.".fmt(i));
-        data[i] = cast(T) rhs;
+        data[i].value = cast(T) rhs;
     }
 
     @trusted @nogc
     void opIndexOpAssign(IStr op)(const(T) rhs, Sz i) {
         if (!has(i)) assert(0, "Index `[{}]` does not exist.".fmt(i));
-        mixin("data[i]", op, "= cast(T) rhs;");
+        mixin("data[i].value", op, "= cast(T) rhs;");
     }
 
     @nogc
@@ -408,7 +428,7 @@ struct SparseList(T) {
     }
 
     @trusted @nogc
-    T* ptr() {
+    Item* ptr() {
         return data.ptr;
     }
 
@@ -419,24 +439,22 @@ struct SparseList(T) {
 
     @nogc
     bool has(Sz i) {
-        return i < flags.length && flags[i];
+        return i < data.length && data[i].flag;
     }
 
     @trusted
     void append(const(T)[] args...) {
         foreach (arg; args) {
-            if (openIndex == flags.length) {
-                data.append(arg);
-                flags.append(true);
+            if (openIndex == data.length) {
+                data.append(Item(cast(T) arg, true));
                 hotIndex = openIndex;
-                openIndex = flags.length;
+                openIndex = data.length;
                 length += 1;
             } else {
                 auto isFull = true;
-                foreach (i; openIndex .. flags.length) {
-                    if (!flags[i]) {
-                        data[i] = arg;
-                        flags[i] = true;
+                foreach (i; openIndex .. data.length) {
+                    if (!data[i].flag) {
+                        data[i] = Item(cast(T) arg, true);
                         hotIndex = i;
                         openIndex = i;
                         isFull = false;
@@ -444,10 +462,9 @@ struct SparseList(T) {
                     }
                 }
                 if (isFull) {
-                    data.append(arg);
-                    flags.append(true);
-                    hotIndex = flags.length - 1;
-                    openIndex = flags.length;
+                    data.append(Item(cast(T) arg, true));
+                    hotIndex = data.length - 1;
+                    openIndex = data.length;
                 }
                 length += 1;
             }
@@ -457,18 +474,16 @@ struct SparseList(T) {
     @trusted
     void appendSource(IStr file = __FILE__, Sz line = __LINE__, const(T)[] args...) {
         foreach (arg; args) {
-            if (openIndex == flags.length) {
-                data.appendSource(file, line, arg);
-                flags.appendSource(file, line, true);
+            if (openIndex == data.length) {
+                data.appendSource(file, line, Item(cast(T) arg, true));
                 hotIndex = openIndex;
-                openIndex = flags.length;
+                openIndex = data.length;
                 length += 1;
             } else {
                 auto isFull = true;
-                foreach (i; openIndex .. flags.length) {
-                    if (!flags[i]) {
-                        data[i] = arg;
-                        flags[i] = true;
+                foreach (i; openIndex .. data.length) {
+                    if (!data[i].flag) {
+                        data[i] = Item(cast(T) arg, true);
                         hotIndex = i;
                         openIndex = i;
                         isFull = false;
@@ -476,10 +491,9 @@ struct SparseList(T) {
                     }
                 }
                 if (isFull) {
-                    data.appendSource(file, line, arg);
-                    flags.appendSource(file, line, true);
-                    hotIndex = flags.length - 1;
-                    openIndex = flags.length;
+                    data.appendSource(file, line, Item(cast(T) arg, true));
+                    hotIndex = data.length - 1;
+                    openIndex = data.length;
                 }
                 length += 1;
             }
@@ -494,7 +508,7 @@ struct SparseList(T) {
     @nogc
     void remove(Sz i) {
         if (!has(i)) assert(0, "Index `[{}]` does not exist.".fmt(i));
-        flags[i] = false;
+        data[i].flag = false;
         hotIndex = i;
         if (i < openIndex) openIndex = i;
         length -= 1;
@@ -502,13 +516,11 @@ struct SparseList(T) {
 
     void reserve(Sz capacity, IStr file = __FILE__, Sz line = __LINE__) {
         data.reserve(capacity, file, line);
-        flags.reserve(capacity, file, line);
     }
 
     @nogc
     void clear() {
         data.clear();
-        flags.clear();
         hotIndex = 0;
         openIndex = 0;
         length = 0;
@@ -517,20 +529,25 @@ struct SparseList(T) {
     @nogc
     void free(IStr file = __FILE__, Sz line = __LINE__) {
         data.free(file, line);
-        flags.free(file, line);
         hotIndex = 0;
         openIndex = 0;
         length = 0;
     }
 
     @nogc
+    SparseList!T ignoreLeak() {
+        data.ignoreLeak();
+        return this;
+    }
+
+    @nogc
     auto ids() {
         static struct Range {
-            bool[] flags;
+            Item[] items;
             Sz id;
 
             bool empty() {
-                return id == flags.length;
+                return id == items.length;
             }
 
             Sz front() {
@@ -539,50 +556,53 @@ struct SparseList(T) {
 
             void popFront() {
                 id += 1;
-                while (id != flags.length && !flags[id]) id += 1;
+                while (id != items.length && !items[id].flag) id += 1;
             }
         }
 
         Sz id = 0;
-        while (id < flags.length && !flags[id]) id += 1;
-        return Range(flags.items, id);
+        while (id < data.length && !data[id].flag) id += 1;
+        return Range(data.items, id);
     }
 
     @nogc
     auto items() {
         static struct Range {
-            T[] data;
-            bool[] flags;
+            Item[] items;
             Sz id;
 
             bool empty() {
-                return id == flags.length;
+                return id == items.length;
             }
 
             ref T front() {
-                return data[id];
+                return items[id].value;
             }
 
             void popFront() {
                 id += 1;
-                while (id != flags.length && !flags[id]) id += 1;
+                while (id != items.length && !items[id].flag) id += 1;
             }
         }
 
         Sz id = 0;
-        while (id < flags.length && !flags[id]) id += 1;
-        return Range(data.items, flags.items, id);
+        while (id < data.length && !data[id].flag) id += 1;
+        return Range(data.items, id);
     }
 }
 
+alias Gen = uint;
+
 struct GenIndex {
-    uint value;
-    uint generation;
+    Gen value;
+    Gen generation;
 }
 
 struct GenList(T) {
+    alias Item = data.Item;
+
     SparseList!T data;
-    List!uint generations;
+    List!Gen generations;
 
     @safe nothrow:
 
@@ -615,7 +635,7 @@ struct GenList(T) {
     }
 
     @trusted @nogc
-    T* ptr() {
+    Item* ptr() {
         return data.ptr;
     }
 
@@ -632,7 +652,7 @@ struct GenList(T) {
     GenIndex append(const(T) arg, IStr file = __FILE__, Sz line = __LINE__) {
         data.appendSource(file, line, arg);
         generations.resize(data.data.length, file, line);
-        return GenIndex(cast(uint) data.hotIndex, generations[data.hotIndex]);
+        return GenIndex(cast(Gen) data.hotIndex, generations[data.hotIndex]);
     }
 
     GenIndex push(const(T) arg, IStr file = __FILE__, Sz line = __LINE__) {
@@ -663,14 +683,21 @@ struct GenList(T) {
     }
 
     @nogc
+    GenList!T ignoreLeak() {
+        data.ignoreLeak();
+        generations.ignoreLeak();
+        return this;
+    }
+
+    @nogc
     auto ids() {
         static struct Range {
-            uint[] generations;
-            bool[] flags;
-            uint id;
+            Gen[] generations;
+            Item[] items;
+            Gen id;
 
             bool empty() {
-                return id == flags.length;
+                return id == items.length;
             }
 
             GenIndex front() {
@@ -679,39 +706,39 @@ struct GenList(T) {
 
             void popFront() {
                 id += 1;
-                while (id != flags.length && !flags[id]) id += 1;
+                while (id != items.length && !items[id].flag) id += 1;
             }
         }
 
-        uint id = 0;
-        while (id < data.flags.length && !data.flags[id]) id += 1;
-        return Range(generations.items, data.flags.items, id);
+        Gen id = 0;
+        while (id < data.data.length && !data.data[id].flag) id += 1;
+        return Range(generations.items, data.data.items, id);
     }
 
     @nogc
     auto items() {
         static struct Range {
-            T[] data;
-            bool[] flags;
-            Sz id;
+            Gen[] generations;
+            Item[] items;
+            Gen id;
 
             bool empty() {
-                return id == flags.length;
+                return id == items.length;
             }
 
             ref T front() {
-                return data[id];
+                return items[id].value;
             }
 
             void popFront() {
                 id += 1;
-                while (id != flags.length && !flags[id]) id += 1;
+                while (id != items.length && !items[id].flag) id += 1;
             }
         }
 
-        Sz id = 0;
-        while (id < data.flags.length && !data.flags[id]) id += 1;
-        return Range(data.data.items, data.flags.items, id);
+        Gen id = 0;
+        while (id < data.data.length && !data.data[id].flag) id += 1;
+        return Range(generations.items, data.data.items, id);
     }
 }
 
@@ -821,6 +848,12 @@ struct Grid(T) {
         rowCount = 0;
         colCount = 0;
     }
+
+    @nogc
+    Grid!T ignoreLeak() {
+        tiles.ignoreLeak();
+        return this;
+    }
 }
 
 struct Arena {
@@ -828,8 +861,10 @@ struct Arena {
     Sz capacity;
     Sz offset;
     Sz checkpointOffset;
-    Arena* next;
     bool isOwning;
+    bool canIgnoreLeak;
+    // Extra data for users of this type.
+    Arena* next;
 
     @trusted nothrow:
 
@@ -847,7 +882,9 @@ struct Arena {
 
     void ready(Sz newCapacity, IStr file = __FILE__, Sz line = __LINE__) {
         free();
-        data = cast(ubyte*) jokaMalloc(newCapacity, file, line);
+        auto rawPtr = jokaMalloc(newCapacity, file, line);
+        if (canIgnoreLeak) rawPtr.ignoreLeak();
+        data = cast(ubyte*) rawPtr;
         capacity = newCapacity;
         isOwning = true;
     }
@@ -929,6 +966,13 @@ struct Arena {
         capacity = 0;
         clear();
         isOwning = false;
+        canIgnoreLeak = false;
+    }
+
+    Arena ignoreLeak() {
+        canIgnoreLeak = true;
+        data.ignoreLeak();
+        return this;
     }
 }
 
@@ -936,6 +980,7 @@ struct GrowingArena {
     Arena* head;
     Arena* current;
     Sz chunkCapacity;
+    bool canIgnoreLeak;
 
     @trusted nothrow:
 
@@ -946,11 +991,20 @@ struct GrowingArena {
     void ready(Sz newChunkCapacity, Sz newChunkCount = 1, IStr file = __FILE__, Sz line = __LINE__) {
         free();
         head = jokaMake(Arena(newChunkCapacity, file, line), file, line);
+        // To be, or not to be, that is the question.
+        if (canIgnoreLeak) {
+            .ignoreLeak(head);
+            head.ignoreLeak();
+        }
         current = head;
         chunkCapacity = newChunkCapacity;
         auto chunk = head;
         foreach (i; 1 .. newChunkCount) {
             chunk.next = jokaMake(Arena(newChunkCapacity, file, line), file, line);
+            if (canIgnoreLeak) {
+                .ignoreLeak(chunk.next);
+                chunk.next.ignoreLeak();
+            }
             chunk = chunk.next;
         }
     }
@@ -959,6 +1013,10 @@ struct GrowingArena {
         void* p = current.malloc(size, alignment);
         if (p == null) {
             auto chunk = current.next ? current.next : jokaMake(Arena(size > chunkCapacity ? size : chunkCapacity, file, line), file, line);
+            if (current.next == null && canIgnoreLeak) {
+                .ignoreLeak(chunk);
+                chunk.ignoreLeak();
+            }
             p = chunk.malloc(size, alignment);
             current.next = chunk;
             current = chunk;
@@ -970,6 +1028,10 @@ struct GrowingArena {
         void* p = current.realloc(ptr, oldSize, newSize, alignment);
         if (p == null) {
             auto chunk = current.next ? current.next : jokaMake(Arena(newSize > chunkCapacity ? newSize : chunkCapacity, file, line), file, line);
+            if (current.next == null && canIgnoreLeak) {
+                .ignoreLeak(chunk);
+                chunk.ignoreLeak();
+            }
             p = chunk.realloc(ptr, oldSize, newSize, alignment);
             current.next = chunk;
             current = chunk;
@@ -1018,6 +1080,17 @@ struct GrowingArena {
         head = null;
         current = null;
         chunkCapacity = 0;
+        canIgnoreLeak = false;
+    }
+
+    GrowingArena ignoreLeak() {
+        canIgnoreLeak = true;
+        auto chunk = head;
+        while (chunk) {
+            .ignoreLeak(chunk);
+            chunk.ignoreLeak();
+        }
+        return this;
     }
 }
 
@@ -1294,6 +1367,19 @@ unittest {
     assert(numbers.ptr == null);
     assert(numbers.hotIndex == 0);
     assert(numbers.openIndex == 0);
+
+    numbers = SparseList!int(4, 5, 6, 7);
+    numbers.remove(0);
+    numbers.remove(2);
+    auto ids = numbers.ids;
+    assert(ids.empty == false);
+    assert(ids.front == 1);
+    ids.popFront();
+    assert(ids.empty == false);
+    assert(ids.front == 3);
+    ids.popFront();
+    assert(ids.empty == true);
+    numbers.free();
 }
 
 // GenList test
