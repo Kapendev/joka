@@ -1150,9 +1150,19 @@ IStr fmtIntoList(T, A...)(ref T list, IStr fmtStr, A args) {
     return list[];
 }
 
-void freeWithItems(T)(ref T container) {
-    foreach (ref item; container.items) item.free();
-    container.free();
+void freeOnlyItems(T)(ref T container, IStr file = __FILE__, Sz line = __LINE__) {
+    foreach (ref item; container.items) {
+        static if (__traits(compiles, item.free(file, line))) {
+            item.free(file, line);
+        } else {
+            item.free();
+        }
+    }
+}
+
+void freeWithItems(T)(ref T container, IStr file = __FILE__, Sz line = __LINE__) {
+    container.freeOnlyItems(file, line);
+    container.free(file, line);
 }
 
 // Function test.
