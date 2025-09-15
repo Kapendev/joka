@@ -109,7 +109,9 @@ IStr fmtIntoBufferWithStrs(Str buffer, IStr fmtStr, IStr[] args...) {
 }
 
 char[defaultAsciiFmtBufferSize][defaultAsciiFmtBufferCount] _fmtIntoBufferDataBuffer = void;
-IStr[defaultAsciiFmtBufferCount] _fmtIntoBufferSliceBuffer = void;
+IStr[defaultAsciiFmtBufferCount]                            _fmtIntoBufferSliceBuffer = void;
+char[defaultAsciiBufferSize][defaultAsciiBufferCount]       _fmtBuffer = void;
+byte                                                        _fmtBufferIndex = 0;
 
 /// Formats the given string by replacing `{}` placeholders with argument values in order.
 /// Options within placeholders are not supported.
@@ -120,10 +122,8 @@ IStr fmtIntoBuffer(A...)(Str buffer, IStr fmtStr, A args) {
     static assert(args.length <= defaultAsciiFmtBufferCount, "Too many format arguments.");
     foreach (i, arg; args) {
         auto slice = _fmtIntoBufferDataBuffer[i][];
-        auto temp = toStr(arg);
-        if (slice.copyStr(temp)) {
-            assert(0, "An argument did not fit in the internal temporary buffer.");
-        }
+        auto temp = arg.toStr();
+        if (slice.copyStr(temp)) assert(0, "An argument did not fit in the internal temporary buffer.");
         _fmtIntoBufferSliceBuffer[i] = slice;
     }
     return fmtIntoBufferWithStrs(buffer, fmtStr, _fmtIntoBufferSliceBuffer[0 .. args.length]);
@@ -133,11 +133,18 @@ IStr fmtIntoBuffer(A...)(Str buffer, IStr fmtStr, A args) {
 /// For details on formatting, see the `formatIntoBuffer` function.
 @trusted
 IStr fmt(A...)(IStr fmtStr, A args) {
-    static char[defaultAsciiBufferSize][defaultAsciiBufferCount] buffers = void;
-    static byte bufferIndex = 0;
+    _fmtBufferIndex = (_fmtBufferIndex + 1) % _fmtBuffer.length;
+    auto buffer = _fmtBuffer[_fmtBufferIndex][];
 
-    bufferIndex = (bufferIndex + 1) % buffers.length;
-    return fmtIntoBuffer(buffers[bufferIndex][], fmtStr, args);
+    // `fmtIntoBuffer` body copy-pasted here to avoid one template.
+    static assert(args.length <= defaultAsciiFmtBufferCount, "Too many format arguments.");
+    foreach (i, arg; args) {
+        auto slice = _fmtIntoBufferDataBuffer[i][];
+        auto temp = arg.toStr();
+        if (slice.copyStr(temp)) assert(0, "An argument did not fit in the internal temporary buffer.");
+        _fmtIntoBufferSliceBuffer[i] = slice;
+    }
+    return fmtIntoBufferWithStrs(buffer, fmtStr, _fmtIntoBufferSliceBuffer[0 .. args.length]);
 }
 
 @safe nothrow @nogc:
