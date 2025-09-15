@@ -13,8 +13,10 @@ import joka.types;
 
 @safe:
 
-enum defaultAsciiBufferSize = 1024;
-enum defaultAsciiBufferCount = 8;
+enum defaultAsciiBufferCount    = 8;
+enum defaultAsciiBufferSize     = 1024;
+enum defaultAsciiFmtBufferCount = 32;
+enum defaultAsciiFmtBufferSize  = 512;
 
 enum digitChars    = "0123456789";                         /// The set of decimal numeric characters.
 enum upperChars    = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";         /// The set of uppercase letters.
@@ -74,8 +76,8 @@ alias format = fmt;
 /// Options within placeholders are not supported.
 /// For custom formatting use a wrapper type with a `toStr` method.
 /// Writes into the buffer and returns the formatted string.
-@trusted
-IStr fmtIntoBuffer(A...)(Str buffer, IStr fmtStr, A args) {
+@trusted nothrow @nogc
+IStr fmtIntoBufferWithStrs(Str buffer, IStr fmtStr, IStr[] args...) {
     auto result = buffer;
     auto resultIndex = 0;
     auto fmtStrIndex = 0;
@@ -85,11 +87,10 @@ IStr fmtIntoBuffer(A...)(Str buffer, IStr fmtStr, A args) {
         auto c2 = fmtStrIndex + 1 >= fmtStr.length ? '+' : fmtStr[fmtStrIndex + 1];
         if (c1 == '{' && c2 == '}') {
             if (argIndex >= args.length) assert(0, "A placeholder doesn't have an argument.");
-            static foreach (i, arg; args) {
+            foreach (i, arg; args) {
                 if (i == argIndex) {
-                    auto temp = toStr(arg);
-                    copyChars(result, temp, resultIndex);
-                    resultIndex += temp.length;
+                    copyChars(result, arg, resultIndex);
+                    resultIndex += arg.length;
                     fmtStrIndex += 2;
                     argIndex += 1;
                     goto loopExit;
@@ -105,6 +106,27 @@ IStr fmtIntoBuffer(A...)(Str buffer, IStr fmtStr, A args) {
     if (argIndex != args.length) assert(0, "An argument doesn't have a placeholder.");
     result = result[0 .. resultIndex];
     return result;
+}
+
+char[defaultAsciiFmtBufferSize][defaultAsciiFmtBufferCount] _fmtIntoBufferDataBuffer = void;
+IStr[defaultAsciiFmtBufferCount] _fmtIntoBufferSliceBuffer = void;
+
+/// Formats the given string by replacing `{}` placeholders with argument values in order.
+/// Options within placeholders are not supported.
+/// For custom formatting use a wrapper type with a `toStr` method.
+/// Writes into the buffer and returns the formatted string.
+@trusted
+IStr fmtIntoBuffer(A...)(Str buffer, IStr fmtStr, A args) {
+    static assert(args.length <= defaultAsciiFmtBufferCount, "Too many format arguments.");
+    foreach (i, arg; args) {
+        auto slice = _fmtIntoBufferDataBuffer[i][];
+        auto temp = toStr(arg);
+        if (slice.copyStr(temp)) {
+            assert(0, "An argument did not fit in the internal temporary buffer.");
+        }
+        _fmtIntoBufferSliceBuffer[i] = slice;
+    }
+    return fmtIntoBufferWithStrs(buffer, fmtStr, _fmtIntoBufferSliceBuffer[0 .. args.length]);
 }
 
 /// Formats a string using a static buffer and returns the result.

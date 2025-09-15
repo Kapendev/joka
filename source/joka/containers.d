@@ -1121,8 +1121,8 @@ alias formatIntoList = fmtIntoList;
 
 /// Formats a string using a list and returns the resulting formatted string.
 /// The list is cleared before writing.
-/// For details on formatting behavior, see the `formatIntoBuffer` function in the `ascii` module.
-IStr fmtIntoList(T, A...)(ref T list, IStr fmtStr, A args) {
+/// For details on formatting behavior, see the `fmtIntoBufferWithStrs` function in the `ascii` module.
+IStr fmtIntoList(A...)(ref LStr list, IStr fmtStr, A args) {
     list.clear();
     auto fmtStrIndex = 0;
     auto argIndex = 0;
@@ -1131,7 +1131,7 @@ IStr fmtIntoList(T, A...)(ref T list, IStr fmtStr, A args) {
         auto c2 = fmtStrIndex + 1 >= fmtStr.length ? '+' : fmtStr[fmtStrIndex + 1];
         if (c1 == '{' && c2 == '}') {
             if (argIndex >= args.length) assert(0, "A placeholder doesn't have an argument.");
-            static foreach (i, arg; args) {
+            foreach (i, arg; args) {
                 if (i == argIndex) {
                     auto temp = toStr(arg);
                     list.append(temp);
