@@ -15,7 +15,7 @@ import joka.types;
 
 enum defaultAsciiBufferCount    = 8;
 enum defaultAsciiBufferSize     = 1024;
-enum defaultAsciiFmtBufferCount = 32;
+enum defaultAsciiFmtBufferCount = 64;
 enum defaultAsciiFmtBufferSize  = 512;
 
 enum digitChars    = "0123456789";                         /// The set of decimal numeric characters.
