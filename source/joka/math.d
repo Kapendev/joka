@@ -758,11 +758,16 @@ struct GVec4(T) {
 }
 
 /// A generic 2D rectangle.
-struct GRect(T) {
-    GVec2!T position; /// The position of the rectangle.
-    GVec2!T size;     /// The size of the rectangle.
+struct GRect(P, S = P) {
+    static assert(P.sizeof >= S.sizeof, "Position type must be bigger than size type.");
 
-    static if (T.sizeof > float.sizeof) {
+    GVec2!P position; /// The position of the rectangle.
+    GVec2!S size;     /// The size of the rectangle.
+
+    alias Position = P;
+    alias Size = S;
+    alias Self = GRect!(P, S);
+    static if (P.sizeof > float.sizeof) {
         enum is64 = true;
         alias Float = double;
     } else {
@@ -783,150 +788,178 @@ struct GRect(T) {
     @safe nothrow @nogc pure:
 
     pragma(inline, true) {
-        this(GVec2!T position, GVec2!T size) {
+        this(GVec2!P position, GVec2!S size) {
             this.position = position;
             this.size = size;
         }
 
-        this(GVec2!T size) {
-            this(GVec2!T(), size);
+        this(GVec2!S size) {
+            this(GVec2!P(), size);
         }
 
-        this(T x, T y, T w, T h) {
-            this(GVec2!T(x, y), GVec2!T(w, h));
+        this(P x, P y, S w, S h) {
+            this(GVec2!P(x, y), GVec2!S(w, h));
         }
 
-        this(T w, T h) {
-            this(GVec2!T(), GVec2!T(w, h));
+        this(S w, S h) {
+            this(GVec2!P(), GVec2!S(w, h));
         }
 
-        this(GVec2!T position, T w, T h) {
-            this(position, GVec2!T(w, h));
+        this(GVec2!P position, S w, S h) {
+            this(position, GVec2!S(w, h));
         }
 
-        this(T x, T y, GVec2!T size) {
-            this(GVec2!T(x, y), size);
+        this(P x, P y, GVec2!S size) {
+            this(GVec2!P(x, y), size);
+        }
+
+        static if (!is(P == S)) {
+            this(GVec2!P position, GVec2!P size) {
+                this.position = position;
+                this.size.x = cast(S) size.x;
+                this.size.y = cast(S) size.y;
+            }
+
+            this(GVec2!P size) {
+                this(GVec2!P(), size);
+            }
+
+            this(P x, P y, P w, P h) {
+                this(GVec2!P(x, y), GVec2!P(w, h));
+            }
+
+            this(P w, P h) {
+                this(GVec2!P(), GVec2!P(w, h));
+            }
+
+            this(GVec2!P position, P w, P h) {
+                this(position, GVec2!P(w, h));
+            }
+
+            this(P x, P y, GVec2!P size) {
+                this(GVec2!P(x, y), size);
+            }
         }
 
         /// The X position of the rectangle.
-        @trusted ref T x() => position.x;
+        @trusted ref P x() => position.x;
         /// The Y position of the rectangle.
-        @trusted ref T y() => position.y;
+        @trusted ref P y() => position.y;
         /// The width of the rectangle.
-        @trusted ref T w() => size.x;
+        @trusted ref S w() => size.x;
         /// The height of the rectangle.
-        @trusted ref T h() => size.y;
+        @trusted ref S h() => size.y;
         bool hasSize() => size.x != 0 && size.y != 0;
-        GRect!T abs() => GRect!T(position.abs, size.abs);
+        Self abs() => Self(position.abs, size.abs);
 
-        GRect!T floor() {
-            static if (isIntegerType!T) {
+        Self floor() {
+            static if (isIntegerType!P) {
                 return this;
             } else {
-                return GRect!T(position.floor, size.floor);
+                return Self(position.floor, size.floor);
             }
         }
 
-        GRect!T ceil() {
-            static if (isIntegerType!T) {
+        Self ceil() {
+            static if (isIntegerType!P) {
                 return this;
             } else {
-                return GRect!T(position.ceil, size.ceil);
+                return Self(position.ceil, size.ceil);
             }
         }
 
-        GRect!T round() {
-            static if (isIntegerType!T) {
+        Self round() {
+            static if (isIntegerType!P) {
                 return this;
             } else {
-                return GRect!T(position.round, size.round);
+                return Self(position.round, size.round);
             }
         }
 
-        GRect!T area(Hook hook) {
-            return GRect!T(
+        Self area(Hook hook) {
+            return Self(
                 position - origin(hook),
                 size,
             );
         }
 
-        GVec2!T point(Hook hook) {
+        GVec2!P point(Hook hook) {
             return position + origin(hook);
         }
 
-        GVec2!T topLeftPoint() {
+        GVec2!P topLeftPoint() {
             return point(Hook.topLeft);
         }
 
-        GVec2!T topPoint() {
+        GVec2!P topPoint() {
             return point(Hook.top);
         }
 
-        GVec2!T topRightPoint() {
+        GVec2!P topRightPoint() {
             return point(Hook.topRight);
         }
 
-        GVec2!T leftPoint() {
+        GVec2!P leftPoint() {
             return point(Hook.left);
         }
 
-        GVec2!T centerPoint() {
+        GVec2!P centerPoint() {
             return point(Hook.center);
         }
 
-        GVec2!T rightPoint() {
+        GVec2!P rightPoint() {
             return point(Hook.right);
         }
 
-        GVec2!T bottomLeftPoint() {
+        GVec2!P bottomLeftPoint() {
             return point(Hook.bottomLeft);
         }
 
-        GVec2!T bottomPoint() {
+        GVec2!P bottomPoint() {
             return point(Hook.bottom);
         }
 
-        GVec2!T bottomRightPoint() {
+        GVec2!P bottomRightPoint() {
             return point(Hook.bottomRight);
         }
 
-        GRect!T topLeftArea() {
+        Self topLeftArea() {
             return area(Hook.topLeft);
         }
 
-        GRect!T topArea() {
+        Self topArea() {
             return area(Hook.top);
         }
 
-        GRect!T topRightArea() {
+        Self topRightArea() {
             return area(Hook.topRight);
         }
 
-        GRect!T leftArea() {
+        Self leftArea() {
             return area(Hook.left);
         }
 
-        GRect!T centerArea() {
+        Self centerArea() {
             return area(Hook.center);
         }
 
-        GRect!T rightArea() {
+        Self rightArea() {
             return area(Hook.right);
         }
 
-        GRect!T bottomLeftArea() {
+        Self bottomLeftArea() {
             return area(Hook.bottomLeft);
         }
 
-        GRect!T bottomArea() {
+        Self bottomArea() {
             return area(Hook.bottom);
         }
 
-        GRect!T bottomRightArea() {
+        Self bottomRightArea() {
             return area(Hook.bottomRight);
         }
 
-        bool hasPoint(GVec2!T point) {
+        bool hasPoint(GVec2!P point) {
             return (
                 point.x > position.x &&
                 point.x < position.x + size.x &&
@@ -935,7 +968,7 @@ struct GRect(T) {
             );
         }
 
-        bool hasPointInclusive(GVec2!T point) {
+        bool hasPointInclusive(GVec2!P point) {
             return (
                 point.x >= position.x &&
                 point.x <= position.x + size.x &&
@@ -944,7 +977,7 @@ struct GRect(T) {
             );
         }
 
-        bool hasIntersection(GRect!T area) {
+        bool hasIntersection(Self area) {
             return (
                 position.x + size.x > area.position.x &&
                 position.x < area.position.x + area.size.x &&
@@ -953,7 +986,7 @@ struct GRect(T) {
             );
         }
 
-        bool hasIntersectionInclusive(GRect!T area) {
+        bool hasIntersectionInclusive(Self area) {
             return (
                 position.x + size.x >= area.position.x &&
                 position.x <= area.position.x + area.size.x &&
@@ -965,161 +998,161 @@ struct GRect(T) {
 
     void fix() {
         if (size.x < 0) {
-            position.x = cast(T) (position.x + size.x);
-            size.x = cast(T) (-size.x);
+            position.x = cast(P) (position.x + size.x);
+            size.x = cast(S) (-size.x);
         }
         if (size.y < 0) {
-            position.y = cast(T) (position.y + size.y);
-            size.y = cast(T) (-size.y);
+            position.y = cast(P) (position.y + size.y);
+            size.y = cast(S) (-size.y);
         }
     }
 
-    GVec2!T origin(Hook hook) {
-        static if (isIntegerType!T) {
+    GVec2!P origin(Hook hook) {
+        static if (isIntegerType!P) {
             auto temp = GRect!Float(cast(Float) position.x, cast(Float) position.y, cast(Float) size.x, cast(Float) size.y).origin(hook);
-            return GVec2!T(cast(T) temp.x, cast(T) temp.y);
+            return GVec2!P(cast(P) temp.x, cast(P) temp.y);
         } else {
             final switch (hook) {
-                case Hook.topLeft: return GVec2!T();
-                case Hook.top: return size * GVec2!T(0.5f, 0.0f);
-                case Hook.topRight: return size * GVec2!T(1.0f, 0.0f);
-                case Hook.left: return size * GVec2!T(0.0f, 0.5f);
-                case Hook.center: return size * GVec2!T(0.5f, 0.5f);
-                case Hook.right: return size * GVec2!T(1.0f, 0.5f);
-                case Hook.bottomLeft: return size * GVec2!T(0.0f, 1.0f);
-                case Hook.bottom: return size * GVec2!T(0.5f, 1.0f);
+                case Hook.topLeft: return GVec2!P();
+                case Hook.top: return size * GVec2!P(0.5f, 0.0f);
+                case Hook.topRight: return size * GVec2!P(1.0f, 0.0f);
+                case Hook.left: return size * GVec2!P(0.0f, 0.5f);
+                case Hook.center: return size * GVec2!P(0.5f, 0.5f);
+                case Hook.right: return size * GVec2!P(1.0f, 0.5f);
+                case Hook.bottomLeft: return size * GVec2!P(0.0f, 1.0f);
+                case Hook.bottom: return size * GVec2!P(0.5f, 1.0f);
                 case Hook.bottomRight: return size;
             }
         }
     }
 
-    GRect!T intersection(GRect!T area) {
+    Self intersection(Self area) {
         if (!this.hasIntersection(area)) {
-            return GRect!T();
+            return Self();
         } else {
             auto maxY = max(position.x, area.position.x);
             auto maxX = max(position.y, area.position.y);
-            return GRect!T(
+            return Self(
                 maxX,
                 maxY,
-                cast(T) (min(position.x + size.x, area.position.x + area.size.x) - maxX),
-                cast(T) (min(position.y + size.y, area.position.y + area.size.y) - maxY),
+                cast(S) (min(position.x + size.x, area.position.x + area.size.x) - maxX),
+                cast(S) (min(position.y + size.y, area.position.y + area.size.y) - maxY),
             );
         }
     }
 
-    GRect!T merger(GRect!T area) {
+    Self merger(Self area) {
         auto minX = min(position.x, area.position.x);
         auto minY = min(position.y, area.position.y);
-        return GRect!T(
+        return Self(
             minX,
             minY,
-            cast(T) (max(position.x + size.x, area.position.x + area.size.x) - minX),
-            cast(T) (max(position.y + size.y, area.position.y + area.size.y) - minY),
+            cast(S) (max(position.x + size.x, area.position.x + area.size.x) - minX),
+            cast(S) (max(position.y + size.y, area.position.y + area.size.y) - minY),
         );
     }
 
-    GRect!T addLeft(T amount) {
+    Self addLeft(P amount) {
         position.x -= amount;
         size.x += amount;
-        return GRect!T(position.x, position.y, amount, size.y);
+        return Self(position.x, position.y, cast(S) amount, size.y);
     }
 
-    GRect!T addRight(T amount) {
+    Self addRight(P amount) {
         auto w = size.x;
         size.x += amount;
-        return GRect!T(w, position.y, amount, size.y);
+        return Self(w, position.y, cast(S) amount, size.y);
     }
 
-    GRect!T addTop(T amount) {
+    Self addTop(P amount) {
         position.y -= amount;
         size.y += amount;
-        return GRect!T(position.x, position.y, size.x, amount);
+        return Self(position.x, position.y, size.x, cast(S) amount);
     }
 
-    GRect!T addBottom(T amount) {
+    Self addBottom(P amount) {
         auto h = size.y;
         size.y += amount;
-        return GRect!T(position.x, h, size.x, amount);
+        return Self(position.x, h, size.x, cast(S) amount);
     }
 
-    GRect!T subLeft(T amount) {
+    Self subLeft(P amount) {
         auto x = position.x;
-        position.x = cast(T) min(position.x + amount, position.x + size.x);
-        size.x = cast(T) max(size.x - amount, 0);
-        return GRect!T(x, position.y, amount, size.y);
+        position.x = cast(P) min(position.x + amount, position.x + size.x);
+        size.x = cast(S) max(size.x - amount, 0);
+        return Self(x, position.y, cast(S) amount, size.y);
     }
 
-    GRect!T subRight(T amount) {
-        size.x = cast(T) max(size.x - amount, 0);
-        return GRect!T(cast(T) (position.x + size.x), position.y, amount, size.y);
+    Self subRight(P amount) {
+        size.x = cast(S) max(size.x - amount, 0);
+        return Self(cast(P) (position.x + size.x), position.y, cast(S) amount, size.y);
     }
 
-    GRect!T subTop(T amount) {
+    Self subTop(P amount) {
         auto y = position.y;
-        position.y = cast(T) min(position.y + amount, position.y + size.y);
-        size.y = cast(T) max(size.y - amount, 0);
-        return GRect!T(position.x, y, size.x, amount);
+        position.y = cast(P) min(position.y + amount, position.y + size.y);
+        size.y = cast(S) max(size.y - amount, 0);
+        return Self(position.x, y, size.x, cast(S) amount);
     }
 
-    GRect!T subBottom(T amount) {
-        size.y = cast(T) max(size.y - amount, 0);
-        return GRect!T(position.x, cast(T) (position.y + size.y), size.x, amount);
+    Self subBottom(P amount) {
+        size.y = cast(S) max(size.y - amount, 0);
+        return Self(position.x, cast(P) (position.y + size.y), size.x, cast(S) amount);
     }
 
-    GRect!T addLeftRight(T amount) {
+    Self addLeftRight(P amount) {
         this.addLeft(amount);
         this.addRight(amount);
         return this;
     }
 
-    GRect!T addTopBottom(T amount) {
+    Self addTopBottom(P amount) {
         this.addTop(amount);
         this.addBottom(amount);
         return this;
     }
 
-    GRect!T addAll(T amount) {
+    Self addAll(P amount) {
         this.addLeftRight(amount);
         this.addTopBottom(amount);
         return this;
     }
 
-    GRect!T subLeftRight(T amount) {
+    Self subLeftRight(P amount) {
         this.subLeft(amount);
         this.subRight(amount);
         return this;
     }
 
-    GRect!T subTopBottom(T amount) {
+    Self subTopBottom(P amount) {
         this.subTop(amount);
         this.subBottom(amount);
         return this;
     }
 
-    GRect!T subAll(T amount) {
+    Self subAll(P amount) {
         this.subLeftRight(amount);
         this.subTopBottom(amount);
         return this;
     }
 
-    GRect!T left(T amount) {
-        GRect!T temp = this;
+    Self left(P amount) {
+        Self temp = this;
         return temp.subLeft(amount);
     }
 
-    GRect!T right(T amount) {
-        GRect!T temp = this;
+    Self right(P amount) {
+        Self temp = this;
         return temp.subRight(amount);
     }
 
-    GRect!T top(T amount) {
-        GRect!T temp = this;
+    Self top(P amount) {
+        Self temp = this;
         return temp.subTop(amount);
     }
 
-    GRect!T bottom(T amount) {
-        GRect!T temp = this;
+    Self bottom(P amount) {
+        Self temp = this;
         return temp.subBottom(amount);
     }
 }
@@ -2040,6 +2073,10 @@ pragma(inline, true) @trusted {
         return Vec2(vec.x, vec.y);
     }
 
+    Vec2 toVec(GVec2!short vec) {
+        return Vec2(vec.x, vec.y);
+    }
+
     Vec3 toVec(IVec3 vec) {
         return Vec3(vec.x, vec.y, vec.z);
     }
@@ -2057,6 +2094,10 @@ pragma(inline, true) @trusted {
     }
 
     Rect toRect(IRect rect) {
+        return Rect(rect.position.toVec(), rect.size.toVec());
+    }
+
+    Rect toRect(GRect!(int, short) rect) {
         return Rect(rect.position.toVec(), rect.size.toVec());
     }
 
