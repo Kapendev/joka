@@ -38,6 +38,12 @@ version (Windows) {
     enum pathSepOtherStr = "\\"; /// The complementary OS path separator as a string.
 }
 
+enum sp = Sep(" ");  /// Space separator.
+enum cm = Sep(", "); /// Comma + space separator.
+
+/// Separator marker for printing, ...
+struct Sep { IStr value; }
+
 /// Converts the value to its string representation.
 @trusted
 IStr toStr(T)(T value) {

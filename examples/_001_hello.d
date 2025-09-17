@@ -10,7 +10,7 @@ struct Person {
 }
 
 void main() {
-    println("Now, it is simply my turn to reject the world.");
     printfln("I am {}.", Person("Ghadius"));
-    trace(1, 2, 3, "GO!");
+    println("Now, ", "it is simply my turn to reject the world.");
+    println(sp, 1, 2, 3, "GO!");
 }

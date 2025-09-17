@@ -4,7 +4,7 @@ import joka;
 
 void main() {
     // Joka uses a tracking allocator for debug builds.
-    scope (exit) printMemoryTrackingInfo();
+    scope (exit) print(memoryTrackingInfo);
 
     // Allocate a single number.
     auto x = jokaMake!int(999);

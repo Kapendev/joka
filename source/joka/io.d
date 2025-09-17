@@ -27,7 +27,14 @@ void printfln(A...)(IStr text, A args) {
 
 @safe
 void print(A...)(A args) {
-    static foreach (arg; args) printf("{}", arg);
+    static if (is(A[0] == Sep)) {
+        foreach (i, arg; args[1 .. $]) {
+            if (i) printf("{}", args[0].value);
+            printf("{}", arg);
+        }
+    } else {
+        foreach (arg; args) printf("{}", arg);
+    }
 }
 
 @safe
@@ -37,6 +44,15 @@ void println(A...)(A args) {
 }
 
 @safe
+void printMemoryTrackingInfo(IStr filter = "", bool canShowEmpty = false) {
+    print(memoryTrackingInfo(filter, canShowEmpty));
+}
+
+// Why not.
+alias echo  = println;
+alias echon = print;
+
+@safe
 void tracef(IStr file = __FILE__, Sz line = __LINE__, A...)(IStr text, A args) {
     printf("TRACE({}:{}): {}\n", file, line, text.fmt(args));
 }
@@ -44,7 +60,7 @@ void tracef(IStr file = __FILE__, Sz line = __LINE__, A...)(IStr text, A args) {
 @safe
 void trace(IStr file = __FILE__, Sz line = __LINE__, A...)(A args) {
     printf("TRACE({}:{}):", file, line);
-    static foreach (arg; args) printf(" {}", arg);
+    foreach (arg; args) printf(" {}", arg);
     printf("\n");
 }
 
@@ -56,11 +72,6 @@ void warn(IStr text = "Not implemented.", IStr file = __FILE__, Sz line = __LINE
 @safe
 noreturn todo(IStr text = "Not implemented.", IStr file = __FILE__, Sz line = __LINE__) {
     assert(0, "TODO({}:{}): {}".fmt(file, line, text));
-}
-
-@safe
-void printMemoryTrackingInfo(IStr filter = "", bool canShowEmpty = false) {
-    print(memoryTrackingInfo(filter, canShowEmpty));
 }
 
 @safe nothrow:
