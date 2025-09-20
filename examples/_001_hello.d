@@ -12,5 +12,5 @@ struct Person {
 void main() {
     printfln("I am {}.", Person("Ghadius"));
     println("Now, ", "it is simply my turn to reject the world.");
-    println(sp, 1, 2, 3, "GO!");
+    println(Sep(" "), 1, 2, 3, "GO!");
 }

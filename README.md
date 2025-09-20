@@ -21,7 +21,7 @@ It is designed to complement the D standard library, not replace it.
 
 ## WebAssembly
 
-WebAssembly is supported with BetterC, but something like [Emscripten](https://emscripten.org/) is needed to make it work.
+WebAssembly is supported with the BetterC flag, but something like [Emscripten](https://emscripten.org/) is needed to make it work.
 If you encounter errors with BetterC, try using the `-i` flag.
 
 ## Documentation
