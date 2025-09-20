@@ -116,6 +116,7 @@ version (JokaCustomMemory) {
     extern(C) @nogc
     void jokaFree(void* ptr, IStr file = __FILE__, Sz line = __LINE__) {
         static if (isTrackingMemory) {
+            if (ptr == null) return;
             if (auto mallocValue = ptr in _memoryTrackingState.table) {
                 stdc.free(ptr);
                 debug {
