@@ -1444,14 +1444,6 @@ pragma(inline, true) @trusted {
         }
     }
 
-    bool isNan(float x) {
-        return !(x == x);
-    }
-
-    bool isNan64(double x) {
-        return !(x == x);
-    }
-
     float fmod(float x, float y) {
         return stdc.fmodf(x, y);
     }

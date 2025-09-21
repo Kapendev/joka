@@ -13,10 +13,20 @@ import joka.types;
 
 @safe:
 
-enum defaultAsciiBufferCount    = 8;
-enum defaultAsciiBufferSize     = 1024;
-enum defaultAsciiFmtBufferCount = 64;
-enum defaultAsciiFmtBufferSize  = 512;
+// TODO: Need to add more `intoBuffer*` functions.
+//   Like the split function is kinda not worth using lol.
+//   Concat too probably.
+//   Having helpers is fine, but yeah.
+//   New fmt design tells me that static in a template is a bad idea lollolol.
+//   Plus the print funcs should have a buffer thing too.
+//   Plus logging.
+//   Plus so many things lol.
+//   Also need to find a way to tell users that fmt strings don't have a long lifetime.
+
+enum defaultAsciiBufferCount    = 16;  // Generic string count.
+enum defaultAsciiBufferSize     = 768; // Generic string length.
+enum defaultAsciiFmtBufferCount = 32;  // Arg count.
+enum defaultAsciiFmtBufferSize  = 512; // Arg length.
 
 enum digitChars    = "0123456789";                         /// The set of decimal numeric characters.
 enum upperChars    = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";         /// The set of uppercase letters.
@@ -61,15 +71,15 @@ IStr toStr(T)(T value) {
         return value;
     } else static if (isCStrType!T) {
         return cStrToStr(value);
-    } else static if (isEnumType!T) {
+    } else static if (is(T == enum)) {
         return enumToStr(value);
-    } else static if (hasMember!(T, "toStr")) {
+    } else static if (__traits(hasMember, T, "toStr")) {
         return value.toStr();
-    } else static if (hasMember!(T, "toString")) {
+    } else static if (__traits(hasMember, T, "toString")) {
         // I'm a nice person.
         return value.toString();
     } else {
-        static assert(0, funcImplementationErrorMessage!(T, "toStr"));
+        static assert(0, "Type `" ~ T.stringof ~ "` doesn't implement the `toStr` function.");
     }
 }
 
@@ -85,32 +95,26 @@ alias format = fmt;
 @trusted nothrow @nogc
 IStr fmtIntoBufferWithStrs(Str buffer, IStr fmtStr, IStr[] args...) {
     auto result = buffer;
-    auto resultIndex = 0;
+    auto resultLength = 0;
     auto fmtStrIndex = 0;
     auto argIndex = 0;
     while (fmtStrIndex < fmtStr.length) {
         auto c1 = fmtStr[fmtStrIndex];
         auto c2 = fmtStrIndex + 1 >= fmtStr.length ? '+' : fmtStr[fmtStrIndex + 1];
         if (c1 == '{' && c2 == '}') {
-            if (argIndex >= args.length) assert(0, "A placeholder doesn't have an argument.");
-            foreach (i, arg; args) {
-                if (i == argIndex) {
-                    copyChars(result, arg, resultIndex);
-                    resultIndex += arg.length;
-                    fmtStrIndex += 2;
-                    argIndex += 1;
-                    goto loopExit;
-                }
-            }
-            loopExit:
+            if (argIndex == args.length) assert(0, "A placeholder doesn't have an argument.");
+            copyChars(result, args[argIndex], resultLength);
+            resultLength += args[argIndex].length;
+            fmtStrIndex += 2;
+            argIndex += 1;
         } else {
-            result[resultIndex] = c1;
-            resultIndex += 1;
+            result[resultLength] = c1;
+            resultLength += 1;
             fmtStrIndex += 1;
         }
     }
     if (argIndex != args.length) assert(0, "An argument doesn't have a placeholder.");
-    result = result[0 .. resultIndex];
+    result = result[0 .. resultLength];
     return result;
 }
 
@@ -1001,17 +1005,11 @@ unittest {
     assert(toSigned('9').getOr() == 9);
 
     assert(toDouble("1_069").isSome == false);
-    assert(toDouble("1_069").getOr() == 0);
     assert(toDouble(".1069").isSome == false);
-    assert(toDouble(".1069").getOr() == 0);
     assert(toDouble("1069.").isSome == false);
-    assert(toDouble("1069.").getOr() == 0);
     assert(toDouble(".").isSome == false);
-    assert(toDouble(".").getOr() == 0);
     assert(toDouble("-1069.-69").isSome == false);
-    assert(toDouble("-1069.-69").getOr() == 0);
     assert(toDouble("-1069.+69").isSome == false);
-    assert(toDouble("-1069.+69").getOr() == 0);
     assert(toDouble("-1069").isSome == true);
     assert(toDouble("-1069").getOr() == -1069);
     assert(toDouble("+1069").isSome == true);
@@ -1033,9 +1031,7 @@ unittest {
     assert(toDouble("0.0095").isSome == true);
     assert(toDouble("0.0095").getOr() == 0.0095);
     assert(toDouble('+').isSome == false);
-    assert(toDouble('+').getOr() == 0);
     assert(toDouble('0').isSome == true);
-    assert(toDouble('0').getOr() == 0);
     assert(toDouble('9').isSome == true);
     assert(toDouble('9').getOr() == 9);
     assert(!(toDouble("nan").getOr() == double.nan));

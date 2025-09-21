@@ -83,17 +83,9 @@ struct Array(T, Sz N) {
     }
 }
 
-/// Represents a result of a function.
-deprecated("Will be replaced with `Maybe`.")
-alias Result(T) = Maybe!T;
-
 /// Represents an optional value.
 struct Maybe(T) {
-    static if (isNumberType!T) {
-        T _data = 0;
-    } else {
-        T _data; /// The value.
-    }
+    T _data;                   /// The value.
     Fault _fault = Fault.some; /// The error code.
 
     pragma(inline, true) @safe nothrow @nogc:
@@ -181,11 +173,7 @@ union UnionData(A...) {
     static assert(A.length != 0, "Arguments must contain at least one element.");
 
     static foreach (i, T; A) {
-        static if (i == 0 && isNumberType!T) {
-            mixin("T _m", toCleanNumber!i, "= 0;");
-        }  else {
-            mixin("T _m", toCleanNumber!i, ";");
-        }
+        mixin("T _m", toCleanNumber!i, ";");
     }
 
     alias Types = A;
@@ -203,7 +191,7 @@ struct Union(A...) {
     auto call(IStr func, AA...)(AA args) {
         switch (_type) {
             static foreach (i, T; A) {
-                static assert(hasMember!(T, func), funcImplementationErrorMessage!(T, func));
+                static assert(__traits(hasMember, T, func), funcImplementationErrorMessage!(T, func));
                 mixin("case ", i, ": return _data._m", toCleanNumber!i, ".", func, "(args);");
             }
             default: assert(0, "WTF!");
@@ -322,13 +310,22 @@ bool isUnionType(T)() {
 }
 
 bool isBoolType(T)() {
-    return is(T == bool) ||
+    return
+        is(T == bool) ||
         is(T == const(bool)) ||
         is(T == immutable(bool));
 }
 
+bool isCharType(T)() {
+    return
+        is(T == char) ||
+        is(T == const(char)) ||
+        is(T == immutable(char));
+}
+
 bool isUnsignedType(T)() {
-    return is(T == ubyte) ||
+    return
+        is(T == ubyte) ||
         is(T == const(ubyte)) ||
         is(T == immutable(ubyte)) ||
         is(T == ushort) ||
@@ -343,7 +340,8 @@ bool isUnsignedType(T)() {
 }
 
 bool isSignedType(T)() {
-    return is(T == byte) ||
+    return
+        is(T == byte) ||
         is(T == const(byte)) ||
         is(T == immutable(byte)) ||
         is(T == short) ||
@@ -358,39 +356,93 @@ bool isSignedType(T)() {
 }
 
 bool isIntegerType(T)() {
-    return isUnsignedType!T || isSignedType!T;
+    return
+        is(T == ubyte) ||
+        is(T == const(ubyte)) ||
+        is(T == immutable(ubyte)) ||
+        is(T == ushort) ||
+        is(T == const(ushort)) ||
+        is(T == immutable(ushort)) ||
+        is(T == uint) ||
+        is(T == const(uint)) ||
+        is(T == immutable(uint)) ||
+        is(T == ulong) ||
+        is(T == const(ulong)) ||
+        is(T == immutable(ulong)) ||
+        is(T == byte) ||
+        is(T == const(byte)) ||
+        is(T == immutable(byte)) ||
+        is(T == short) ||
+        is(T == const(short)) ||
+        is(T == immutable(short)) ||
+        is(T == int) ||
+        is(T == const(int)) ||
+        is(T == immutable(int)) ||
+        is(T == long) ||
+        is(T == const(long)) ||
+        is(T == immutable(long));
 }
 
 bool isFloatType(T)() {
-    return is(T == float) ||
+    return
+        is(T == float) ||
         is(T == const(float)) ||
         is(T == immutable(float));
 }
 
 bool isDoubleType(T)() {
-    return is(T == double) ||
+    return
+        is(T == double) ||
         is(T == const(double)) ||
         is(T == immutable(double));
 }
 
 bool isFloatingType(T)() {
-    return isFloatType!T || isDoubleType!T;
+    return
+        is(T == float) ||
+        is(T == const(float)) ||
+        is(T == immutable(float)) ||
+        is(T == double) ||
+        is(T == const(double)) ||
+        is(T == immutable(double));
 }
 
 bool isNumberType(T)() {
-    return isIntegerType!T || isFloatingType!T;
-}
-
-bool isCharType(T)() {
-    return is(T == char) ||
-        is(T == const(char)) ||
-        is(T == immutable(char));
+    return
+        is(T == ubyte) ||
+        is(T == const(ubyte)) ||
+        is(T == immutable(ubyte)) ||
+        is(T == ushort) ||
+        is(T == const(ushort)) ||
+        is(T == immutable(ushort)) ||
+        is(T == uint) ||
+        is(T == const(uint)) ||
+        is(T == immutable(uint)) ||
+        is(T == ulong) ||
+        is(T == const(ulong)) ||
+        is(T == immutable(ulong)) ||
+        is(T == byte) ||
+        is(T == const(byte)) ||
+        is(T == immutable(byte)) ||
+        is(T == short) ||
+        is(T == const(short)) ||
+        is(T == immutable(short)) ||
+        is(T == int) ||
+        is(T == const(int)) ||
+        is(T == immutable(int)) ||
+        is(T == long) ||
+        is(T == const(long)) ||
+        is(T == immutable(long)) ||
+        is(T == float) ||
+        is(T == const(float)) ||
+        is(T == immutable(float)) ||
+        is(T == double) ||
+        is(T == const(double)) ||
+        is(T == immutable(double));
 }
 
 bool isPrimaryType(T)() {
-    return isBoolType!T ||
-        isNumberType!T ||
-        isCharType!T;
+    return isBoolType!T || isCharType!T || isNumberType!T;
 }
 
 bool isArrayType(T)() {
@@ -419,10 +471,6 @@ bool isStrType(T)() {
 
 bool isCStrType(T)() {
     return is(T : ICStr);
-}
-
-bool hasMember(T, IStr name)() {
-    return __traits(hasMember, T, name);
 }
 
 int findInAliasArgs(T, A...)() {
@@ -458,9 +506,19 @@ IStr toCleanNumber(alias i)() {
 
 pragma(inline, true) @trusted
 Sz offsetOf(T, IStr member)() {
-    static assert(hasMember!(T, member), "Member doesn't exist.");
+    static assert(__traits(hasMember, T, member), "Member doesn't exist.");
     T temp = void;
     return (cast(ubyte*) mixin("&temp.", member)) - (cast(ubyte*) &temp);
+}
+
+pragma(inline, true) @safe nothrow @nogc pure {
+    bool isNan(float x) {
+        return !(x == x);
+    }
+
+    bool isNan64(double x) {
+        return !(x == x);
+    }
 }
 
 template toStaticArray(alias slice) {
@@ -468,7 +526,7 @@ template toStaticArray(alias slice) {
 }
 
 mixin template addSliceOps(T, TT) {
-    static assert(hasMember!(T, "items"), "Slice must implement the `" ~ TT.stringof ~ "[] items()` function or have a member called that.");
+    static assert(__traits(hasMember, T, "items"), "Slice must implement the `" ~ TT.stringof ~ "[] items()` function or have a member called that.");
 
     pragma(inline, true) @trusted nothrow @nogc {
         TT[] opSlice(Sz dim)(Sz i, Sz j) {
@@ -504,7 +562,7 @@ mixin template addSliceOps(T, TT) {
 mixin template addXyzwOps(T, TT, Sz N, IStr form = "xyzw") {
     static assert(N >= 2 && N <= 4, "Vector must have a dimension between 2 and 4.");
     static assert(N == form.length, "Vector must have a dimension that is equal to the given form length.");
-    static assert(hasMember!(T, "items"), "Vector must implement the `" ~ TT.stringof ~ "[] items()` function or have a member called that.");
+    static assert(__traits(hasMember, T, "items"), "Vector must implement the `TT[] items()` function or have a member called that.");
 
     pragma(inline, true) @trusted nothrow @nogc {
         T opUnary(IStr op)() {
@@ -686,7 +744,7 @@ unittest {
     assert(Number().typeName == "float");
     assert(Number().isType!float == true);
     assert(Number().isType!double == false);
-    assert(Number().as!float == 0);
+    assert(Number().as!float.isNan);
     assert(Number(0.0f).typeName == "float");
     assert(Number(0.0f).isType!float == true);
     assert(Number(0.0f).isType!double == false);

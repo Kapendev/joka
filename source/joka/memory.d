@@ -154,7 +154,7 @@ auto ignoreLeak(T)(T ptr) {
             }
         }
         return ptr;
-    } else static if (hasMember!(T, "ignoreLeak")) {
+    } else static if (__traits(hasMember, T, "ignoreLeak")) {
         return ptr.ignoreLeak();
     } else {
         static assert(0, funcImplementationErrorMessage!(T, "ignoreLeak"));

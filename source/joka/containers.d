@@ -1130,10 +1130,10 @@ IStr fmtIntoList(A...)(ref LStr list, IStr fmtStr, A args) {
         auto c1 = fmtStr[fmtStrIndex];
         auto c2 = fmtStrIndex + 1 >= fmtStr.length ? '+' : fmtStr[fmtStrIndex + 1];
         if (c1 == '{' && c2 == '}') {
-            if (argIndex >= args.length) assert(0, "A placeholder doesn't have an argument.");
+            if (argIndex == args.length) assert(0, "A placeholder doesn't have an argument.");
             foreach (i, arg; args) {
                 if (i == argIndex) {
-                    auto temp = toStr(arg);
+                    auto temp = arg.toStr();
                     list.append(temp);
                     fmtStrIndex += 2;
                     argIndex += 1;
