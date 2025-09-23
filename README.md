@@ -8,7 +8,7 @@ It is designed to complement the D standard library, not replace it.
 
 * `joka.ascii`: ASCII string utilities
 * `joka.cli`: Command-line parsing utilities
-* `joka.containers`: Heap-allocated data structures
+* `joka.containers`: General-purpose containers
 * `joka.io`: Input and output functions
 * `joka.math`: Mathematical data structures and functions
 * `joka.memory`: Functions for dealing with memory

@@ -47,6 +47,37 @@ debug {
     enum isTrackingMemory = false;
 }
 
+struct Heap(T) {
+    T* ptr;
+
+    @trusted nothrow:
+
+    this(T value, IStr file = __FILE__, Sz line = __LINE__) {
+        make(value, file, line);
+    }
+
+    bool isSome() => ptr != null;
+    bool isNone() => ptr == null;
+    alias isEmpty = isNone;
+    alias isNull = isNone;
+
+    void makeBlank(IStr file = __FILE__, Sz line = __LINE__) {
+        free(file, line);
+        ptr = jokaMakeBlank!T(file, line);
+    }
+
+    void make(T value = T.init, IStr file = __FILE__, Sz line = __LINE__) {
+        free(file, line);
+        ptr = jokaMake!T(value, file, line);
+    }
+
+    @nogc
+    void free(IStr file = __FILE__, Sz line = __LINE__) {
+        jokaFree(ptr, file, line);
+        ptr = null;
+    }
+}
+
 version (JokaCustomMemory) {
     pragma(msg, "Joka: Using custom allocator.");
 

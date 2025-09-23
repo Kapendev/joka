@@ -5,7 +5,9 @@
 // Project: https://github.com/Kapendev/joka
 // ---
 
-/// The `containers` module provides various data structures that allocate on the heap.
+/// The `containers` module provides various general-purpose containers that allocate on the heap by default.
+/// `List`, `BufferList`, and `FixedList` are the basic containers.
+/// Most other containers can accept one of these to adjust their allocation strategy.
 module joka.containers;
 
 import joka.ascii;
@@ -28,13 +30,17 @@ alias FStr32(Sz N) = FixedList!(dchar, N); /// A dynamic string of dchars alloca
 
 /// A dynamic array.
 struct List(T) {
-    T[] items;
+    alias Self = List!T;
+    alias Item = T;
+    alias Data = T[];
+
+    Data items;
     Sz capacity;
     bool canIgnoreLeak;
 
     @safe nothrow:
 
-    mixin addSliceOps!(List!T, T);
+    mixin addSliceOps!(Self, Item);
 
     pragma(inline, true) @trusted {
         this(const(T)[] args...) {
@@ -171,21 +177,25 @@ struct List(T) {
     }
 
     @nogc
-    List!T ignoreLeak() {
+    void ignoreLeak() {
         canIgnoreLeak = true;
         items.ignoreLeak();
-        return this;
     }
 }
 
 /// A dynamic array that uses external memory provided at runtime.
+// NOTE: The API is almost 1-1 with `List` to make meta programming easier.
 struct BufferList(T) {
-    T[] data;
+    alias Self = BufferList!T;
+    alias Item = T;
+    alias Data = T[];
+
+    Data data;
     Sz length;
 
     @safe nothrow @nogc:
 
-    mixin addSliceOps!(BufferList!T, T);
+    mixin addSliceOps!(Self, Item);
 
     pragma(inline, true) @trusted {
         this(T[] data, const(T)[] args...) {
@@ -193,25 +203,14 @@ struct BufferList(T) {
             append(args);
         }
 
-        T[] items() {
-            return data[0 .. length];
-        }
-
-        Sz capacity() {
-            return data.length;
-        }
-
-        T* ptr() {
-            return data.ptr;
-        }
-
-        bool isEmpty() {
-            return length == 0;
-        }
+        T[] items() => data[0 .. length];
+        T* ptr() => data.ptr;
+        bool isEmpty() => length == 0;
+        Sz capacity() => data.length;
     }
 
     @trusted
-    void appendBlank() {
+    void appendBlank(IStr file = __FILE__, Sz line = __LINE__) {
         length += 1;
         if (length > capacity) assert(0, "List is full.");
     }
@@ -224,7 +223,12 @@ struct BufferList(T) {
     }
 
     @trusted
-    void push(const(T) arg) {
+    void appendSource(IStr file = __FILE__, Sz line = __LINE__, const(T)[] args...) {
+        append(args);
+    }
+
+    @trusted
+    void push(const(T) arg, IStr file = __FILE__, Sz line = __LINE__) {
         append(arg);
     }
 
@@ -258,12 +262,14 @@ struct BufferList(T) {
         }
     }
 
-    void resizeBlank(Sz newLength) {
+    void reserve(Sz newCapacity, IStr file = __FILE__, Sz line = __LINE__) {}
+
+    void resizeBlank(Sz newLength, IStr file = __FILE__, Sz line = __LINE__) {
         if (newLength > capacity) assert(0, "List is full.");
         length = newLength;
     }
 
-    void resize(Sz newLength) {
+    void resize(Sz newLength, IStr file = __FILE__, Sz line = __LINE__) {
         auto oldLength = length;
         resizeBlank(newLength);
         if (newLength > oldLength) {
@@ -279,39 +285,40 @@ struct BufferList(T) {
     void clear() {
         length = 0;
     }
+
+    void free(IStr file = __FILE__, Sz line = __LINE__) {}
+    void ignoreLeak() {}
 }
 
 /// A dynamic array allocated on the stack.
+// NOTE: This is just a copy-paste of `BufferList`, but with a static array.
+//   Could make both use one type, but I think it's OK to repeat code here.
+//   Keeps things simple and easy to read.
 struct FixedList(T, Sz N) {
-    Array!(T, N) data = void;
-    Sz length;
+    alias Self = FixedList!(T, N);
+    alias Item = T;
+    alias Data = Array!(T, N);
 
-    enum capacity = N;
+    Data data = void;
+    Sz length;
 
     @safe nothrow @nogc:
 
-    mixin addSliceOps!(FixedList!(T, N), T);
+    mixin addSliceOps!(Self, Item);
 
     pragma(inline, true) @trusted {
         this(const(T)[] args...) {
             append(args);
         }
 
-        T[] items() {
-            return data.items[0 .. length];
-        }
-
-        T* ptr() {
-            return data.ptr;
-        }
-
-        bool isEmpty() {
-            return length == 0;
-        }
+        T[] items() => data.items[0 .. length];
+        T* ptr() => data.ptr;
+        bool isEmpty() => length == 0;
+        enum capacity = N;
     }
 
     @trusted
-    void appendBlank() {
+    void appendBlank(IStr file = __FILE__, Sz line = __LINE__) {
         length += 1;
         if (length > capacity) assert(0, "List is full.");
     }
@@ -324,7 +331,12 @@ struct FixedList(T, Sz N) {
     }
 
     @trusted
-    void push(const(T) arg) {
+    void appendSource(IStr file = __FILE__, Sz line = __LINE__, const(T)[] args...) {
+        append(args);
+    }
+
+    @trusted
+    void push(const(T) arg, IStr file = __FILE__, Sz line = __LINE__) {
         append(arg);
     }
 
@@ -358,12 +370,14 @@ struct FixedList(T, Sz N) {
         }
     }
 
-    void resizeBlank(Sz newLength) {
+    void reserve(Sz newCapacity, IStr file = __FILE__, Sz line = __LINE__) {}
+
+    void resizeBlank(Sz newLength, IStr file = __FILE__, Sz line = __LINE__) {
         if (newLength > capacity) assert(0, "List is full.");
         length = newLength;
     }
 
-    void resize(Sz newLength) {
+    void resize(Sz newLength, IStr file = __FILE__, Sz line = __LINE__) {
         auto oldLength = length;
         resizeBlank(newLength);
         if (newLength > oldLength) {
@@ -379,6 +393,9 @@ struct FixedList(T, Sz N) {
     void clear() {
         length = 0;
     }
+
+    void free(IStr file = __FILE__, Sz line = __LINE__) {}
+    void ignoreLeak() {}
 }
 
 /// An item of a sparse array.
@@ -388,10 +405,12 @@ struct SparseListItem(T) {
 }
 
 /// A dynamic sparse array.
-struct SparseList(T) {
-    alias Item = SparseListItem!T;
+struct SparseList(T, D = List!(SparseListItem!T)) {
+    alias Self = SparseList!(T, D);
+    alias Item = D.Item;
+    alias Data = D;
 
-    List!Item data;
+    Data data;
     Sz hotIndex;
     Sz openIndex;
     Sz length;
@@ -402,7 +421,7 @@ struct SparseList(T) {
         append(args);
     }
 
-    @nogc
+    @trusted @nogc
     ref T opIndex(Sz i) {
         if (!has(i)) {
             assert(0, "Index `[{}]` does not exist.".fmt(i));
@@ -535,9 +554,8 @@ struct SparseList(T) {
     }
 
     @nogc
-    SparseList!T ignoreLeak() {
+    void ignoreLeak() {
         data.ignoreLeak();
-        return this;
     }
 
     @nogc
@@ -598,15 +616,18 @@ struct GenIndex {
     Gen generation;
 }
 
-struct GenList(T) {
-    alias Item = data.Item;
+struct GenList(T, D = SparseList!T, G = List!Gen) {
+    alias Self = GenList!(T, D);
+    alias Item = D.Item;
+    alias Data = D;
+    alias DataGen = G;
 
-    SparseList!T data;
-    List!Gen generations;
+    Data data;
+    DataGen generations;
 
     @safe nothrow:
 
-    @nogc
+    @trusted @nogc
     ref T opIndex(GenIndex i) {
         if (!has(i)) assert(0, "Index `[{}]` with generation `{}` does not exist.".fmt(i.value, i.generation));
         return data[i.value];
@@ -683,10 +704,9 @@ struct GenList(T) {
     }
 
     @nogc
-    GenList!T ignoreLeak() {
+    void ignoreLeak() {
         data.ignoreLeak();
         generations.ignoreLeak();
-        return this;
     }
 
     @nogc
@@ -742,8 +762,12 @@ struct GenList(T) {
     }
 }
 
-struct Grid(T) {
-    List!T tiles;
+struct Grid(T, D = List!T) {
+    alias Self = Grid!(T, D);
+    alias Item = D.Item;
+    alias Data = D;
+
+    Data tiles;
     Sz rowCount;
     Sz colCount;
 
@@ -754,24 +778,24 @@ struct Grid(T) {
         fill(value);
     }
 
-    @nogc
+    @trusted @nogc
     T[] opIndex() {
         return tiles[0 .. length];
     }
 
-    @nogc
+    @trusted @nogc
     ref T opIndex(Sz row, Sz col) {
         if (!has(row, col)) assert(0, "Tile `[{}, {}]` does not exist.".fmt(row, col));
         return tiles[jokaFindGridIndex(row, col, colCount)];
     }
 
-    @nogc
+    @trusted @nogc
     void opIndexAssign(T rhs, Sz row, Sz col) {
         if (!has(row, col)) assert(0, "Tile `[{}, {}]` does not exist.".fmt(row, col));
         tiles[jokaFindGridIndex(row, col, colCount)] = rhs;
     }
 
-    @nogc
+    @trusted @nogc
     void opIndexOpAssign(IStr op)(T rhs, Sz row, Sz col) {
         if (!has(row, col)) assert(0, "Tile `[{}, {}]` does not exist.".fmt(row, col));
         mixin("tiles[colCount * row + col]", op, "= rhs;");
@@ -850,9 +874,8 @@ struct Grid(T) {
     }
 
     @nogc
-    Grid!T ignoreLeak() {
+    void ignoreLeak() {
         tiles.ignoreLeak();
-        return this;
     }
 }
 
