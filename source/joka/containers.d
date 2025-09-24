@@ -33,6 +33,7 @@ struct List(T) {
     alias Self = List!T;
     alias Item = T;
     alias Data = T[];
+    enum hasFixedCapacity = true;
 
     Data items;
     Sz capacity;
@@ -189,6 +190,7 @@ struct BufferList(T) {
     alias Self = BufferList!T;
     alias Item = T;
     alias Data = T[];
+    enum hasFixedCapacity = false;
 
     Data data;
     Sz length;
@@ -298,6 +300,7 @@ struct FixedList(T, Sz N) {
     alias Self = FixedList!(T, N);
     alias Item = T;
     alias Data = Array!(T, N);
+    enum hasFixedCapacity = false;
 
     Data data = void;
     Sz length;
@@ -409,6 +412,7 @@ struct SparseList(T, D = List!(SparseListItem!T)) {
     alias Self = SparseList!(T, D);
     alias Item = D.Item;
     alias Data = D;
+    enum hasFixedCapacity = D.hasFixedCapacity;
 
     Data data;
     Sz hotIndex;
@@ -621,6 +625,7 @@ struct GenList(T, D = SparseList!T, G = List!Gen) {
     alias Item = D.Item;
     alias Data = D;
     alias DataGen = G;
+    enum hasFixedCapacity = D.hasFixedCapacity && G.hasFixedCapacity;
 
     Data data;
     DataGen generations;
@@ -766,6 +771,7 @@ struct Grid(T, D = List!T) {
     alias Self = Grid!(T, D);
     alias Item = D.Item;
     alias Data = D;
+    enum hasFixedCapacity = D.hasFixedCapacity;
 
     Data tiles;
     Sz rowCount;

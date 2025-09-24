@@ -78,7 +78,7 @@ noreturn todo(IStr text = "Not implemented.", IStr file = __FILE__, Sz line = __
 
 // NOTE: Also maybe think about errno lol.
 @trusted
-Fault readTextIntoBuffer(IStr path, ref LStr buffer) {
+Fault readTextIntoBuffer(L = LStr)(IStr path, ref L listBuffer) {
     auto file = stdc.fopen(toCStr(path).getOr(), "r");
     if (file == null) return Fault.cantOpen;
 
@@ -96,8 +96,14 @@ Fault readTextIntoBuffer(IStr path, ref LStr buffer) {
         return Fault.cantRead;
     }
 
-    buffer.resizeBlank(fileSize);
-    stdc.fread(buffer.items.ptr, fileSize, 1, file);
+    static if (L.hasFixedCapacity) {
+        if (listBuffer.capacity < fileSize) {
+            if (stdc.fclose(file) != 0) return Fault.cantClose;
+            return Fault.overflow;
+        }
+    }
+    listBuffer.resizeBlank(fileSize);
+    stdc.fread(listBuffer.items.ptr, fileSize, 1, file);
     if (stdc.fclose(file) != 0) return Fault.cantClose;
     return Fault.none;
 }
