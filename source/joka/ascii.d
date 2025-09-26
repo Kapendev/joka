@@ -17,16 +17,11 @@ import joka.types;
 //   Like the split function is kinda not worth using lol.
 //   Concat too probably.
 //   Having helpers is fine, but yeah.
-//   New fmt design tells me that static in a template is a bad idea lollolol.
-//   Plus the print funcs should have a buffer thing too.
-//   Plus logging.
-//   Plus so many things lol.
-//   Also need to find a way to tell users that fmt strings don't have a long lifetime.
 
-enum defaultAsciiBufferCount    = 16;  // Generic string count.
-enum defaultAsciiBufferSize     = 768; // Generic string length.
-enum defaultAsciiFmtBufferCount = 32;  // Arg count.
-enum defaultAsciiFmtBufferSize  = 512; // Arg length.
+enum defaultAsciiBufferCount    = 16;   // Generic string count.
+enum defaultAsciiBufferSize     = 1536; // Generic string length.
+enum defaultAsciiFmtBufferCount = 32;   // Arg count.
+enum defaultAsciiFmtBufferSize  = 512;  // Arg length.
 
 enum digitChars    = "0123456789";                         /// The set of decimal numeric characters.
 enum upperChars    = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";         /// The set of uppercase letters.
@@ -57,6 +52,11 @@ struct Sep { IStr value; }
 /// Converts the value to its string representation.
 @trusted
 IStr toStr(T)(T value) {
+    static assert(
+        !isArrayType!T,
+        "Static arrays can't be passed to `toStr`. This may also happen indirectly when using printing functions. Convert to a slice first."
+    );
+
     static if (isCharType!T) {
         return charToStr(value);
     } else static if (isBoolType!T) {
@@ -103,7 +103,7 @@ IStr fmtIntoBufferWithStrs(Str buffer, IStr fmtStr, IStr[] args...) {
         auto c2 = fmtStrIndex + 1 >= fmtStr.length ? '+' : fmtStr[fmtStrIndex + 1];
         if (c1 == '{' && c2 == '}') {
             if (argIndex == args.length) assert(0, "A placeholder doesn't have an argument.");
-            copyChars(result, args[argIndex], resultLength);
+            if (copyChars(result, args[argIndex], resultLength)) return "";
             resultLength += args[argIndex].length;
             fmtStrIndex += 2;
             argIndex += 1;
@@ -133,14 +133,15 @@ IStr fmtIntoBuffer(A...)(Str buffer, IStr fmtStr, A args) {
     foreach (i, arg; args) {
         auto slice = _fmtIntoBufferDataBuffer[i][];
         auto temp = arg.toStr();
-        if (slice.copyStr(temp)) assert(0, "An argument did not fit in the internal temporary buffer.");
+        if (slice.copyStr(temp)) return ""; // assert(0, "An argument did not fit in the internal temporary buffer.");
         _fmtIntoBufferSliceBuffer[i] = slice;
     }
     return fmtIntoBufferWithStrs(buffer, fmtStr, _fmtIntoBufferSliceBuffer[0 .. args.length]);
 }
 
-/// Formats a string using a static buffer and returns the result.
-/// For details on formatting, see the `formatIntoBuffer` function.
+/// Formats into an internal static ring buffer and returns the slice.
+/// The slice is temporary and may be overwritten by later calls to `fmt`.
+/// For details on formatting, see the `fmtIntoBuffer` function.
 @trusted
 IStr fmt(A...)(IStr fmtStr, A args) {
     _fmtBufferIndex = (_fmtBufferIndex + 1) % _fmtBuffer.length;

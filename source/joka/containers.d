@@ -33,7 +33,7 @@ struct List(T) {
     alias Self = List!T;
     alias Item = T;
     alias Data = T[];
-    enum hasFixedCapacity = true;
+    enum hasFixedCapacity = false;
 
     Data items;
     Sz capacity;
@@ -182,6 +182,15 @@ struct List(T) {
         canIgnoreLeak = true;
         items.ignoreLeak();
     }
+
+    @nogc
+    IStr toStr() {
+        static if (isCharType!T) {
+            return items;
+        } else {
+            assert(0, "Cannot call `toStr` on `List!T` when `T` is not a character type.");
+        }
+    }
 }
 
 /// A dynamic array that uses external memory provided at runtime.
@@ -190,7 +199,7 @@ struct BufferList(T) {
     alias Self = BufferList!T;
     alias Item = T;
     alias Data = T[];
-    enum hasFixedCapacity = false;
+    enum hasFixedCapacity = true;
 
     Data data;
     Sz length;
@@ -290,6 +299,14 @@ struct BufferList(T) {
 
     void free(IStr file = __FILE__, Sz line = __LINE__) {}
     void ignoreLeak() {}
+
+    IStr toStr() {
+        static if (isCharType!T) {
+            return items;
+        } else {
+            assert(0, "Cannot call `toStr` on `List!T` when `T` is not a character type.");
+        }
+    }
 }
 
 /// A dynamic array allocated on the stack.
@@ -300,7 +317,7 @@ struct FixedList(T, Sz N) {
     alias Self = FixedList!(T, N);
     alias Item = T;
     alias Data = Array!(T, N);
-    enum hasFixedCapacity = false;
+    enum hasFixedCapacity = true;
 
     Data data = void;
     Sz length;
@@ -399,6 +416,14 @@ struct FixedList(T, Sz N) {
 
     void free(IStr file = __FILE__, Sz line = __LINE__) {}
     void ignoreLeak() {}
+
+    IStr toStr() {
+        static if (isCharType!T) {
+            return items;
+        } else {
+            assert(0, "Cannot call `toStr` on `List!T` when `T` is not a character type.");
+        }
+    }
 }
 
 /// An item of a sparse array.
@@ -1151,8 +1176,8 @@ alias formatIntoList = fmtIntoList;
 /// Formats a string using a list and returns the resulting formatted string.
 /// The list is cleared before writing.
 /// For details on formatting behavior, see the `fmtIntoBufferWithStrs` function in the `ascii` module.
-IStr fmtIntoList(A...)(ref LStr list, IStr fmtStr, A args) {
-    list.clear();
+IStr fmtIntoList(bool canAppend = false, S = LStr, A...)(ref S list, IStr fmtStr, A args) {
+    if (!canAppend) list.clear();
     auto fmtStrIndex = 0;
     auto argIndex = 0;
     while (fmtStrIndex < fmtStr.length) {
@@ -1163,6 +1188,9 @@ IStr fmtIntoList(A...)(ref LStr list, IStr fmtStr, A args) {
             foreach (i, arg; args) {
                 if (i == argIndex) {
                     auto temp = arg.toStr();
+                    static if (S.hasFixedCapacity) {
+                        if (list.capacity < list.length + temp.length) return "";
+                    }
                     list.append(temp);
                     fmtStrIndex += 2;
                     argIndex += 1;
@@ -1192,6 +1220,22 @@ void freeOnlyItems(T)(ref T container, IStr file = __FILE__, Sz line = __LINE__)
 void freeWithItems(T)(ref T container, IStr file = __FILE__, Sz line = __LINE__) {
     container.freeOnlyItems(file, line);
     container.free(file, line);
+}
+
+bool isLStrType(T)() {
+    return is(T == List!char);
+}
+
+bool isBStrType(T)() {
+    return is(T == BufferList!char);
+}
+
+bool isFStrType(T)() {
+    return is(T == FixedList!(char, N), Sz N);
+}
+
+bool isStrContainerType(T)() {
+    return isLStrType!T || isBStrType!T || isFStrType!T;
 }
 
 // Function test.

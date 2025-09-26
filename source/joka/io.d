@@ -14,33 +14,98 @@ import joka.types;
 import joka.memory;
 import stdc = joka.stdc.stdio;
 
-@trusted
-void printf(A...)(IStr text, A args) {
-    stdc.fputs(fmt("{}\0", fmt(text, args)).ptr, stdc.stdout);
+enum StdStream : ubyte {
+    input,
+    output,
+    error,
 }
 
 @trusted
-void printfln(A...)(IStr text, A args) {
-    printf(text, args);
-    printf("\n");
+void printf(StdStream stream = StdStream.output, A...)(IStr fmtStr, A args) {
+    static assert(stream != StdStream.input, "Can't print to standard input.");
+
+    auto text = fmt(fmtStr, args);
+    auto textData = cast(Str) text.ptr[0 .. defaultAsciiBufferSize];
+    if (text.length == 0 || text.length == textData.length) return;
+    textData[text.length] = '\0';
+    stdc.fputs(textData.ptr, stream == StdStream.output ? stdc.stdout : stdc.stderr);
+}
+
+@trusted
+void printfln(StdStream stream = StdStream.output, A...)(IStr fmtStr, A args) {
+    static assert(stream != StdStream.input, "Can't print to standard input.");
+
+    auto text = fmt(fmtStr, args);
+    auto textData = cast(Str) text.ptr[0 .. defaultAsciiBufferSize];
+    if (text.length == 0 || text.length == textData.length || text.length + 1 == textData.length) return;
+    textData[text.length] = '\n';
+    textData[text.length + 1] = '\0';
+    stdc.fputs(textData.ptr, stream == StdStream.output ? stdc.stdout : stdc.stderr);
 }
 
 @safe
-void print(A...)(A args) {
+void print(StdStream stream = StdStream.output, A...)(A args) {
     static if (is(A[0] == Sep)) {
         foreach (i, arg; args[1 .. $]) {
-            if (i) printf("{}", args[0].value);
-            printf("{}", arg);
+            if (i) printf!stream("{}", args[0].value);
+            printf!stream("{}", arg);
         }
     } else {
-        foreach (arg; args) printf("{}", arg);
+        foreach (arg; args) printf!stream("{}", arg);
     }
 }
 
 @safe
-void println(A...)(A args) {
-    print(args);
-    print("\n");
+void println(StdStream stream = StdStream.output, A...)(A args) {
+    print!stream(args);
+    print!stream("\n");
+}
+
+@trusted
+IStr sprintf(S = LStr, A...)(ref S buffer, IStr fmtStr, A args) {
+    static if (isStrContainerType!S) {
+        return fmtIntoList!true(buffer, fmtStr, args);
+    } else {
+        return fmtIntoBuffer(buffer, fmtStr, args);
+    }
+}
+
+@trusted
+IStr sprintfln(S = LStr, A...)(ref S buffer, IStr fmtStr, A args) {
+    auto text = sprintf(buffer, fmtStr, args);
+    if (text.length == 0) return "";
+    static if (isStrContainerType!S) {
+        static if (isLStrType!S) {
+            buffer.append('\n');
+            return buffer[];
+        } else {
+            if (text.length == buffer.capacity) return "";
+            buffer.append('\n');
+            return buffer[];
+        }
+    } else {
+        if (text.length == buffer.length) return "";
+        buffer[text.length] = '\n';
+        return buffer[0 .. text.length + 1];
+    }
+}
+
+@safe
+void sprint(S = LStr, A...)(ref S buffer, A args) {
+    static if (is(A[0] == Sep)) {
+        foreach (i, arg; args[1 .. $]) {
+            if (i) sprintf(buffer, "{}", args[0].value);
+            sprintf(buffer, "{}", arg);
+        }
+    } else {
+        foreach (arg; args) sprintf(buffer, "{}", arg);
+    }
+}
+
+@safe
+void sprintln(S = LStr, A...)(ref S buffer,A args) {
+    sprint(buffer, args);
+    sprint(buffer, "\n");
 }
 
 @safe
@@ -48,13 +113,9 @@ void printMemoryTrackingInfo(IStr filter = "", bool canShowEmpty = false) {
     print(memoryTrackingInfo(filter, canShowEmpty));
 }
 
-// Why not.
-alias echo  = println;
-alias echon = print;
-
 @safe
-void tracef(IStr file = __FILE__, Sz line = __LINE__, A...)(IStr text, A args) {
-    printf("TRACE({}:{}): {}\n", file, line, text.fmt(args));
+void tracef(IStr file = __FILE__, Sz line = __LINE__, A...)(IStr fmtStr, A args) {
+    printf("TRACE({}:{}): {}\n", file, line, fmtStr.fmt(args));
 }
 
 @safe
