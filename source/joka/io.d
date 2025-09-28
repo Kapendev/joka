@@ -103,7 +103,7 @@ void sprint(S = LStr, A...)(ref S buffer, A args) {
 }
 
 @safe
-void sprintln(S = LStr, A...)(ref S buffer,A args) {
+void sprintln(S = LStr, A...)(ref S buffer, A args) {
     sprint(buffer, args);
     sprint(buffer, "\n");
 }

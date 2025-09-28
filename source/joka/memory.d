@@ -66,7 +66,12 @@ struct Heap(T) {
         ptr = jokaMakeBlank!T(file, line);
     }
 
-    void make(T value = T.init, IStr file = __FILE__, Sz line = __LINE__) {
+    void make(IStr file = __FILE__, Sz line = __LINE__) {
+        free(file, line);
+        ptr = jokaMake!T(file, line);
+    }
+
+    void make(T value, IStr file = __FILE__, Sz line = __LINE__) {
         free(file, line);
         ptr = jokaMake!T(value, file, line);
     }
@@ -208,7 +213,14 @@ T* jokaMakeBlank(T)(IStr file = __FILE__, Sz line = __LINE__) {
 }
 
 @trusted
-T* jokaMake(T)(const(T) value = T.init, IStr file = __FILE__, Sz line = __LINE__) {
+T* jokaMake(T)(IStr file = __FILE__, Sz line = __LINE__) {
+    auto result = jokaMakeBlank!T(file, line);
+    *result = T.init;
+    return result;
+}
+
+@trusted
+T* jokaMake(T)(const(T) value, IStr file = __FILE__, Sz line = __LINE__) {
     auto result = jokaMakeBlank!T(file, line);
     *result = cast(T) value;
     return result;
@@ -220,7 +232,14 @@ T[] jokaMakeSliceBlank(T)(Sz length, IStr file = __FILE__, Sz line = __LINE__) {
 }
 
 @trusted
-T[] jokaMakeSlice(T)(Sz length, const(T) value = T.init, IStr file = __FILE__, Sz line = __LINE__) {
+T[] jokaMakeSlice(T)(Sz length, IStr file = __FILE__, Sz line = __LINE__) {
+    auto result = jokaMakeSliceBlank!T(length, file, line);
+    foreach (ref item; result) item = T.init;
+    return result;
+}
+
+@trusted
+T[] jokaMakeSlice(T)(Sz length, const(T) value, IStr file = __FILE__, Sz line = __LINE__) {
     auto result = jokaMakeSliceBlank!T(length, file, line);
     foreach (ref item; result) item = value;
     return result;

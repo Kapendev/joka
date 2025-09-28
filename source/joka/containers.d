@@ -981,7 +981,13 @@ struct Arena {
         return cast(T*) malloc(T.sizeof, T.alignof);
     }
 
-    T* make(T)(const(T) value = T.init) {
+    T* make(T)() {
+        auto result = makeBlank!T();
+        *result = T.init;
+        return result;
+    }
+
+    T* make(T)(const(T) value) {
         auto result = makeBlank!T();
         *result = cast(T) value;
         return result;
@@ -991,7 +997,13 @@ struct Arena {
         return (cast(T*) malloc(T.sizeof * length, T.alignof))[0 .. length];
     }
 
-    T[] makeSlice(T)(Sz length, const(T) value = T.init) {
+    T[] makeSlice(T)(Sz length) {
+        auto result = makeSliceBlank!T(length);
+        foreach (ref item; result) item = T.init;
+        return result;
+    }
+
+    T[] makeSlice(T)(Sz length, const(T) value) {
         auto result = makeSliceBlank!T(length);
         foreach (ref item; result) item = value;
         return result;
@@ -1097,7 +1109,13 @@ struct GrowingArena {
         return cast(T*) malloc(T.sizeof, T.alignof, file, line);
     }
 
-    T* make(T)(const(T) value = T.init, IStr file = __FILE__, Sz line = __LINE__) {
+    T* make(T)(IStr file = __FILE__, Sz line = __LINE__) {
+        auto result = makeBlank!T(file, line);
+        *result = T.init;
+        return result;
+    }
+
+    T* make(T)(const(T) value, IStr file = __FILE__, Sz line = __LINE__) {
         auto result = makeBlank!T(file, line);
         *result = cast(T) value;
         return result;
@@ -1107,7 +1125,13 @@ struct GrowingArena {
         return (cast(T*) malloc(T.sizeof * length, T.alignof, file, line))[0 .. length];
     }
 
-    T[] makeSlice(T)(Sz length, const(T) value = T.init, IStr file = __FILE__, Sz line = __LINE__) {
+    T[] makeSlice(T)(Sz length, IStr file = __FILE__, Sz line = __LINE__) {
+        auto result = makeSliceBlank!T(length, file, line);
+        foreach (ref item; result) item = T.init;
+        return result;
+    }
+
+    T[] makeSlice(T)(Sz length, const(T) value, IStr file = __FILE__, Sz line = __LINE__) {
         auto result = makeSliceBlank!T(length, file, line);
         foreach (ref item; result) item = value;
         return result;
