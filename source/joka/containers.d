@@ -428,7 +428,9 @@ struct FixedList(T, Sz N) {
 
 /// An item of a sparse array.
 struct SparseListItem(T) {
-    T value;
+    alias Item = T;
+
+    Item value;
     bool flag;
 }
 
@@ -452,9 +454,7 @@ struct SparseList(T, D = List!(SparseListItem!T)) {
 
     @trusted @nogc
     ref T opIndex(Sz i) {
-        if (!has(i)) {
-            assert(0, "Index `[{}]` does not exist.".fmt(i));
-        }
+        if (!has(i)) assert(0, "Index `[{}]` does not exist.".fmt(i));
         return data[i].value;
     }
 
@@ -488,6 +488,11 @@ struct SparseList(T, D = List!(SparseListItem!T)) {
     @nogc
     bool has(Sz i) {
         return i < data.length && data[i].flag;
+    }
+
+    @nogc
+    ref T hotItem() {
+        return opIndex(hotIndex);
     }
 
     @trusted
