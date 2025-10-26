@@ -19,5 +19,5 @@ void main() {
     auto text = LStr("D is... ");
     scope (exit) text.free();
     text.append("really cool!");
-    println(text[]);
+    println(text);
 }
