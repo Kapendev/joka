@@ -1,5 +1,5 @@
 // ---
-// Copyright 2024 Alexandros F. G. Kapretsos
+// Copyright 2025 Alexandros F. G. Kapretsos
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
@@ -25,16 +25,6 @@ struct ArgToken {
     ArgType type; /// The type of the argument.
     IStr name;    /// The name of the argument. Always present.
     IStr value;   /// The value of the argument. May be empty.
-
-    @safe nothrow @nogc:
-
-    IStr toStr() {
-        return "{\"{}\":\"{}\"}".fmt(name, value);
-    }
-
-    IStr toString() {
-        return toStr();
-    }
 }
 
 /// A range of parsed tokens from the command-line arguments.
@@ -94,6 +84,8 @@ ArgTokenRange toArgTokens(const(IStr)[] args...) {
 auto toArgTokensFromStr(IStr args) {
     return toArgTokens(args.toCliArgs());
 }
+
+// TODO: Got kinda lazy. You could add more helper functions. Maybe do it later.
 
 /// Returns true if the first argument matches the given command.
 bool hasCommand(const(IStr)[] args, IStr command) {

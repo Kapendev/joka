@@ -32,7 +32,7 @@ void main() {
         "a/",
         "path\\concat\\",
     );
-    path = path.pathFormat();
+    path = path.pathFmt();
     println("Path: ", path);
     println("Parts: ", path.pathSplit().length);
 }

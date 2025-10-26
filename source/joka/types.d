@@ -1,5 +1,5 @@
 // ---
-// Copyright 2024 Alexandros F. G. Kapretsos
+// Copyright 2025 Alexandros F. G. Kapretsos
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
@@ -20,12 +20,12 @@ alias IStr    = const(char)[];  /// A string slice of constant chars.
 alias IStr16  = const(wchar)[]; /// A string slice of constant wchars.
 alias IStr32  = const(dchar)[]; /// A string slice of constant dchars.
 
-alias CStr    = char*;          /// A C string of chars.
-alias CStr16  = wchar*;         /// A C string of wchars.
-alias CStr32  = dchar*;         /// A C string of dchars.
-alias ICStr   = const(char)*;   /// A C string of constant chars.
-alias ICStr16 = const(wchar)*;  /// A C string of constant wchars.
-alias ICStr32 = const(dchar)*;  /// A C string of constant dchars.
+alias Strz    = char*;          /// A C string of chars.
+alias Strz16  = wchar*;         /// A C string of wchars.
+alias Strz32  = dchar*;         /// A C string of dchars.
+alias IStrz   = const(char)*;   /// A C string of constant chars.
+alias IStrz16 = const(wchar)*;  /// A C string of constant wchars.
+alias IStrz32 = const(dchar)*;  /// A C string of constant dchars.
 
 alias UnionType = ubyte;
 alias AliasArgs(A...) = A;
@@ -38,33 +38,38 @@ enum petabyte = 1024 * terabyte;
 enum exabyte  = 1024 * petabyte;
 
 /// A type representing error values.
-// NOTE: Should cantParse be cannotParse? Who cares? We already write Rgba instead of RGBA for example.
 enum Fault : ubyte {
-    none,      /// Not an error.
-    some,      /// A generic error.
-    bug,       /// An implementation error.
-    invalid,   /// An invalid data error.
-    overflow,  /// An overflow error.
-    assertion, /// An assertion error.
-    cantParse, /// A parse error.
-    cantFind,  /// A wrong path error.
-    cantOpen,  /// An open permissions error.
-    cantClose, /// A close permissions error.
-    cantRead,  /// A read permissions error.
-    cantWrite, /// A write permissions error.
+    none,          /// Not an error.
+    some,          /// A generic error.
+    bug,           /// An implementation error.
+    invalid,       /// An invalid data error.
+    overflow,      /// An overflow error.
+    range,         /// A range violation error.
+    assertion,     /// An assertion error.
+    unconfigured,  /// A missing configuration error.
+    unauthorized,  /// A permission or access rights error.
+    unrecognized,  /// An unknown or unsupported type error.
+    cannotFind,    /// A wrong path error.
+    cannotCreate,  /// A creation permissions error.
+    cannotDestroy, /// A destruction permissions error.
+    cannotOpen,    /// An open permissions error.
+    cannotClose,   /// A close permissions error.
+    cannotRead,    /// A read permissions error.
+    cannotWrite,   /// A write permissions error.
 }
 
 /// A static array.
-// It exists mainly because of weird BetterC stuff.
-struct Array(T, Sz N) {
-    align(T.alignof) ubyte[T.sizeof * N] _data;
-
+/// It exists mainly because of BetterC + `struct[N]`.
+struct StaticArray(T, Sz N) {
+    alias Self = StaticArray!(T, N);
     enum length = N;
     enum capacity = N;
 
+    align(T.alignof) ubyte[T.sizeof * N] _data;
+
     pragma(inline, true) @trusted nothrow @nogc:
 
-    mixin addSliceOps!(Array!(T, N), T);
+    mixin addSliceOps!(Self, T);
 
     this(const(T)[] items...) {
         if (items.length > N) assert(0, "Too many items.");
@@ -88,7 +93,7 @@ struct Maybe(T) {
     T _data;                   /// The value.
     Fault _fault = Fault.some; /// The error code.
 
-    pragma(inline, true) @safe nothrow @nogc:
+    @safe nothrow @nogc:
 
     this(const(T) value) {
         opAssign(value);
@@ -198,7 +203,7 @@ struct Union(A...) {
         }
     }
 
-    pragma(inline, true) @trusted nothrow @nogc:
+    @trusted nothrow @nogc:
 
     static foreach (i, T; A) {
         this(const(T) value) {
@@ -263,23 +268,11 @@ struct Union(A...) {
     }
 }
 
-/// Converts the value to a fault.
-pragma(inline, true)
-Fault toFault(bool value, Fault other = Fault.some) {
-    return value ? other : Fault.none;
-}
-
-T toUnion(T)(UnionType type) {
-    static assert(isUnionType!T, "Type `" ~ T.stringof  ~ "` is not a variant.");
-
+T toUnion(T)(UnionType type) if (isUnionType!T) {
     T result;
     static foreach (i, Type; T.Types) {
         if (i == type) {
-            static if (isNumberType!Type) {
-                result = cast(Type) 0;
-            } else {
-                result = Type.init;
-            }
+            result = Type.init;
             goto loopExit;
         }
     }
@@ -287,17 +280,11 @@ T toUnion(T)(UnionType type) {
     return result;
 }
 
-T toUnion(T)(IStr typeName) {
-    static assert(isUnionType!T, "Type `" ~ T.stringof  ~ "` is not a variant.");
-
+T toUnion(T)(IStr typeName) if (isUnionType!T) {
     T result;
     static foreach (i, Type; T.Types) {
         if (Type.stringof == typeName) {
-            static if (isNumberType!Type) {
-                result = cast(Type) 0;
-            } else {
-                result = Type.init;
-            }
+            result = Type.init;
             goto loopExit;
         }
     }
@@ -309,168 +296,12 @@ bool isUnionType(T)() {
     return is(T : Union!A, A...);
 }
 
-bool isBoolType(T)() {
-    return
-        is(T == bool) ||
-        is(T == const(bool)) ||
-        is(T == immutable(bool));
-}
-
-bool isCharType(T)() {
-    return
-        is(T == char) ||
-        is(T == const(char)) ||
-        is(T == immutable(char));
-}
-
-bool isUnsignedType(T)() {
-    return
-        is(T == ubyte) ||
-        is(T == const(ubyte)) ||
-        is(T == immutable(ubyte)) ||
-        is(T == ushort) ||
-        is(T == const(ushort)) ||
-        is(T == immutable(ushort)) ||
-        is(T == uint) ||
-        is(T == const(uint)) ||
-        is(T == immutable(uint)) ||
-        is(T == ulong) ||
-        is(T == const(ulong)) ||
-        is(T == immutable(ulong));
-}
-
-bool isSignedType(T)() {
-    return
-        is(T == byte) ||
-        is(T == const(byte)) ||
-        is(T == immutable(byte)) ||
-        is(T == short) ||
-        is(T == const(short)) ||
-        is(T == immutable(short)) ||
-        is(T == int) ||
-        is(T == const(int)) ||
-        is(T == immutable(int)) ||
-        is(T == long) ||
-        is(T == const(long)) ||
-        is(T == immutable(long));
-}
-
-bool isIntegerType(T)() {
-    return
-        is(T == ubyte) ||
-        is(T == const(ubyte)) ||
-        is(T == immutable(ubyte)) ||
-        is(T == ushort) ||
-        is(T == const(ushort)) ||
-        is(T == immutable(ushort)) ||
-        is(T == uint) ||
-        is(T == const(uint)) ||
-        is(T == immutable(uint)) ||
-        is(T == ulong) ||
-        is(T == const(ulong)) ||
-        is(T == immutable(ulong)) ||
-        is(T == byte) ||
-        is(T == const(byte)) ||
-        is(T == immutable(byte)) ||
-        is(T == short) ||
-        is(T == const(short)) ||
-        is(T == immutable(short)) ||
-        is(T == int) ||
-        is(T == const(int)) ||
-        is(T == immutable(int)) ||
-        is(T == long) ||
-        is(T == const(long)) ||
-        is(T == immutable(long));
-}
-
-bool isFloatType(T)() {
-    return
-        is(T == float) ||
-        is(T == const(float)) ||
-        is(T == immutable(float));
-}
-
-bool isDoubleType(T)() {
-    return
-        is(T == double) ||
-        is(T == const(double)) ||
-        is(T == immutable(double));
-}
-
-bool isFloatingType(T)() {
-    return
-        is(T == float) ||
-        is(T == const(float)) ||
-        is(T == immutable(float)) ||
-        is(T == double) ||
-        is(T == const(double)) ||
-        is(T == immutable(double));
-}
-
-bool isNumberType(T)() {
-    return
-        is(T == ubyte) ||
-        is(T == const(ubyte)) ||
-        is(T == immutable(ubyte)) ||
-        is(T == ushort) ||
-        is(T == const(ushort)) ||
-        is(T == immutable(ushort)) ||
-        is(T == uint) ||
-        is(T == const(uint)) ||
-        is(T == immutable(uint)) ||
-        is(T == ulong) ||
-        is(T == const(ulong)) ||
-        is(T == immutable(ulong)) ||
-        is(T == byte) ||
-        is(T == const(byte)) ||
-        is(T == immutable(byte)) ||
-        is(T == short) ||
-        is(T == const(short)) ||
-        is(T == immutable(short)) ||
-        is(T == int) ||
-        is(T == const(int)) ||
-        is(T == immutable(int)) ||
-        is(T == long) ||
-        is(T == const(long)) ||
-        is(T == immutable(long)) ||
-        is(T == float) ||
-        is(T == const(float)) ||
-        is(T == immutable(float)) ||
-        is(T == double) ||
-        is(T == const(double)) ||
-        is(T == immutable(double));
-}
-
-bool isPrimaryType(T)() {
-    return isBoolType!T || isCharType!T || isNumberType!T;
-}
-
-bool isArrayType(T)() {
-    return is(T : const(A)[N], A, Sz N);
-}
-
-bool isPtrType(T)() {
-    return is(T : const(void)*);
-}
-
-bool isSliceType(T)() {
-    return is(T : const(A)[], A);
-}
-
-bool isEnumType(T)() {
-    return is(T == enum);
-}
-
-bool isStructType(T)() {
-    return is(T == struct);
-}
-
 bool isStrType(T)() {
     return is(T : IStr);
 }
 
-bool isCStrType(T)() {
-    return is(T : ICStr);
+bool isStrzType(T)() {
+    return is(T : IStrz);
 }
 
 int findInAliasArgs(T, A...)() {
@@ -493,41 +324,27 @@ IStr funcImplementationErrorMessage(T, IStr func)() {
 
 IStr toCleanNumber(alias i)() {
     enum str = i.stringof;
-    static if (str.length >= 3 && (((str[$ - 1] == 'L' || str[$ - 1] == 'l') && (str[$ - 2] == 'U' || str[$ - 2] == 'u')) || ((str[$ - 1] == 'U' || str[$ - 1] == 'u') && (str[$ - 2] == 'L' || str[$ - 2] == 'l')))) {
-        return str[0 .. $ - 2];
-    } else static if (str.length >= 2 && (str[$ - 1] == 'U' || str[$ - 1] == 'u')) {
-        return str[0 .. $ - 1];
-    } else static if (str.length >= 2 && (str[$ - 1] == 'L' || str[$ - 1] == 'l')) {
-        return str[0 .. $ - 1];
+    static if (str[$ - 1] == 'L' || str[$ - 1] == 'l' || str[$ - 1] == 'U' || str[$ - 1] == 'u') {
+        static if (str[$ - 2] == 'L' || str[$ - 2] == 'l' || str[$ - 2] == 'U' || str[$ - 2] == 'u') {
+            return str[0 .. $ - 2];
+        } else {
+            return str[0 .. $ - 1];
+        }
     } else {
         return str;
     }
 }
 
-pragma(inline, true) @trusted
-Sz offsetOf(T, IStr member)() {
-    static assert(__traits(hasMember, T, member), "Member doesn't exist.");
+@trusted
+Sz offsetOf(T, IStr member)() if (__traits(hasMember, T, member)) {
     T temp = void;
     return (cast(ubyte*) mixin("&temp.", member)) - (cast(ubyte*) &temp);
 }
 
-pragma(inline, true) @safe nothrow @nogc pure {
-    bool isNan(float x) {
-        return !(x == x);
-    }
+pure
+bool isNan(double x) => !(x == x);
 
-    bool isNan64(double x) {
-        return !(x == x);
-    }
-}
-
-template toStaticArray(alias slice) {
-    enum toStaticArray = cast(typeof(slice[0])[slice.length]) slice;
-}
-
-mixin template addSliceOps(T, TT) {
-    static assert(__traits(hasMember, T, "items"), "Slice must implement the `" ~ TT.stringof ~ "[] items()` function or have a member called that.");
-
+mixin template addSliceOps(T, TT) if (__traits(hasMember, T, "items")) {
     pragma(inline, true) @trusted nothrow @nogc {
         TT[] opSlice(Sz dim)(Sz i, Sz j) {
             return items[i .. j];
@@ -559,11 +376,7 @@ mixin template addSliceOps(T, TT) {
     }
 }
 
-mixin template addXyzwOps(T, TT, Sz N, IStr form = "xyzw") {
-    static assert(N >= 2 && N <= 4, "Vector must have a dimension between 2 and 4.");
-    static assert(N == form.length, "Vector must have a dimension that is equal to the given form length.");
-    static assert(__traits(hasMember, T, "items"), "Vector must implement the `TT[] items()` function or have a member called that.");
-
+mixin template addXyzwOps(T, TT, Sz N, IStr form = "xyzw") if (__traits(hasMember, T, "items") && N >= 2 && N <= 4 && N == form.length) {
     pragma(inline, true) @trusted nothrow @nogc {
         T opUnary(IStr op)() {
             static if (N == 2) {
@@ -652,7 +465,9 @@ mixin template addXyzwOps(T, TT, Sz N, IStr form = "xyzw") {
         Sz opDollar(Sz dim)() {
             return N;
         }
+    }
 
+    @trusted nothrow @nogc {
         T _swizzleN(G)(const(G)[] args...) {
             if (args.length != N) assert(0, "Wrong swizzle length.");
             T result = void;
@@ -676,7 +491,7 @@ mixin template addXyzwOps(T, TT, Sz N, IStr form = "xyzw") {
         }
 
         T swizzle(G)(const(G)[] args...) {
-            static if (isCharType!G) {
+            static if (is(G == char)) {
                 return _swizzleC(args);
             } else {
                 return _swizzleN(args);
@@ -690,21 +505,13 @@ unittest {
     alias Number = Union!(float, double);
     struct Foo { int x; byte y; byte z; int w; }
 
-    assert(toFault(false) == Fault.none);
-    assert(toFault(true) == Fault.some);
-    assert(toFault(false, Fault.invalid) == Fault.none);
-    assert(toFault(true, Fault.invalid) == Fault.invalid);
-
-    assert(toUnion!Number(Number.typeOf!float).as!float == 0);
-    assert(toUnion!Number(Number.typeOf!double).as!double == 0);
-    assert(toUnion!Number(Number.typeNameOf!float).as!float == 0);
-    assert(toUnion!Number(Number.typeNameOf!double).as!double == 0);
+    assert(toUnion!Number(Number.typeOf!float).as!float.isNan == true);
+    assert(toUnion!Number(Number.typeOf!double).as!double.isNan == true);
+    assert(toUnion!Number(Number.typeNameOf!float).as!float.isNan == true);
+    assert(toUnion!Number(Number.typeNameOf!double).as!double.isNan == true);
 
     assert(isInAliasArgs!(int, AliasArgs!(float)) == false);
     assert(isInAliasArgs!(int, AliasArgs!(float, int)) == true);
-
-    assert(isArrayType!(int[3]) == true);
-    assert(isArrayType!(typeof(toStaticArray!([1, 2, 3]))));
 
     assert(offsetOf!(Foo, "x") == 0);
     assert(offsetOf!(Foo, "y") == 4);
@@ -714,26 +521,19 @@ unittest {
 
 // Maybe test.
 unittest {
-    assert(Maybe!int().isNone == true);
-    assert(Maybe!int().isSome == false);
+    assert(Maybe!int().fault == Fault.some);
     assert(Maybe!int().getOr() == 0);
-    assert(Maybe!int(0).isNone == false);
-    assert(Maybe!int(0).isSome == true);
+    assert(Maybe!int(0).fault == Fault.none);
     assert(Maybe!int(0).getOr() == 0);
-    assert(Maybe!int(69).isNone == false);
-    assert(Maybe!int(69).isSome == true);
+    assert(Maybe!int(69).fault == Fault.none);
     assert(Maybe!int(69).getOr() == 69);
-    assert(Maybe!int(Fault.none).isNone == false);
-    assert(Maybe!int(Fault.none).isSome == true);
+    assert(Maybe!int(Fault.none).fault == Fault.none);
     assert(Maybe!int(Fault.none).getOr() == 0);
-    assert(Maybe!int(Fault.some).isNone == true);
-    assert(Maybe!int(Fault.some).isSome == false);
+    assert(Maybe!int(Fault.some).fault == Fault.some);
     assert(Maybe!int(Fault.some).getOr() == 0);
-    assert(Maybe!int(69, Fault.none).isNone == false);
-    assert(Maybe!int(69, Fault.none).isSome == true);
+    assert(Maybe!int(69, Fault.none).fault == Fault.none);
     assert(Maybe!int(69, Fault.none).getOr() == 69);
-    assert(Maybe!int(69, Fault.some).isNone == true);
-    assert(Maybe!int(69, Fault.some).isSome == false);
+    assert(Maybe!int(69, Fault.some).fault == Fault.some);
     assert(Maybe!int(69, Fault.some).getOr() == 0);
 }
 

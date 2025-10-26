@@ -1,5 +1,5 @@
 // ---
-// Copyright 2024 Alexandros F. G. Kapretsos
+// Copyright 2025 Alexandros F. G. Kapretsos
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
@@ -8,15 +8,10 @@
 /// The `ascii` module provides functions designed to assist with ascii strings.
 module joka.ascii;
 
-import joka.memory;
 import joka.types;
+import stringc = joka.stdc.string;
 
 @safe:
-
-// TODO: Need to add more `intoBuffer*` functions.
-//   Like the split function is kinda not worth using lol.
-//   Concat too probably.
-//   Having helpers is fine, but yeah.
 
 enum defaultAsciiBufferCount    = 16;   // Generic string count.
 enum defaultAsciiBufferSize     = 1536; // Generic string length.
@@ -46,47 +41,50 @@ version (Windows) {
 enum sp = Sep(" ");  /// Space separator.
 enum cm = Sep(", "); /// Comma + space separator.
 
+/// Path separator style.
+enum PathSepStyle {
+    native,  /// The platform's default separator.
+    posix,   /// The `/` separator.
+    windows, /// The `\` separator.
+}
+
 /// Separator marker for printing, ...
 struct Sep { IStr value; }
+/// A string pair.
+struct IStrPair { IStr a; IStr b; }
 
 /// Converts the value to its string representation.
 @trusted
 IStr toStr(T)(T value) {
     static assert(
-        !isArrayType!T,
+        !(is(T : const(A)[N], A, Sz N)), // !isArrayType
         "Static arrays can't be passed to `toStr`. This may also happen indirectly when using printing functions. Convert to a slice first."
     );
 
-    static if (isCharType!T) {
-        return charToStr(value);
-    } else static if (isBoolType!T) {
-        return boolToStr(value);
-    } else static if (isUnsignedType!T) {
-        return unsignedToStr(value);
-    } else static if (isSignedType!T) {
-        return signedToStr(value);
-    } else static if (isFloatingType!T) {
-        return doubleToStr(value, 2);
-    } else static if (isStrType!T) {
-        return value;
-    } else static if (isCStrType!T) {
-        return cStrToStr(value);
-    } else static if (is(T == enum)) {
+    static if (is(T == enum)) { // isEnumType
         return enumToStr(value);
+    } else static if (is(T == char) || is(T == const(char)) || is(T == immutable(char))) { // isCharType
+        return charToStr(value);
+    } else static if (is(T == bool) || is(T == const(bool)) || is(T == immutable(bool))) { // isBoolType
+        return boolToStr(value);
+    } else static if (__traits(isUnsigned, T)) { // isUnsignedType
+        return unsignedToStr(value);
+    } else static if (__traits(isIntegral, T)) { // isSignedType
+        return signedToStr(value);
+    } else static if (__traits(isFloating, T)) { // isFloating
+        return floatingToStr(value, 2);
+    } else static if (is(T : IStr)) { // isStrType
+        return value;
+    } else static if (is(T : IStrz)) { // isStrzType
+        return strzToStr(value);
     } else static if (__traits(hasMember, T, "toStr")) {
         return value.toStr();
     } else static if (__traits(hasMember, T, "toString")) {
-        // I'm a nice person.
         return value.toString();
     } else {
-        static assert(0, "Type `" ~ T.stringof ~ "` doesn't implement the `toStr` function.");
+        static assert(0, "Type doesn't implement the `toStr` function.");
     }
 }
-
-deprecated("Use `fmtIntoBuffer` instead. All `format*` functions in Joka will be renamed to `fmt*` to avoid collisions with `std.format`.")
-alias formatIntoBuffer = fmtIntoBuffer;
-deprecated("Use `fmt` instead. All `format*` functions in Joka will be renamed to `fmt*` to avoid collisions with `std.format`.")
-alias format = fmt;
 
 /// Formats the given string by replacing `{}` placeholders with argument values in order.
 /// Options within placeholders are not supported.
@@ -130,11 +128,11 @@ byte                                                        _fmtBufferIndex = 0;
 @trusted
 IStr fmtIntoBuffer(A...)(Str buffer, IStr fmtStr, A args) {
     static assert(args.length <= defaultAsciiFmtBufferCount, "Too many format arguments.");
+    Str tempSlice;
     foreach (i, arg; args) {
-        auto slice = _fmtIntoBufferDataBuffer[i][];
-        auto temp = arg.toStr();
-        if (slice.copyStr(temp)) return ""; // assert(0, "An argument did not fit in the internal temporary buffer.");
-        _fmtIntoBufferSliceBuffer[i] = slice;
+        tempSlice = _fmtIntoBufferDataBuffer[i][];
+        if (tempSlice.copyStr(arg.toStr())) return ""; // assert(0, "An argument did not fit in the internal temporary buffer.");
+        _fmtIntoBufferSliceBuffer[i] = tempSlice;
     }
     return fmtIntoBufferWithStrs(buffer, fmtStr, _fmtIntoBufferSliceBuffer[0 .. args.length]);
 }
@@ -149,16 +147,82 @@ IStr fmt(A...)(IStr fmtStr, A args) {
 
     // `fmtIntoBuffer` body copy-pasted here to avoid one template.
     static assert(args.length <= defaultAsciiFmtBufferCount, "Too many format arguments.");
+    Str tempSlice;
     foreach (i, arg; args) {
-        auto slice = _fmtIntoBufferDataBuffer[i][];
-        auto temp = arg.toStr();
-        if (slice.copyStr(temp)) assert(0, "An argument did not fit in the internal temporary buffer.");
-        _fmtIntoBufferSliceBuffer[i] = slice;
+        tempSlice = _fmtIntoBufferDataBuffer[i][];
+        if (tempSlice.copyStr(arg.toStr())) return ""; // assert(0, "An argument did not fit in the internal temporary buffer.");
+        _fmtIntoBufferSliceBuffer[i] = tempSlice;
     }
     return fmtIntoBufferWithStrs(buffer, fmtStr, _fmtIntoBufferSliceBuffer[0 .. args.length]);
 }
 
 @safe nothrow @nogc:
+
+/// Formats into an internal static ring buffer and returns the slice.
+/// This function can be used for types that create a lot of template bloat.
+/// Example: GVec2, GVec3, GVec4, GRect, ...
+IStr fmtSignedGroup(IStr[] fmtStrs, long[] args...) {
+    if (fmtStrs.length != args.length) assert(0, "Argument count and format count should be the same.");
+    switch (fmtStrs.length) {
+        case 1:
+            return concat(
+                fmtStrs[0].fmt(args[0]),
+            );
+        case 2:
+            return concat(
+                fmtStrs[0].fmt(args[0]),
+                fmtStrs[1].fmt(args[1]),
+            );
+        case 3:
+            return concat(
+                fmtStrs[0].fmt(args[0]),
+                fmtStrs[1].fmt(args[1]),
+                fmtStrs[2].fmt(args[2]),
+            );
+        case 4:
+            return concat(
+                fmtStrs[0].fmt(args[0]),
+                fmtStrs[1].fmt(args[1]),
+                fmtStrs[2].fmt(args[2]),
+                fmtStrs[3].fmt(args[3]),
+            );
+        default:
+            assert(0, "Argument count should be between 1 and 4.");
+    }
+}
+
+/// Formats into an internal static ring buffer and returns the slice.
+/// This function can be used for types that create a lot of template bloat.
+/// Example: GVec2, GVec3, GVec4, GRect, ...
+IStr fmtFloatingGroup(IStr[] fmtStrs, double[] args...) {
+    if (fmtStrs.length != args.length) assert(0, "Argument count and format count should be the same.");
+    switch (fmtStrs.length) {
+        case 1:
+            return concat(
+                fmtStrs[0].fmt(args[0]),
+            );
+        case 2:
+            return concat(
+                fmtStrs[0].fmt(args[0]),
+                fmtStrs[1].fmt(args[1]),
+            );
+        case 3:
+            return concat(
+                fmtStrs[0].fmt(args[0]),
+                fmtStrs[1].fmt(args[1]),
+                fmtStrs[2].fmt(args[2]),
+            );
+        case 4:
+            return concat(
+                fmtStrs[0].fmt(args[0]),
+                fmtStrs[1].fmt(args[1]),
+                fmtStrs[2].fmt(args[2]),
+                fmtStrs[3].fmt(args[3]),
+            );
+        default:
+            assert(0, "Argument count should be between 1 and 4.");
+    }
+}
 
 pragma(inline, true) {
     /// Returns true if the character is a digit (0-9).
@@ -197,7 +261,7 @@ pragma(inline, true) {
     }
 
     /// Returns true if the string represents a C string.
-    bool isCStr(IStr str) {
+    bool isStrz(IStr str) {
         return str.length != 0 && str[$ - 1] == '\0';
     }
 
@@ -212,18 +276,20 @@ pragma(inline, true) {
     }
 
     /// Converts all lowercase letters in the string to uppercase.
-    void toUpper(Str str) {
+    Str toUpper(Str str) {
         foreach (ref c; str) c = toUpper(c);
+        return str;
     }
 
     /// Converts all uppercase letters in the string to lowercase.
-    void toLower(Str str) {
+    Str toLower(Str str) {
         foreach (ref c; str) c = toLower(c);
+        return str;
     }
 
     /// Returns the length of the C string.
     @trusted
-    Sz cStrLength(ICStr str) {
+    Sz strzLength(IStrz str) {
         Sz result = 0;
         while (str[result]) result += 1;
         return result;
@@ -375,7 +441,7 @@ IStr advanceStr(IStr str, Sz amount) {
 @trusted
 Fault copyChars(Str str, IStr source, Sz startIndex = 0) {
     if (str.length < source.length + startIndex) return Fault.overflow;
-    jokaMemcpy(&str[startIndex], source.ptr, source.length);
+    stringc.memcpy(&str[startIndex], source.ptr, source.length);
     return Fault.none;
 }
 
@@ -431,9 +497,19 @@ IStr[] split(IStr str, char sep) {
     return split(str, charToStr(sep));
 }
 
+/// Returns the main and alternate separators for the given style.
+IStrPair pathSepStrPair(PathSepStyle style) {
+    with (PathSepStyle) final switch (style) {
+        case native: return IStrPair(pathSepStr, pathSepOtherStr);
+        case posix: return IStrPair("/", "\\");
+        case windows: return IStrPair("\\", "/");
+    }
+}
+
 /// Returns the directory of the path, or "." if there is no directory.
-IStr pathDirName(IStr path) {
-    auto end = findEnd(path, pathSepStr);
+IStr pathDirName(IStr path, PathSepStyle style = PathSepStyle.native) {
+    auto pair = pathSepStrPair(style);
+    auto end = findEnd(path, pair.a);
     if (end == -1) return ".";
     else return path[0 .. end];
 }
@@ -446,8 +522,9 @@ IStr pathExtName(IStr path) {
 }
 
 /// Returns the base name of the path.
-IStr pathBaseName(IStr path) {
-    auto end = findEnd(path, pathSepStr);
+IStr pathBaseName(IStr path, PathSepStyle style = PathSepStyle.native) {
+    auto pair = pathSepStrPair(style);
+    auto end = findEnd(path, pair.a);
     if (end == -1) return path;
     else return path[end + 1 .. $];
 }
@@ -458,10 +535,11 @@ IStr pathBaseNameNoExt(IStr path) {
 }
 
 /// Removes path separators from the beginning of the path.
-IStr pathTrimStart(IStr path) {
-    IStr result = path;
+IStr pathTrimStart(IStr path, PathSepStyle style = PathSepStyle.native) {
+    auto result = path;
+    auto pair = pathSepStrPair(style);
     while (result.length > 0) {
-        if (result[0] == pathSep || result[0] == pathSepOther) result = result[1 .. $];
+        if (result[0] == pair.a[0] || result[0] == pair.b[0]) result = result[1 .. $];
         else break;
     }
     return result;
@@ -469,10 +547,11 @@ IStr pathTrimStart(IStr path) {
 }
 
 /// Removes path separators from the end of the path.
-IStr pathTrimEnd(IStr path) {
-    IStr result = path;
+IStr pathTrimEnd(IStr path, PathSepStyle style = PathSepStyle.native) {
+    auto result = path;
+    auto pair = pathSepStrPair(style);
     while (result.length > 0) {
-        if (result[$ - 1] == pathSep || result[$ - 1] == pathSepOther) result = result[0 .. $ - 1];
+        if (result[$ - 1] == pair.a[0] || result[$ - 1] == pair.b[0]) result = result[0 .. $ - 1];
         else break;
     }
     return result;
@@ -484,68 +563,68 @@ IStr pathTrim(IStr path) {
 }
 
 /// Formats the path to a standard form, normalizing separators.
-IStr pathFormat(IStr path) {
+IStr pathFmt(IStr path, PathSepStyle style = PathSepStyle.native) {
     static char[defaultAsciiBufferSize][defaultAsciiBufferCount] buffers = void;
     static byte bufferIndex = 0;
 
     if (path.length == 0) return ".";
     bufferIndex = (bufferIndex + 1) % buffers.length;
-    auto result = buffers[bufferIndex][];
-    foreach (i, c; path) {
-        if (c == pathSepOther) {
-            result[i] = pathSep;
-        } else {
-            result[i] = c;
-        }
-    }
-    result = result[0 .. path.length];
-    return result;
+    auto bufferSlice = buffers[bufferIndex][];
+    auto pair = pathSepStrPair(style);
+    foreach (i, c; path) bufferSlice[i] = c == pair.b[0] ? pair.a[0] : c;
+    return bufferSlice[0 .. path.length];
 }
 
 /// Concatenates the paths, ensuring proper path separators between them.
 IStr pathConcat(IStr[] args...) {
+    return pathConcat(PathSepStyle.native, args);
+}
+
+/// Concatenates the paths, ensuring proper path separators between them.
+IStr pathConcat(PathSepStyle style, IStr[] args...) {
     static char[defaultAsciiBufferSize][defaultAsciiBufferCount] buffers = void;
     static byte bufferIndex = 0;
 
     if (args.length == 0) return ".";
     bufferIndex = (bufferIndex + 1) % buffers.length;
-    auto result = buffers[bufferIndex][];
+    auto bufferSlice = buffers[bufferIndex][];
+    auto pair = pathSepStrPair(style);
     auto length = 0;
     auto isFirst = true;
     foreach (i, arg; args) {
         if (arg.length == 0) continue;
         auto cleanArg = arg;
-        if (cleanArg[0] == pathSep || cleanArg[0] == pathSepOther) {
+        if (cleanArg[0] == pair.a[0] || cleanArg[0] == pair.b[0]) {
             cleanArg = cleanArg.pathTrimStart();
             if (isFirst) {
-                result[length] = pathSep;
+                bufferSlice[length] = pair.a[0];
                 length += 1;
             }
         }
         cleanArg = cleanArg.pathTrimEnd();
-        result.copyChars(cleanArg, length);
+        bufferSlice.copyChars(cleanArg, length);
         length += cleanArg.length;
         if (i != args.length - 1) {
-            result[length] = pathSep;
+            bufferSlice[length] = pair.a[0];
             length += 1;
         }
         isFirst = false;
     }
     if (length == 0) return ".";
-    result = result[0 .. length];
-    return result;
+    return bufferSlice[0 .. length];
 }
 
 /// Splits the path using a static buffer and returns the result.
 @trusted
-IStr[] pathSplit(IStr str) {
+IStr[] pathSplit(IStr str, PathSepStyle style = PathSepStyle.native) {
     static IStr[defaultAsciiBufferSize][defaultAsciiBufferCount] buffers = void;
     static byte bufferIndex = 0;
 
     bufferIndex = (bufferIndex + 1) % buffers.length;
+    auto pair = pathSepStrPair(style);
     auto length = 0;
     while (str.length != 0) {
-        buffers[bufferIndex][length] = str.skipValue(pathSep);
+        buffers[bufferIndex][length] = str.skipValue(pair.a);
         length += 1;
     }
     return buffers[bufferIndex][0 .. length];
@@ -635,7 +714,7 @@ IStr signedToStr(long value) {
 }
 
 /// Converts the double value to its string representation with the specified precision.
-IStr doubleToStr(double value, ulong precision = 2) {
+IStr floatingToStr(double value, ulong precision = 2) {
     static char[64] buffer = void;
 
     if (!(value == value)) return "nan";
@@ -695,8 +774,8 @@ IStr doubleToStr(double value, ulong precision = 2) {
 
 /// Converts the C string to a string.
 @trusted
-IStr cStrToStr(ICStr value) {
-    return value[0 .. value.cStrLength];
+IStr strzToStr(IStrz value) {
+    return value[0 .. value.strzLength];
 }
 
 /// Converts the enum value to its string representation.
@@ -716,7 +795,7 @@ Maybe!bool toBool(IStr str) {
     } else if (str == "true" || str == "T" || str == "t") {
         return Maybe!bool(true);
     } else {
-        return Maybe!bool(Fault.cantParse);
+        return Maybe!bool(Fault.invalid);
     }
 }
 
@@ -726,7 +805,7 @@ Maybe!ulong toUnsigned(IStr str) {
         return Maybe!ulong(Fault.overflow);
     } else {
         if (str.length == 1 && str[0] == '+') {
-            return Maybe!ulong(Fault.cantParse);
+            return Maybe!ulong(Fault.invalid);
         }
         ulong value = 0;
         ulong level = 1;
@@ -735,7 +814,7 @@ Maybe!ulong toUnsigned(IStr str) {
                 value += (c - '0') * level;
                 level *= 10;
             } else {
-                return Maybe!ulong(Fault.cantParse);
+                return Maybe!ulong(Fault.invalid);
             }
         }
         return Maybe!ulong(value);
@@ -747,7 +826,7 @@ Maybe!ulong toUnsigned(char c) {
     if (isDigit(c)) {
         return Maybe!ulong(c - '0');
     } else {
-        return Maybe!ulong(Fault.cantParse);
+        return Maybe!ulong(Fault.invalid);
     }
 }
 
@@ -766,13 +845,13 @@ Maybe!long toSigned(char c) {
     if (isDigit(c)) {
         return Maybe!long(c - '0');
     } else {
-        return Maybe!long(Fault.cantParse);
+        return Maybe!long(Fault.invalid);
     }
 }
 
 /// Converts the string to a double.
-Maybe!double toDouble(IStr str) {
-    if (str == "nan") return Maybe!double(double.nan);
+Maybe!double toFloating(IStr str) {
+    if (str == "nan" || str == "NaN" || str == "NAN") return Maybe!double(double.nan);
     auto dotIndex = findStart(str, '.');
     if (dotIndex == -1) {
         auto temp = toSigned(str);
@@ -781,9 +860,9 @@ Maybe!double toDouble(IStr str) {
         auto left = toSigned(str[0 .. dotIndex]);
         auto right = toSigned(str[dotIndex + 1 .. $]);
         if (left.isNone || right.isNone) {
-            return Maybe!double(Fault.cantParse);
+            return Maybe!double(Fault.invalid);
         } else if (str[dotIndex + 1] == '-' || str[dotIndex + 1] == '+') {
-            return Maybe!double(Fault.cantParse);
+            return Maybe!double(Fault.invalid);
         } else {
             auto sign = str[0] == '-' ? -1 : 1;
             auto level = 10;
@@ -796,37 +875,44 @@ Maybe!double toDouble(IStr str) {
 }
 
 /// Converts the character to a double.
-Maybe!double toDouble(char c) {
+Maybe!double toFloating(char c) {
     if (isDigit(c)) {
         return Maybe!double(c - '0');
     } else {
-        return Maybe!double(Fault.cantParse);
+        return Maybe!double(Fault.invalid);
     }
 }
 
 /// Converts the string to an enum value.
-Maybe!T toEnum(T)(IStr str) {
-    switch (str) {
-        static foreach (m; __traits(allMembers, T)) {
-            mixin("case m: return Maybe!T(T.", m, ");");
+@trusted
+Maybe!T toEnum(T)(IStr str, bool noCase = false) {
+    if (noCase) {
+        char[128] enumBuffer = void;
+        foreach (m; __traits(allMembers, T)) {
+            auto slice = enumBuffer[];
+            if (slice.copyStr(m)) return Maybe!T(Fault.overflow);
+            if (slice.equalsNoCase(str)) return Maybe!T(mixin("T.", m));
         }
-        default: return Maybe!T(Fault.cantParse);
+        return Maybe!T(Fault.invalid);
+    } else {
+        switch (str) {
+            static foreach (m; __traits(allMembers, T)) {
+                mixin("case m: return Maybe!T(T.", m, ");");
+            }
+            default: return Maybe!T(Fault.invalid);
+        }
     }
 }
 
 /// Converts the string to a C string.
 @trusted
-Maybe!ICStr toCStr(IStr str) {
+Maybe!IStrz toStrz(IStr str) {
     static char[defaultAsciiBufferSize] buffer = void;
 
-    if (buffer.length < str.length) {
-        return Maybe!ICStr(Fault.cantParse);
-    } else {
-        auto value = buffer[];
-        value.copyChars(str);
-        value[str.length] = '\0';
-        return Maybe!ICStr(value.ptr);
-    }
+    if (buffer.length < str.length + 1) return Maybe!IStrz(Fault.overflow);
+    buffer.copyChars(str);
+    buffer[str.length] = '\0';
+    return Maybe!IStrz(buffer.ptr);
 }
 
 // Function test.
@@ -849,8 +935,8 @@ unittest {
     assert(isLower('h') == true);
     assert(isSpace('?') == false);
     assert(isSpace('\r') == true);
-    assert(isCStr("hello") == false);
-    assert(isCStr("hello\0") == true);
+    assert(isStrz("hello") == false);
+    assert(isStrz("hello\0") == true);
 
     str = buffer[];
     str.copyStr("Hello");
@@ -862,8 +948,8 @@ unittest {
 
     str = buffer[];
     str.copyStr("Hello\0");
-    assert(isCStr(str) == true);
-    assert(str.ptr.cStrLength + 1 == str.length);
+    assert(isStrz(str) == true);
+    assert(str.ptr.strzLength + 1 == str.length);
 
     str = buffer[];
     str.copyStr("Hello");
@@ -920,8 +1006,8 @@ unittest {
     assert(pathConcat("one").pathExtName() == "");
     assert(pathConcat("one", "two").pathBaseName() == "two");
     assert(pathConcat("one").pathBaseName() == "one");
-    assert(pathFormat("one/two") == pathConcat("one", "two"));
-    assert(pathFormat("one\\two") == pathConcat("one", "two"));
+    assert(pathFmt("one/two") == pathConcat("one", "two"));
+    assert(pathFmt("one\\two") == pathConcat("one", "two"));
 
     str = buffer[];
     str.copyStr("one, two ,three,");
@@ -946,26 +1032,26 @@ unittest {
     assert(signedToStr(-69) == "-69");
     assert(signedToStr(-69) == "-69");
 
-    assert(doubleToStr(0.00, 0) == "0");
-    assert(doubleToStr(0.00, 1) == "0.0");
-    assert(doubleToStr(0.00, 2) == "0.00");
-    assert(doubleToStr(0.00, 3) == "0.000");
-    assert(doubleToStr(0.60, 1) == "0.6");
-    assert(doubleToStr(0.60, 2) == "0.60");
-    assert(doubleToStr(0.60, 3) == "0.600");
-    assert(doubleToStr(0.09, 1) == "0.0");
-    assert(doubleToStr(0.09, 2) == "0.09");
-    assert(doubleToStr(0.09, 3) == "0.090");
-    assert(doubleToStr(69.0, 1) == "69.0");
-    assert(doubleToStr(69.0, 2) == "69.00");
-    assert(doubleToStr(69.0, 3) == "69.000");
-    assert(doubleToStr(-0.69, 0) == "0");
-    assert(doubleToStr(-0.69, 1) == "-0.6");
-    assert(doubleToStr(-0.69, 2) == "-0.69");
-    assert(doubleToStr(-0.69, 3) == "-0.690");
-    assert(doubleToStr(double.nan) == "nan");
+    assert(floatingToStr(0.00, 0) == "0");
+    assert(floatingToStr(0.00, 1) == "0.0");
+    assert(floatingToStr(0.00, 2) == "0.00");
+    assert(floatingToStr(0.00, 3) == "0.000");
+    assert(floatingToStr(0.60, 1) == "0.6");
+    assert(floatingToStr(0.60, 2) == "0.60");
+    assert(floatingToStr(0.60, 3) == "0.600");
+    assert(floatingToStr(0.09, 1) == "0.0");
+    assert(floatingToStr(0.09, 2) == "0.09");
+    assert(floatingToStr(0.09, 3) == "0.090");
+    assert(floatingToStr(69.0, 1) == "69.0");
+    assert(floatingToStr(69.0, 2) == "69.00");
+    assert(floatingToStr(69.0, 3) == "69.000");
+    assert(floatingToStr(-0.69, 0) == "0");
+    assert(floatingToStr(-0.69, 1) == "-0.6");
+    assert(floatingToStr(-0.69, 2) == "-0.69");
+    assert(floatingToStr(-0.69, 3) == "-0.690");
+    assert(floatingToStr(double.nan) == "nan");
 
-    assert(cStrToStr("Hello\0") == "Hello");
+    assert(strzToStr("Hello\0") == "Hello");
 
     assert(enumToStr(TestEnum.one) == "one");
     assert(enumToStr(TestEnum.two) == "two");
@@ -1005,37 +1091,37 @@ unittest {
     assert(toSigned('9').isSome == true);
     assert(toSigned('9').getOr() == 9);
 
-    assert(toDouble("1_069").isSome == false);
-    assert(toDouble(".1069").isSome == false);
-    assert(toDouble("1069.").isSome == false);
-    assert(toDouble(".").isSome == false);
-    assert(toDouble("-1069.-69").isSome == false);
-    assert(toDouble("-1069.+69").isSome == false);
-    assert(toDouble("-1069").isSome == true);
-    assert(toDouble("-1069").getOr() == -1069);
-    assert(toDouble("+1069").isSome == true);
-    assert(toDouble("+1069").getOr() == 1069);
-    assert(toDouble("1069").isSome == true);
-    assert(toDouble("1069").getOr() == 1069);
-    assert(toDouble("1069.0").isSome == true);
-    assert(toDouble("1069.0").getOr() == 1069);
-    assert(toDouble("-1069.0095").isSome == true);
-    assert(toDouble("-1069.0095").getOr() == -1069.0095);
-    assert(toDouble("+1069.0095").isSome == true);
-    assert(toDouble("+1069.0095").getOr() == 1069.0095);
-    assert(toDouble("1069.0095").isSome == true);
-    assert(toDouble("1069.0095").getOr() == 1069.0095);
-    assert(toDouble("-0.0095").isSome == true);
-    assert(toDouble("-0.0095").getOr() == -0.0095);
-    assert(toDouble("+0.0095").isSome == true);
-    assert(toDouble("+0.0095").getOr() == 0.0095);
-    assert(toDouble("0.0095").isSome == true);
-    assert(toDouble("0.0095").getOr() == 0.0095);
-    assert(toDouble('+').isSome == false);
-    assert(toDouble('0').isSome == true);
-    assert(toDouble('9').isSome == true);
-    assert(toDouble('9').getOr() == 9);
-    assert(!(toDouble("nan").getOr() == double.nan));
+    assert(toFloating("1_069").isSome == false);
+    assert(toFloating(".1069").isSome == false);
+    assert(toFloating("1069.").isSome == false);
+    assert(toFloating(".").isSome == false);
+    assert(toFloating("-1069.-69").isSome == false);
+    assert(toFloating("-1069.+69").isSome == false);
+    assert(toFloating("-1069").isSome == true);
+    assert(toFloating("-1069").getOr() == -1069);
+    assert(toFloating("+1069").isSome == true);
+    assert(toFloating("+1069").getOr() == 1069);
+    assert(toFloating("1069").isSome == true);
+    assert(toFloating("1069").getOr() == 1069);
+    assert(toFloating("1069.0").isSome == true);
+    assert(toFloating("1069.0").getOr() == 1069);
+    assert(toFloating("-1069.0095").isSome == true);
+    assert(toFloating("-1069.0095").getOr() == -1069.0095);
+    assert(toFloating("+1069.0095").isSome == true);
+    assert(toFloating("+1069.0095").getOr() == 1069.0095);
+    assert(toFloating("1069.0095").isSome == true);
+    assert(toFloating("1069.0095").getOr() == 1069.0095);
+    assert(toFloating("-0.0095").isSome == true);
+    assert(toFloating("-0.0095").getOr() == -0.0095);
+    assert(toFloating("+0.0095").isSome == true);
+    assert(toFloating("+0.0095").getOr() == 0.0095);
+    assert(toFloating("0.0095").isSome == true);
+    assert(toFloating("0.0095").getOr() == 0.0095);
+    assert(toFloating('+').isSome == false);
+    assert(toFloating('0').isSome == true);
+    assert(toFloating('9').isSome == true);
+    assert(toFloating('9').getOr() == 9);
+    assert(!(toFloating("nan").getOr() == double.nan));
 
     assert(toEnum!TestEnum("?").isSome == false);
     assert(toEnum!TestEnum("?").getOr() == TestEnum.one);
@@ -1043,9 +1129,11 @@ unittest {
     assert(toEnum!TestEnum("one").getOr() == TestEnum.one);
     assert(toEnum!TestEnum("two").isSome == true);
     assert(toEnum!TestEnum("two").getOr() == TestEnum.two);
+    assert(toEnum!TestEnum("TWO").isSome == false);
+    assert(toEnum!TestEnum("TWO", true).isSome == true);
 
-    assert(toCStr("Hello").getOr().cStrLength == "Hello".length);
-    assert(toCStr("Hello").getOr().cStrToStr() == "Hello");
+    assert(toStrz("Hello").getOr().strzLength == "Hello".length);
+    assert(toStrz("Hello").getOr().strzToStr() == "Hello");
     assert(fmt("Hello {}!", "world") == "Hello world!");
     assert(fmt("({}, {})", -69, -420) == "(-69, -420)");
 }

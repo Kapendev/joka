@@ -1,5 +1,5 @@
 // ---
-// Copyright 2024 Alexandros F. G. Kapretsos
+// Copyright 2025 Alexandros F. G. Kapretsos
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
@@ -10,7 +10,8 @@ module joka.memory;
 
 import joka.ascii;
 import joka.types;
-import stdc = joka.stdc;
+import stdlibc = joka.stdc.stdlib;
+import stringc = joka.stdc.string;
 
 @system nothrow:
 
@@ -47,42 +48,6 @@ debug {
     enum isTrackingMemory = false;
 }
 
-struct Heap(T) {
-    T* ptr;
-
-    @trusted nothrow:
-
-    this(T value, IStr file = __FILE__, Sz line = __LINE__) {
-        make(value, file, line);
-    }
-
-    bool isSome() => ptr != null;
-    bool isNone() => ptr == null;
-    alias isEmpty = isNone;
-    alias isNull = isNone;
-
-    void makeBlank(IStr file = __FILE__, Sz line = __LINE__) {
-        free(file, line);
-        ptr = jokaMakeBlank!T(file, line);
-    }
-
-    void make(IStr file = __FILE__, Sz line = __LINE__) {
-        free(file, line);
-        ptr = jokaMake!T(file, line);
-    }
-
-    void make(T value, IStr file = __FILE__, Sz line = __LINE__) {
-        free(file, line);
-        ptr = jokaMake!T(value, file, line);
-    }
-
-    @nogc
-    void free(IStr file = __FILE__, Sz line = __LINE__) {
-        jokaFree(ptr, file, line);
-        ptr = null;
-    }
-}
-
 version (JokaCustomMemory) {
     pragma(msg, "Joka: Using custom allocator.");
 
@@ -111,7 +76,7 @@ version (JokaCustomMemory) {
 } else {
     extern(C)
     void* jokaMalloc(Sz size, IStr file = __FILE__, Sz line = __LINE__) {
-        auto result = stdc.malloc(size);
+        auto result = stdlibc.malloc(size);
         static if (isTrackingMemory) {
             if (result) {
                 _memoryTrackingState.table[result] = _MallocInfo(file, line, size);
@@ -127,7 +92,7 @@ version (JokaCustomMemory) {
         if (ptr) {
             static if (isTrackingMemory) {
                 if (auto mallocValue = ptr in _memoryTrackingState.table) {
-                    result = stdc.realloc(ptr, size);
+                    result = stdlibc.realloc(ptr, size);
                     if (result) {
                         _memoryTrackingState.table[result] = _MallocInfo(file, line, size, mallocValue.canIgnore);
                         _memoryTrackingState.totalBytes += size - mallocValue.size;
@@ -141,7 +106,7 @@ version (JokaCustomMemory) {
                     }
                 }
             } else {
-                result = stdc.realloc(ptr, size);
+                result = stdlibc.realloc(ptr, size);
             }
         } else {
             result = jokaMalloc(size, file, line);
@@ -154,7 +119,7 @@ version (JokaCustomMemory) {
         static if (isTrackingMemory) {
             if (ptr == null) return;
             if (auto mallocValue = ptr in _memoryTrackingState.table) {
-                stdc.free(ptr);
+                stdlibc.free(ptr);
                 debug {
                     _memoryTrackingState.totalBytes -= mallocValue.size;
                     _memoryTrackingState.table.remove(ptr);
@@ -169,21 +134,21 @@ version (JokaCustomMemory) {
                 }
             }
         } else {
-            stdc.free(ptr);
+            stdlibc.free(ptr);
         }
     }
 }
 
 @trusted @nogc
 auto ignoreLeak(T)(T ptr) {
-    static if (isSliceType!T) {
+    static if (is(T : const(A)[], A)) { // isSliceType
         static if (isTrackingMemory) {
             if (auto mallocValue = ptr.ptr in _memoryTrackingState.table) {
                 mallocValue.canIgnore = true;
             }
         }
         return ptr;
-    } else static if (isPtrType!T) {
+    } else static if (is(T : const(void)*)) { // isPtrType
         static if (isTrackingMemory) {
             if (auto mallocValue = ptr in _memoryTrackingState.table) {
                 mallocValue.canIgnore = true;
@@ -193,18 +158,18 @@ auto ignoreLeak(T)(T ptr) {
     } else static if (__traits(hasMember, T, "ignoreLeak")) {
         return ptr.ignoreLeak();
     } else {
-        static assert(0, funcImplementationErrorMessage!(T, "ignoreLeak"));
+        static assert(0, "Type doesn't implement the `ignoreLeak` function.");
     }
 }
 
-extern(C) @nogc
+@nogc
 void* jokaMemset(void* ptr, int value, Sz size) {
-    return stdc.memset(ptr, value, size);
+    return stringc.memset(ptr, value, size);
 }
 
-extern(C) @nogc
+@nogc
 void* jokaMemcpy(void* ptr, const(void)* source, Sz size) {
-    return stdc.memcpy(ptr, source, size);
+    return stringc.memcpy(ptr, source, size);
 }
 
 @trusted

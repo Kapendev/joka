@@ -1,5 +1,5 @@
 // ---
-// Copyright 2024 Alexandros F. G. Kapretsos
+// Copyright 2025 Alexandros F. G. Kapretsos
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
 // Project: https://github.com/Kapendev/joka
@@ -33,6 +33,7 @@ struct List(T) {
     alias Self = List!T;
     alias Item = T;
     alias Data = T[];
+    enum isBasicContainer = true;
     enum hasFixedCapacity = false;
 
     Data items;
@@ -68,7 +69,7 @@ struct List(T) {
     void appendBlank(IStr file = __FILE__, Sz line = __LINE__) {
         Sz newLength = length + 1;
         if (newLength > capacity) {
-            capacity = jokaFindListCapacity(newLength);
+            capacity = findListCapacity(newLength);
             auto rawPtr = jokaRealloc(items.ptr, capacity * T.sizeof, file, line);
             if (canIgnoreLeak) rawPtr.ignoreLeak();
             items = (cast(T*) rawPtr)[0 .. newLength];
@@ -132,7 +133,7 @@ struct List(T) {
 
     @trusted
     void reserve(Sz newCapacity, IStr file = __FILE__, Sz line = __LINE__) {
-        auto targetCapacity = jokaFindListCapacity(newCapacity);
+        auto targetCapacity = findListCapacity(newCapacity);
         if (targetCapacity > capacity) {
             capacity = targetCapacity;
             auto rawPtr = jokaRealloc(items.ptr, capacity * T.sizeof, file, line);
@@ -185,20 +186,21 @@ struct List(T) {
 
     @nogc
     IStr toStr() {
-        static if (isCharType!T) {
+        static if (is(T == char)) { // isCharType
             return items;
         } else {
-            assert(0, "Cannot call `toStr` on `List!T` when `T` is not a character type.");
+            assert(0, "Cannot call `toStr` on `List!T` when `T` is not a `char`.");
         }
     }
 }
 
 /// A dynamic array that uses external memory provided at runtime.
-// NOTE: The API is almost 1-1 with `List` to make meta programming easier.
+// The API is almost 1-1 with `List` to make meta programming easier.
 struct BufferList(T) {
     alias Self = BufferList!T;
     alias Item = T;
     alias Data = T[];
+    enum isBasicContainer = true;
     enum hasFixedCapacity = true;
 
     Data data;
@@ -301,22 +303,23 @@ struct BufferList(T) {
     void ignoreLeak() {}
 
     IStr toStr() {
-        static if (isCharType!T) {
+        static if (is(T == char)) { // isCharType
             return items;
         } else {
-            assert(0, "Cannot call `toStr` on `List!T` when `T` is not a character type.");
+            assert(0, "Cannot call `toStr` on `List!T` when `T` is not a `char`.");
         }
     }
 }
 
 /// A dynamic array allocated on the stack.
-// NOTE: This is just a copy-paste of `BufferList`, but with a static array.
+// This is just a copy-paste of `BufferList`, but with a static array.
 //   Could make both use one type, but I think it's OK to repeat code here.
 //   Keeps things simple and easy to read.
 struct FixedList(T, Sz N) {
     alias Self = FixedList!(T, N);
     alias Item = T;
-    alias Data = Array!(T, N);
+    alias Data = StaticArray!(T, N);
+    enum isBasicContainer = true;
     enum hasFixedCapacity = true;
 
     Data data = void;
@@ -418,10 +421,10 @@ struct FixedList(T, Sz N) {
     void ignoreLeak() {}
 
     IStr toStr() {
-        static if (isCharType!T) {
+        static if (is(T == char)) { // isCharType
             return items;
         } else {
-            assert(0, "Cannot call `toStr` on `List!T` when `T` is not a character type.");
+            assert(0, "Cannot call `toStr` on `List!T` when `T` is not a `char`.");
         }
     }
 }
@@ -435,10 +438,12 @@ struct SparseListItem(T) {
 }
 
 /// A dynamic sparse array.
-struct SparseList(T, D = List!(SparseListItem!T)) {
+struct SparseList(T, D = List!(SparseListItem!T)) if (isSparseContainerPartsValid!(T, D)) {
     alias Self = SparseList!(T, D);
     alias Item = D.Item;
     alias Data = D;
+    enum isBasicContainer = false;
+    enum isSparseContainer = true;
     enum hasFixedCapacity = D.hasFixedCapacity;
 
     Data data;
@@ -454,19 +459,19 @@ struct SparseList(T, D = List!(SparseListItem!T)) {
 
     @trusted @nogc
     ref T opIndex(Sz i) {
-        if (!has(i)) assert(0, "Index `[{}]` does not exist.".fmt(i));
+        if (!has(i)) assert(0, indexErrorMessage(i));
         return data[i].value;
     }
 
     @trusted @nogc
     void opIndexAssign(const(T) rhs, Sz i) {
-        if (!has(i)) assert(0, "Index `[{}]` does not exist.".fmt(i));
+        if (!has(i)) assert(0, indexErrorMessage(i));
         data[i].value = cast(T) rhs;
     }
 
     @trusted @nogc
     void opIndexOpAssign(IStr op)(const(T) rhs, Sz i) {
-        if (!has(i)) assert(0, "Index `[{}]` does not exist.".fmt(i));
+        if (!has(i)) assert(0, indexErrorMessage(i));
         mixin("data[i].value", op, "= cast(T) rhs;");
     }
 
@@ -560,7 +565,7 @@ struct SparseList(T, D = List!(SparseListItem!T)) {
 
     @nogc
     void remove(Sz i) {
-        if (!has(i)) assert(0, "Index `[{}]` does not exist.".fmt(i));
+        if (!has(i)) assert(0, indexErrorMessage(i));
         data[i].flag = false;
         hotIndex = i;
         if (i < openIndex) openIndex = i;
@@ -650,11 +655,12 @@ struct GenIndex {
     Gen generation;
 }
 
-struct GenList(T, D = SparseList!T, G = List!Gen) {
+struct GenList(T, D = SparseList!T, G = List!Gen) if (isSparseContainerComboValid!(T, D) && isBasicContainerType!G) {
     alias Self = GenList!(T, D);
     alias Item = D.Item;
     alias Data = D;
     alias DataGen = G;
+    enum isBasicContainer = false;
     enum hasFixedCapacity = D.hasFixedCapacity && G.hasFixedCapacity;
 
     Data data;
@@ -664,19 +670,19 @@ struct GenList(T, D = SparseList!T, G = List!Gen) {
 
     @trusted @nogc
     ref T opIndex(GenIndex i) {
-        if (!has(i)) assert(0, "Index `[{}]` with generation `{}` does not exist.".fmt(i.value, i.generation));
+        if (!has(i)) assert(0, genIndexErrorMessage(i.value, i.generation));
         return data[i.value];
     }
 
     @trusted @nogc
     void opIndexAssign(const(T) rhs, GenIndex i) {
-        if (!has(i)) assert(0, "Index `[{}]` with generation `{}` does not exist.".fmt(i.value, i.generation));
+        if (!has(i)) assert(0, genIndexErrorMessage(i.value, i.generation));
         data[i.value] = cast(T) rhs;
     }
 
     @trusted @nogc
     void opIndexOpAssign(IStr op)(const(T) rhs, GenIndex i) {
-        if (!has(i)) assert(0, "Index `[{}]` with generation `{}` does not exist.".fmt(i.value, i.generation));
+        if (!has(i)) assert(0, genIndexErrorMessage(i.value, i.generation));
         mixin("data[i.value]", op, "= cast(T) rhs;");
     }
 
@@ -717,7 +723,7 @@ struct GenList(T, D = SparseList!T, G = List!Gen) {
 
     @nogc
     void remove(GenIndex i) {
-        if (!has(i)) assert(0, "Index `[{}]` with generation `{}` does not exist.".fmt(i.value, i.generation));
+        if (!has(i)) assert(0, genIndexErrorMessage(i.value, i.generation));
         data.remove(i.value);
         generations[data.hotIndex] += 1;
     }
@@ -797,10 +803,11 @@ struct GenList(T, D = SparseList!T, G = List!Gen) {
     }
 }
 
-struct Grid(T, D = List!T) {
+struct Grid(T, D = List!T) if (isBasicContainerType!D) {
     alias Self = Grid!(T, D);
     alias Item = D.Item;
     alias Data = D;
+    enum isBasicContainer = false;
     enum hasFixedCapacity = D.hasFixedCapacity;
 
     Data tiles;
@@ -821,19 +828,19 @@ struct Grid(T, D = List!T) {
 
     @trusted @nogc
     ref T opIndex(Sz row, Sz col) {
-        if (!has(row, col)) assert(0, "Tile `[{}, {}]` does not exist.".fmt(row, col));
-        return tiles[jokaFindGridIndex(row, col, colCount)];
+        if (!has(row, col)) assert(0, gridIndexErrorMessage(row, col));
+        return tiles[findGridIndex(row, col, colCount)];
     }
 
     @trusted @nogc
     void opIndexAssign(T rhs, Sz row, Sz col) {
-        if (!has(row, col)) assert(0, "Tile `[{}, {}]` does not exist.".fmt(row, col));
-        tiles[jokaFindGridIndex(row, col, colCount)] = rhs;
+        if (!has(row, col)) assert(0, gridIndexErrorMessage(row, col));
+        tiles[findGridIndex(row, col, colCount)] = rhs;
     }
 
     @trusted @nogc
     void opIndexOpAssign(IStr op)(T rhs, Sz row, Sz col) {
-        if (!has(row, col)) assert(0, "Tile `[{}, {}]` does not exist.".fmt(row, col));
+        if (!has(row, col)) assert(0, gridIndexErrorMessage(row, col));
         mixin("tiles[colCount * row + col]", op, "= rhs;");
     }
 
@@ -1177,36 +1184,55 @@ struct GrowingArena {
     }
 }
 
-pragma(inline, true) extern(C) @nogc
-Sz jokaFindListCapacity(Sz length) {
-    Sz result = defaultListCapacity;
-    while (result < length) result += result;
-    return result;
-}
+@trusted @nogc {
+    IStr indexErrorMessage(Sz i) {
+        IStr[1] fmtStrs = [
+            "Index {} does not exist.",
+        ];
+        return fmtSignedGroup(fmtStrs, i);
+    }
 
-pragma(inline, true) extern(C) @nogc
-Sz jokaFindGridIndex(Sz row, Sz col, Sz colCount) {
-    return colCount * row + col;
-}
+    IStr gridIndexErrorMessage(Sz row, Sz col) {
+        IStr[2] fmtStrs = [
+            "Index {}",
+            ", {} does not exist.",
+        ];
+        return fmtSignedGroup(fmtStrs, row, col);
+    }
 
-pragma(inline, true) extern(C) @nogc
-Sz jokaFindGridRow(Sz gridIndex, Sz colCount) {
-    return gridIndex % colCount;
-}
+    IStr genIndexErrorMessage(Sz value, Sz generation) {
+        IStr[2] fmtStrs = [
+            "Index {} ",
+            "with generation {} does not exist.",
+        ];
+        return fmtSignedGroup(fmtStrs, value, generation);
+    }
 
-pragma(inline, true) extern(C) @nogc
-Sz jokaFindGridCol(Sz gridIndex, Sz colCount) {
-    return gridIndex / colCount;
-}
+    Sz findListCapacity(Sz length) {
+        Sz result = defaultListCapacity;
+        while (result < length) result += result;
+        return result;
+    }
 
-deprecated("Use `fmtIntoList` instead. All `format*` functions in Joka will be renamed to `fmt*` to avoid collisions with `std.format`.")
-alias formatIntoList = fmtIntoList;
+    Sz findGridIndex(Sz row, Sz col, Sz colCount) {
+        return colCount * row + col;
+    }
+
+    Sz findGridRow(Sz gridIndex, Sz colCount) {
+        return gridIndex % colCount;
+    }
+
+    Sz findGridCol(Sz gridIndex, Sz colCount) {
+        return gridIndex / colCount;
+    }
+}
 
 /// Formats a string using a list and returns the resulting formatted string.
 /// The list is cleared before writing.
 /// For details on formatting behavior, see the `fmtIntoBufferWithStrs` function in the `ascii` module.
 IStr fmtIntoList(bool canAppend = false, S = LStr, A...)(ref S list, IStr fmtStr, A args) {
     if (!canAppend) list.clear();
+    IStr tempSlice;
     auto fmtStrIndex = 0;
     auto argIndex = 0;
     while (fmtStrIndex < fmtStr.length) {
@@ -1216,11 +1242,11 @@ IStr fmtIntoList(bool canAppend = false, S = LStr, A...)(ref S list, IStr fmtStr
             if (argIndex == args.length) assert(0, "A placeholder doesn't have an argument.");
             foreach (i, arg; args) {
                 if (i == argIndex) {
-                    auto temp = arg.toStr();
+                    tempSlice = arg.toStr();
                     static if (S.hasFixedCapacity) {
-                        if (list.capacity < list.length + temp.length) return "";
+                        if (list.capacity < list.length + tempSlice.length) return "";
                     }
-                    list.append(temp);
+                    list.append(tempSlice);
                     fmtStrIndex += 2;
                     argIndex += 1;
                     goto loopExit;
@@ -1251,6 +1277,54 @@ void freeWithItems(T)(ref T container, IStr file = __FILE__, Sz line = __LINE__)
     container.free(file, line);
 }
 
+bool isContainerType(T)() {
+    return __traits(hasMember, T, "isBasicContainer");
+}
+
+bool isBasicContainerType(T)() {
+    static if (__traits(hasMember, T, "isBasicContainer")) {
+        return T.isBasicContainer;
+    } else {
+        return false;
+    }
+}
+
+bool isSparseContainerType(T)() {
+    static if (__traits(hasMember, T, "isBasicContainer")) {
+        return !T.isBasicContainer && __traits(hasMember, T, "isSparseContainer");
+    } else {
+        return false;
+    }
+}
+
+bool isSparseContainerItemType(T)() {
+    return __traits(hasMember, T, "Item") && __traits(hasMember, T, "flag");
+}
+
+bool isSparseContainerPartsValid(T, D)() {
+    static if (isBasicContainerType!D) {
+        static if (isSparseContainerItemType!(D.Item)) {
+            return is(T == D.Item.Item);
+        } else {
+            return false;
+        }
+    } else {
+        return false;
+    }
+}
+
+bool isSparseContainerComboValid(T, D)() {
+    static if (isSparseContainerType!D) {
+        static if (is(T == D.Item.Item)) {
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        return false;
+    }
+}
+
 bool isLStrType(T)() {
     return is(T == List!char);
 }
@@ -1269,10 +1343,10 @@ bool isStrContainerType(T)() {
 
 // Function test.
 unittest {
-    assert(jokaFindListCapacity(0) == defaultListCapacity);
-    assert(jokaFindListCapacity(defaultListCapacity) == defaultListCapacity);
-    assert(jokaFindListCapacity(defaultListCapacity + 1) == defaultListCapacity * 2);
-    assert(jokaFindListCapacity(defaultListCapacity + 1) == defaultListCapacity * 2);
+    assert(findListCapacity(0) == defaultListCapacity);
+    assert(findListCapacity(defaultListCapacity) == defaultListCapacity);
+    assert(findListCapacity(defaultListCapacity + 1) == defaultListCapacity * 2);
+    assert(findListCapacity(defaultListCapacity + 1) == defaultListCapacity * 2);
 }
 
 // TODO: Write better tests.
