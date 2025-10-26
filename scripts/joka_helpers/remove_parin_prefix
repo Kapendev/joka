@@ -8,10 +8,10 @@ if [ ! -d "$1" ]; then
 fi
 
 find "$1" -type f -name "*.d" | while read -r f; do
-    echo "Processing: $f"
-    sed -E \
-        -e 's/^(module[[:space:]]+)parin\./\1/' \
-        -e 's/^(import[[:space:]]+)parin\./\1/' \
-        -e 's/^(import[[:space:]]+[[:alnum:]_]+[[:space:]]*=[[:space:]]*)parin\./\1/' \
-        "$f" > "$f.tmp" && mv "$f.tmp" "$f"
+  echo "Processing $f"
+  sed -E \
+    -e 's/^(module[[:space:]]+)parin\./\1/' \
+    -e 's/^([[:space:]]*(public|private|protected)?[[:space:]]*import[[:space:]]+)parin\./\1/' \
+    -e 's/^([[:space:]]*(public|private|protected)?[[:space:]]*import[[:space:]]+[[:alnum:]_]+[[:space:]]*=[[:space:]]*)parin\./\1/' \
+    "$f" > "$f.tmp" && mv "$f.tmp" "$f"
 done
