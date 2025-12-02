@@ -9,10 +9,12 @@
 module joka.ascii;
 
 import joka.types;
+import joka.interpolation;
 import stringc = joka.stdc.string;
 
 @safe:
 
+enum defaultAsciiFmtArgStr      = "{}";
 enum defaultAsciiBufferCount    = 16;   // Generic string count.
 enum defaultAsciiBufferSize     = 1536; // Generic string length.
 enum defaultAsciiFmtBufferCount = 32;   // Arg count.
@@ -48,10 +50,27 @@ enum PathSepStyle {
     windows, /// The `\` separator.
 }
 
-/// Separator marker for printing, ...
-struct Sep { IStr value; }
 /// A string pair.
 struct IStrPair { IStr a; IStr b; }
+
+/// Separator marker for printing.
+struct Sep { IStr value; }
+
+/// A wrapper type for priting floats and doubles.
+struct Floating {
+    double value = 0.0; /// The value.
+    uint precision = 2; /// The number of digits after the dot.
+
+    @safe nothrow @nogc:
+
+    IStr toStr() {
+        return floatingToStr(value, precision);
+    }
+
+    IStr toString() {
+        return toStr();
+    }
+}
 
 /// Converts the value to its string representation.
 @trusted
@@ -99,7 +118,7 @@ IStr fmtIntoBufferWithStrs(Str buffer, IStr fmtStr, IStr[] args...) {
     while (fmtStrIndex < fmtStr.length) {
         auto c1 = fmtStr[fmtStrIndex];
         auto c2 = fmtStrIndex + 1 >= fmtStr.length ? '+' : fmtStr[fmtStrIndex + 1];
-        if (c1 == '{' && c2 == '}') {
+        if (c1 == defaultAsciiFmtArgStr[0] && c2 == defaultAsciiFmtArgStr[1]) {
             if (argIndex == args.length) assert(0, "A placeholder doesn't have an argument.");
             if (copyChars(result, args[argIndex], resultLength)) return "";
             resultLength += args[argIndex].length;
@@ -137,6 +156,23 @@ IStr fmtIntoBuffer(A...)(Str buffer, IStr fmtStr, A args) {
     return fmtIntoBufferWithStrs(buffer, fmtStr, _fmtIntoBufferSliceBuffer[0 .. args.length]);
 }
 
+IStr fmtIntoBuffer(A...)(Str buffer, InterpolationHeader header, A args, InterpolationFooter footer) {
+    // NOTE: Both `fmtStr` and `fmtArgs` can be copy-pasted when working with IES. Main copy is in the `fmt` function.
+    enum fmtStr = () {
+        Str result; static foreach (i, T; A) {
+            static if (isInterLit!T) { result ~= args[i].toString(); }
+            else static if (isInterExp!T) { result ~= defaultAsciiFmtArgStr; }
+        } return result;
+    }();
+    enum fmtArgs = () {
+        Str result; static foreach (i, T; A) {
+            static if (isInterLit!T || isInterExp!T) {}
+            else { result ~= "args[" ~ i.stringof ~ "],"; }
+        } return result;
+    }();
+    return mixin("fmtIntoBuffer(buffer, fmtStr,", fmtArgs, ")");
+}
+
 /// Formats into an internal static ring buffer and returns the slice.
 /// The slice is temporary and may be overwritten by later calls to `fmt`.
 /// For details on formatting, see the `fmtIntoBuffer` function.
@@ -154,6 +190,23 @@ IStr fmt(A...)(IStr fmtStr, A args) {
         _fmtIntoBufferSliceBuffer[i] = tempSlice;
     }
     return fmtIntoBufferWithStrs(buffer, fmtStr, _fmtIntoBufferSliceBuffer[0 .. args.length]);
+}
+
+IStr fmt(A...)(InterpolationHeader header, A args, InterpolationFooter footer) {
+    // NOTE: Both `fmtStr` and `fmtArgs` can be copy-pasted when working with IES. Main copy is in the `fmt` function.
+    enum fmtStr = () {
+        Str result; static foreach (i, T; A) {
+            static if (isInterLit!T) { result ~= args[i].toString(); }
+            else static if (isInterExp!T) { result ~= defaultAsciiFmtArgStr; }
+        } return result;
+    }();
+    enum fmtArgs = () {
+        Str result; static foreach (i, T; A) {
+            static if (isInterLit!T || isInterExp!T) {}
+            else { result ~= "args[" ~ i.stringof ~ "],"; }
+        } return result;
+    }();
+    return mixin("fmt(fmtStr,", fmtArgs, ")");
 }
 
 @safe nothrow @nogc:
@@ -225,6 +278,11 @@ IStr fmtFloatingGroup(IStr[] fmtStrs, double[] args...) {
 }
 
 pragma(inline, true) {
+    /// Wraps a floating value with formatting options.
+    Floating flo(double value, uint precision) {
+        return Floating(value, precision);
+    }
+
     /// Returns true if the character is a digit (0-9).
     bool isDigit(char c) {
         return c >= '0' && c <= '9';
@@ -497,6 +555,29 @@ IStr[] split(IStr str, char sep) {
     return split(str, charToStr(sep));
 }
 
+/// Returns true if the given path is absolute.
+bool isAbsolutePath(IStr path, PathSepStyle style = PathSepStyle.native) {
+    if (path.length == 0) return false;
+    auto isPosix = style == PathSepStyle.posix;
+    if (style == PathSepStyle.native) {
+        version (Windows) isPosix = false;
+        else isPosix = true;
+    }
+    if (isPosix) {
+        return path.startsWith("/");
+    } else {
+        if (path.startsWith("\\\\")) {
+            return true; // UNC.
+        } else if (path[0].isAlpha) {
+            return path[1 .. $].startsWith(":\\") || path[1 .. $].startsWith(":/"); // Drive.
+        } else if (path.startsWith("/") || path.startsWith("\\")) {
+            return true; // Rooted.
+        } else {
+            return false;
+        }
+    }
+}
+
 /// Returns the main and alternate separators for the given style.
 IStrPair pathSepStrPair(PathSepStyle style) {
     with (PathSepStyle) final switch (style) {
@@ -664,8 +745,8 @@ IStr skipLine(ref inout(char)[] str) {
 }
 
 /// Converts the boolean value to its string representation.
-IStr boolToStr(bool value, bool shortMode = false) {
-    return value ? (shortMode ? "T" : "true") : (shortMode ? "F" : "false");
+IStr boolToStr(bool value, bool isShortName = false, bool isLower = false) {
+    return value ? (isShortName ? (isLower ? "t" : "T") : "true") : (isShortName ? (isLower ? "f" : "F") : "false");
 }
 
 /// Converts the character to its string representation.
@@ -714,10 +795,10 @@ IStr signedToStr(long value) {
 }
 
 /// Converts the double value to its string representation with the specified precision.
-IStr floatingToStr(double value, ulong precision = 2) {
+IStr floatingToStr(double value, uint precision = 2) {
     static char[64] buffer = void;
 
-    if (!(value == value)) return "nan";
+    if (value.isNan) return "nan";
     if (precision == 0) return signedToStr(cast(long) value);
 
     auto result = buffer[];
@@ -789,10 +870,10 @@ IStr enumToStr(T)(T value) {
 }
 
 /// Converts the string to a bool.
-Maybe!bool toBool(IStr str) {
-    if (str == "false" || str == "F" || str == "f") {
+Maybe!bool toBool(IStr str, bool isFullNameOnly = false, bool isUpperOnly = false) {
+    if (str == "false" || (isFullNameOnly ? false : (isUpperOnly ? str == "F" : str == "F" || str == "f"))) {
         return Maybe!bool(false);
-    } else if (str == "true" || str == "T" || str == "t") {
+    } else if (str == "true" || (isFullNameOnly ? false : (isUpperOnly ? str == "T" : str == "T" || str == "t"))) {
         return Maybe!bool(true);
     } else {
         return Maybe!bool(Fault.invalid);
@@ -1000,6 +1081,13 @@ unittest {
         assert(pathConcat("", "two/") == "two");
         assert(pathConcat("", "/two/") == "/two");
     }
+    assert(isAbsolutePath("\\\\dw", PathSepStyle.windows) == true);
+    assert(isAbsolutePath("C:/dw", PathSepStyle.windows) == true);
+    assert(isAbsolutePath("c:/dw", PathSepStyle.windows) == true);
+    assert(isAbsolutePath("C:dw", PathSepStyle.windows) == false);
+    assert(isAbsolutePath("c:dw", PathSepStyle.windows) == false);
+    assert(isAbsolutePath("C:", PathSepStyle.windows) == false);
+    assert(isAbsolutePath("c:", PathSepStyle.windows) == false);
     assert(pathConcat("one", "two").pathDirName() == "one");
     assert(pathConcat("one").pathDirName() == ".");
     assert(pathConcat("one.csv").pathExtName() == ".csv");
@@ -1020,9 +1108,11 @@ unittest {
     assert(skipLine(str) == "");
 
     assert(boolToStr(false) == "false");
-    assert(boolToStr(true) == "true");
     assert(boolToStr(false, true) == "F");
+    assert(boolToStr(false, true, true) == "f");
+    assert(boolToStr(true) == "true");
     assert(boolToStr(true, true) == "T");
+    assert(boolToStr(true, true, true) == "t");
     assert(charToStr('L') == "L");
 
     assert(unsignedToStr(0) == "0");
@@ -1057,11 +1147,29 @@ unittest {
     assert(enumToStr(TestEnum.two) == "two");
 
     assert(toBool("false").isSome == true);
+    assert(toBool("true").isSome == true);
     assert(toBool("F").isSome == true);
     assert(toBool("f").isSome == true);
-    assert(toBool("true").isSome == true);
     assert(toBool("T").isSome == true);
     assert(toBool("t").isSome == true);
+    assert(toBool("false", true).isSome == true);
+    assert(toBool("true", true).isSome == true);
+    assert(toBool("F", true).isSome == false);
+    assert(toBool("f", true).isSome == false);
+    assert(toBool("T", true).isSome == false);
+    assert(toBool("t", true).isSome == false);
+    assert(toBool("false", true, true).isSome == true);
+    assert(toBool("true", true, true).isSome == true);
+    assert(toBool("F", true, true).isSome == false);
+    assert(toBool("f", true, true).isSome == false);
+    assert(toBool("T", true, true).isSome == false);
+    assert(toBool("t", true, true).isSome == false);
+    assert(toBool("false", false, true).isSome == true);
+    assert(toBool("true", false, true).isSome == true);
+    assert(toBool("F", false, true).isSome == true);
+    assert(toBool("f", false, true).isSome == false);
+    assert(toBool("T", false, true).isSome == true);
+    assert(toBool("t", false, true).isSome == false);
 
     assert(toUnsigned("1_069").isSome == false);
     assert(toUnsigned("1_069").getOr() == 0);
@@ -1136,4 +1244,8 @@ unittest {
     assert(toStrz("Hello").getOr().strzToStr() == "Hello");
     assert(fmt("Hello {}!", "world") == "Hello world!");
     assert(fmt("({}, {})", -69, -420) == "(-69, -420)");
+
+    assert(fmt("Number: {}", 1.54321.flo(0)) == "Number: 1");
+    assert(fmt("Number: {}", 1.54321.flo(1)) == "Number: 1.5");
+    assert(fmt("Number: {}", 1.54321.flo(2)) == "Number: 1.54");
 }

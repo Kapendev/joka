@@ -21,8 +21,8 @@ It is designed to complement the D standard library, not replace it.
 
 ## WebAssembly
 
-WebAssembly is supported with the BetterC flag, but something like [Emscripten](https://emscripten.org/) is needed to make it work.
-If you encounter errors with BetterC, try using the `-i` flag.
+WebAssembly is supported with the `betterC` flag, but something like [Emscripten](https://emscripten.org/) is needed to make it work.
+If you encounter errors, try using: `-betterC -i`
 
 ## Documentation
 
@@ -44,8 +44,12 @@ Here are a few things I like about Joka that I don't see in other libraries:
 * Minimalistic: Avoids abstractions
 * Focused: Doesn't try to support every use case
 * Simple: Uses a single global allocator, set at compile time
-* Fast: Compile times are **blazingly fast**
-* Friendly: Includes many examples
+* Friendly: Memory-safety features and many examples
+
+### Does Joka have an allocator API?
+
+No. Joka is designed to feel a bit like the C standard library because that's easier for most people to understand and keeps the library simple.
+This approach also lets memory-safety features, like allocation tracking, work more effectively than they would with a generic allocator API.
 
 ### Why aren't some functions `@nogc`?
 

@@ -12,7 +12,12 @@ import joka.ascii;
 import joka.containers;
 import joka.memory;
 import joka.types;
+import joka.interpolation;
 import stdioc = joka.stdc.stdio;
+
+@trusted:
+
+enum defaultCodePathMessage = "Reached unexpected code path.";
 
 enum StdStream : ubyte {
     input,
@@ -20,7 +25,6 @@ enum StdStream : ubyte {
     error,
 }
 
-@trusted
 void printf(StdStream stream = StdStream.output, A...)(IStr fmtStr, A args) {
     static assert(stream != StdStream.input, "Can't print to standard input.");
 
@@ -31,7 +35,23 @@ void printf(StdStream stream = StdStream.output, A...)(IStr fmtStr, A args) {
     stdioc.fputs(textData.ptr, stream == StdStream.output ? stdioc.stdout : stdioc.stderr);
 }
 
-@trusted
+void printf(StdStream stream = StdStream.output, A...)(InterpolationHeader header, A args, InterpolationFooter footer) {
+    // NOTE: Both `fmtStr` and `fmtArgs` can be copy-pasted when working with IES. Main copy is in the `fmt` function.
+    enum fmtStr = () {
+        Str result; static foreach (i, T; A) {
+            static if (isInterLit!T) { result ~= args[i].toString(); }
+            else static if (isInterExp!T) { result ~= defaultAsciiFmtArgStr; }
+        } return result;
+    }();
+    enum fmtArgs = () {
+        Str result; static foreach (i, T; A) {
+            static if (isInterLit!T || isInterExp!T) {}
+            else { result ~= "args[" ~ i.stringof ~ "],"; }
+        } return result;
+    }();
+    mixin("printf(fmtStr,", fmtArgs, ");");
+}
+
 void printfln(StdStream stream = StdStream.output, A...)(IStr fmtStr, A args) {
     static assert(stream != StdStream.input, "Can't print to standard input.");
 
@@ -43,7 +63,23 @@ void printfln(StdStream stream = StdStream.output, A...)(IStr fmtStr, A args) {
     stdioc.fputs(textData.ptr, stream == StdStream.output ? stdioc.stdout : stdioc.stderr);
 }
 
-@safe
+void printfln(StdStream stream = StdStream.output, A...)(InterpolationHeader header, A args, InterpolationFooter footer) {
+    // NOTE: Both `fmtStr` and `fmtArgs` can be copy-pasted when working with IES. Main copy is in the `fmt` function.
+    enum fmtStr = () {
+        Str result; static foreach (i, T; A) {
+            static if (isInterLit!T) { result ~= args[i].toString(); }
+            else static if (isInterExp!T) { result ~= defaultAsciiFmtArgStr; }
+        } return result;
+    }();
+    enum fmtArgs = () {
+        Str result; static foreach (i, T; A) {
+            static if (isInterLit!T || isInterExp!T) {}
+            else { result ~= "args[" ~ i.stringof ~ "],"; }
+        } return result;
+    }();
+    mixin("printfln(fmtStr,", fmtArgs, ");");
+}
+
 void print(StdStream stream = StdStream.output, A...)(A args) {
     static if (is(A[0] == Sep)) {
         foreach (i, arg; args[1 .. $]) {
@@ -55,13 +91,35 @@ void print(StdStream stream = StdStream.output, A...)(A args) {
     }
 }
 
-@safe
 void println(StdStream stream = StdStream.output, A...)(A args) {
     print!stream(args);
     print!stream("\n");
 }
 
-@trusted
+void eprintf(StdStream stream = StdStream.output, A...)(IStr fmtStr, A args) {
+    printf!(StdStream.error)(fmtStr, args);
+}
+
+void eprintf(StdStream stream = StdStream.output, A...)(InterpolationHeader header, A args, InterpolationFooter footer) {
+    printf!(StdStream.error)(header, args, footer);
+}
+
+void eprintfln(StdStream stream = StdStream.output, A...)(IStr fmtStr, A args) {
+    printfln!(StdStream.error)(fmtStr, args);
+}
+
+void eprintfln(StdStream stream = StdStream.output, A...)(InterpolationHeader header, A args, InterpolationFooter footer) {
+    printfln!(StdStream.error)(header, args, footer);
+}
+
+void eprint(StdStream stream = StdStream.output, A...)(A args) {
+    print!(StdStream.error)(args);
+}
+
+void eprintln(StdStream stream = StdStream.output, A...)(A args) {
+    println!(StdStream.error)(args);
+}
+
 IStr sprintf(S = LStr, A...)(ref S buffer, IStr fmtStr, A args) {
     static if (isStrContainerType!S) {
         return fmtIntoList!true(buffer, fmtStr, args);
@@ -70,7 +128,23 @@ IStr sprintf(S = LStr, A...)(ref S buffer, IStr fmtStr, A args) {
     }
 }
 
-@trusted
+void sprintf(S = LStr, A...)(ref S buffer, InterpolationHeader header, A args, InterpolationFooter footer) {
+    // NOTE: Both `fmtStr` and `fmtArgs` can be copy-pasted when working with IES. Main copy is in the `fmt` function.
+    enum fmtStr = () {
+        Str result; static foreach (i, T; A) {
+            static if (isInterLit!T) { result ~= args[i].toString(); }
+            else static if (isInterExp!T) { result ~= defaultAsciiFmtArgStr; }
+        } return result;
+    }();
+    enum fmtArgs = () {
+        Str result; static foreach (i, T; A) {
+            static if (isInterLit!T || isInterExp!T) {}
+            else { result ~= "args[" ~ i.stringof ~ "],"; }
+        } return result;
+    }();
+    mixin("sprintf(buffer, fmtStr,", fmtArgs, ");");
+}
+
 IStr sprintfln(S = LStr, A...)(ref S buffer, IStr fmtStr, A args) {
     auto text = sprintf(buffer, fmtStr, args);
     if (text.length == 0) return "";
@@ -90,7 +164,23 @@ IStr sprintfln(S = LStr, A...)(ref S buffer, IStr fmtStr, A args) {
     }
 }
 
-@safe
+void sprintfln(S = LStr, A...)(ref S buffer, InterpolationHeader header, A args, InterpolationFooter footer) {
+    // NOTE: Both `fmtStr` and `fmtArgs` can be copy-pasted when working with IES. Main copy is in the `fmt` function.
+    enum fmtStr = () {
+        Str result; static foreach (i, T; A) {
+            static if (isInterLit!T) { result ~= args[i].toString(); }
+            else static if (isInterExp!T) { result ~= defaultAsciiFmtArgStr; }
+        } return result;
+    }();
+    enum fmtArgs = () {
+        Str result; static foreach (i, T; A) {
+            static if (isInterLit!T || isInterExp!T) {}
+            else { result ~= "args[" ~ i.stringof ~ "],"; }
+        } return result;
+    }();
+    mixin("sprintfln(buffer, fmtStr,", fmtArgs, ");");
+}
+
 void sprint(S = LStr, A...)(ref S buffer, A args) {
     static if (is(A[0] == Sep)) {
         foreach (i, arg; args[1 .. $]) {
@@ -102,45 +192,38 @@ void sprint(S = LStr, A...)(ref S buffer, A args) {
     }
 }
 
-@safe
 void sprintln(S = LStr, A...)(ref S buffer, A args) {
     sprint(buffer, args);
     sprint(buffer, "\n");
 }
 
-@safe
 void printMemoryTrackingInfo(IStr filter = "", bool canShowEmpty = false) {
     print(memoryTrackingInfo(filter, canShowEmpty));
 }
 
-@safe
 void tracef(IStr file = __FILE__, Sz line = __LINE__, A...)(IStr fmtStr, A args) {
     printf("TRACE({}:{}): {}\n", file, line, fmtStr.fmt(args));
 }
 
-@safe
 void trace(IStr file = __FILE__, Sz line = __LINE__, A...)(A args) {
     printf("TRACE({}:{}):", file, line);
     foreach (arg; args) printf(" {}", arg);
     printf("\n");
 }
 
-@safe
-void warn(IStr text = "Not implemented.", IStr file = __FILE__, Sz line = __LINE__) {
+void warn(IStr text = defaultCodePathMessage, IStr file = __FILE__, Sz line = __LINE__) {
     printf("WARN({}:{}): {}\n", file, line, text);
 }
 
-@safe
-noreturn todo(IStr text = "Not implemented.", IStr file = __FILE__, Sz line = __LINE__) {
+noreturn todo(IStr text = defaultCodePathMessage, IStr file = __FILE__, Sz line = __LINE__) {
     assert(0, "TODO({}:{}): {}".fmt(file, line, text));
 }
 
 @safe nothrow:
 
-// NOTE: Also maybe think about errno lol.
 @trusted
-Fault readTextIntoBuffer(L = LStr)(IStr path, ref L listBuffer) {
-    auto file = stdioc.fopen(toStrz(path).getOr(), "r");
+Fault readFileIntoBuffer(L = LStr)(IStr path, ref L listBuffer, bool binaryMode) {
+    auto file = stdioc.fopen(toStrz(path).getOr(), binaryMode ? "rb" : "r");
     if (file == null) return Fault.cannotOpen;
 
     if (stdioc.fseek(file, 0, stdioc.SEEK_END) != 0) {
@@ -148,7 +231,7 @@ Fault readTextIntoBuffer(L = LStr)(IStr path, ref L listBuffer) {
         return Fault.cannotRead;
     }
     auto fileSize = stdioc.ftell(file);
-    if (fileSize == -1) {
+    if (fileSize < 0) {
         stdioc.fclose(file);
         return Fault.cannotRead;
     }
@@ -159,30 +242,64 @@ Fault readTextIntoBuffer(L = LStr)(IStr path, ref L listBuffer) {
 
     static if (L.hasFixedCapacity) {
         if (listBuffer.capacity < fileSize) {
-            if (stdioc.fclose(file) != 0) return Fault.cannotClose;
+            stdioc.fclose(file);
             return Fault.overflow;
         }
     }
     listBuffer.resizeBlank(fileSize);
-    stdioc.fread(listBuffer.items.ptr, fileSize, 1, file);
+    if (stdioc.fread(listBuffer.items.ptr, 1, fileSize, file) != fileSize) {
+        stdioc.fclose(file);
+        return Fault.cannotRead;
+    }
     if (stdioc.fclose(file) != 0) return Fault.cannotClose;
     return Fault.none;
+}
+
+Fault readTextIntoBuffer(L = LStr)(IStr path, ref L listBuffer) {
+    return readFileIntoBuffer(path, listBuffer, false);
+}
+
+Fault readBytesIntoBuffer(L = LStr)(IStr path, ref L listBuffer) {
+    return readFileIntoBuffer(path, listBuffer, true);
+}
+
+Maybe!LStr readFile(IStr path, bool binaryMode) {
+    LStr value;
+    auto fault = readFileIntoBuffer(path, value, binaryMode);
+    auto result = Maybe!LStr(value, fault);
+    return result;
 }
 
 Maybe!LStr readText(IStr path) {
-    LStr value;
-    auto fault = readTextIntoBuffer(path, value);
-    return Maybe!LStr(value, fault);
+    return readFile(path, false);
 }
 
-// NOTE: Also maybe think about errno lol.
+Maybe!LStr readBytes(IStr path, bool binaryMode) {
+    return readFile(path, true);
+}
+
 @trusted @nogc
-Fault writeText(IStr path, IStr text) {
-    auto file = stdioc.fopen(toStrz(path).getOr(), "w");
+Fault writeFile(IStr path, IStr text, bool binaryMode) {
+    auto file = stdioc.fopen(toStrz(path).getOr(), binaryMode ? "wb" : "w");
     if (file == null) return Fault.cannotOpen;
-    stdioc.fwrite(text.ptr, char.sizeof, text.length, file);
-    if (stdioc.fclose(file) != 0) return Fault.cannotClose;
+    if (stdioc.fwrite(text.ptr, char.sizeof, text.length, file) != text.length) {
+        stdioc.fclose(file);
+        return Fault.cannotWrite;
+    }
+    if (stdioc.fclose(file) != 0) {
+        return Fault.cannotClose;
+    }
     return Fault.none;
+}
+
+@nogc
+Fault writeText(IStr path, IStr text) {
+    return writeFile(path, text, false);
+}
+
+@nogc
+Fault writeBytes(IStr path, IStr bytes) {
+    return writeFile(path, bytes, true);
 }
 
 // Function test.

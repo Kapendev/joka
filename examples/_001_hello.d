@@ -10,7 +10,8 @@ struct Person {
 }
 
 void main() {
-    printfln("I am {}.", Person("Ghadius"));
-    println("Now, ", "it is simply my turn to reject the world.");
+    auto p = Person("Ghadius");
+    printfln("I am {}.", p);
+    println(i"Yes, I am the real $(p).");
     println(Sep(" "), 1, 2, 3, "GO!");
 }

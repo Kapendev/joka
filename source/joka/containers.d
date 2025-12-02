@@ -12,11 +12,12 @@ module joka.containers;
 
 import joka.ascii;
 import joka.memory;
+import joka.interpolation;
 import joka.types;
 
 @safe nothrow:
 
-enum defaultListCapacity = 16; /// The default list capacity. It is also the smallest list capacity.
+enum defaultListCapacity = 32; /// The default list capacity. It is also the smallest list capacity.
 
 alias LStr         = List!char;            /// A dynamic string of chars.
 alias LStr16       = List!wchar;           /// A dynamic string of wchars.
@@ -85,8 +86,9 @@ struct List(T) {
         jokaMemcpy(items.ptr + oldLength, args.ptr, args.length * T.sizeof);
     }
 
+    // NOTE: There is no good reason here for args having a default value, but I keep it for reference.
     @trusted
-    void appendSource(IStr file = __FILE__, Sz line = __LINE__, const(T)[] args...) {
+    void appendSource(IStr file = __FILE__, Sz line = __LINE__, const(T)[] args = []...) {
         auto oldLength = length;
         resizeBlank(length + args.length, file, line);
         jokaMemcpy(items.ptr + oldLength, args.ptr, args.length * T.sizeof);
@@ -216,16 +218,27 @@ struct BufferList(T) {
             append(args);
         }
 
-        T[] items() => data[0 .. length];
-        T* ptr() => data.ptr;
-        bool isEmpty() => length == 0;
-        Sz capacity() => data.length;
+        T[] items() {
+            return data[0 .. length];
+        }
+
+        T* ptr() {
+            return data.ptr;
+        }
+
+        bool isEmpty() {
+            return length == 0;
+        }
+
+        Sz capacity() {
+            return data.length;
+        }
     }
 
     @trusted
     void appendBlank(IStr file = __FILE__, Sz line = __LINE__) {
+        if (length >= capacity) return;
         length += 1;
-        if (length > capacity) assert(0, "List is full.");
     }
 
     @trusted
@@ -236,7 +249,7 @@ struct BufferList(T) {
     }
 
     @trusted
-    void appendSource(IStr file = __FILE__, Sz line = __LINE__, const(T)[] args...) {
+    void appendSource(IStr file = __FILE__, Sz line = __LINE__, const(T)[] args = []...) {
         append(args);
     }
 
@@ -334,16 +347,25 @@ struct FixedList(T, Sz N) {
             append(args);
         }
 
-        T[] items() => data.items[0 .. length];
-        T* ptr() => data.ptr;
-        bool isEmpty() => length == 0;
+        T[] items() {
+            return data.items[0 .. length];
+        }
+
+        T* ptr() {
+            return data.ptr;
+        }
+
+        bool isEmpty() {
+            return length == 0;
+        }
+
         enum capacity = N;
     }
 
     @trusted
     void appendBlank(IStr file = __FILE__, Sz line = __LINE__) {
+        if (length >= capacity) return;
         length += 1;
-        if (length > capacity) assert(0, "List is full.");
     }
 
     @trusted
@@ -354,7 +376,7 @@ struct FixedList(T, Sz N) {
     }
 
     @trusted
-    void appendSource(IStr file = __FILE__, Sz line = __LINE__, const(T)[] args...) {
+    void appendSource(IStr file = __FILE__, Sz line = __LINE__, const(T)[] args = []...) {
         append(args);
     }
 
@@ -530,7 +552,7 @@ struct SparseList(T, D = List!(SparseListItem!T)) if (isSparseContainerPartsVali
     }
 
     @trusted
-    void appendSource(IStr file = __FILE__, Sz line = __LINE__, const(T)[] args...) {
+    void appendSource(IStr file = __FILE__, Sz line = __LINE__, const(T)[] args = []...) {
         foreach (arg; args) {
             if (openIndex == data.length) {
                 data.appendSource(file, line, Item(cast(T) arg, true));
@@ -1238,7 +1260,7 @@ IStr fmtIntoList(bool canAppend = false, S = LStr, A...)(ref S list, IStr fmtStr
     while (fmtStrIndex < fmtStr.length) {
         auto c1 = fmtStr[fmtStrIndex];
         auto c2 = fmtStrIndex + 1 >= fmtStr.length ? '+' : fmtStr[fmtStrIndex + 1];
-        if (c1 == '{' && c2 == '}') {
+        if (c1 == defaultAsciiFmtArgStr[0] && c2 == defaultAsciiFmtArgStr[1]) {
             if (argIndex == args.length) assert(0, "A placeholder doesn't have an argument.");
             foreach (i, arg; args) {
                 if (i == argIndex) {
@@ -1260,6 +1282,23 @@ IStr fmtIntoList(bool canAppend = false, S = LStr, A...)(ref S list, IStr fmtStr
     }
     if (argIndex != args.length) assert(0, "An argument doesn't have a placeholder.");
     return list[];
+}
+
+IStr fmtIntoList(bool canAppend = false, S = LStr, A...)(ref S list, InterpolationHeader header, A args, InterpolationFooter footer) {
+    // NOTE: Both `fmtStr` and `fmtArgs` can be copy-pasted when working with IES. Main copy is in the `fmt` function.
+    enum fmtStr = () {
+        Str result; static foreach (i, T; A) {
+            static if (isInterLit!T) { result ~= args[i].toString(); }
+            else static if (isInterExp!T) { result ~= defaultAsciiFmtArgStr; }
+        } return result;
+    }();
+    enum fmtArgs = () {
+        Str result; static foreach (i, T; A) {
+            static if (isInterLit!T || isInterExp!T) {}
+            else { result ~= "args[" ~ i.stringof ~ "],"; }
+        } return result;
+    }();
+    return mixin("fmtIntoList!(canAppend, S)(list, fmtStr,", fmtArgs, ")");
 }
 
 void freeOnlyItems(T)(ref T container, IStr file = __FILE__, Sz line = __LINE__) {
