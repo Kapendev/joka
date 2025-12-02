@@ -12,6 +12,7 @@ void main() {
 
     // Loop over the components of a vector.
     auto b = IVec4(2, 3, 4, 5);
+    b += 2;
     b[][] += 2;
     foreach (ref item; b) item += 2;
     foreach (i; 0 .. b.length) b[i] += 2;
