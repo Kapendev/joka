@@ -1,8 +1,19 @@
 # 🃏 Joka
 
 A nogc utility library for the [D programming language](https://dlang.org/).
-Joka provides data structures and functions that work without garbage collection, offering precise memory control.
+Joka provides data structures and functions that can work without garbage collection, offering precise memory control.
 It is designed to complement the D standard library, not replace it.
+
+## Why Joka
+
+* Minimalistic: Avoids abstractions
+* Focused: Doesn't try to support every use case
+* Simple: Uses a single global allocator, set at compile time
+* Friendly: Memory-safety features and many examples
+
+## WebAssembly Support
+
+WebAssembly is supported with the `betterC` flag, but a tool like [Emscripten](https://emscripten.org/) is required. In case of errors, the `i` flag may help. The combination `-betterC -i` works in most cases.
 
 ## Modules
 
@@ -19,51 +30,31 @@ It is designed to complement the D standard library, not replace it.
 * `JokaCustomMemory`: Allows the declaration of custom memory allocation functions
 * `JokaGcMemory`: Like `JokaCustomMemory`, but preconfigured to use the D garbage collector
 
-## WebAssembly
-
-WebAssembly is supported with the `betterC` flag, but something like [Emscripten](https://emscripten.org/) is needed to make it work.
-If you encounter errors, try using: `-betterC -i`
-
 ## Documentation
 
 Start with the [examples](./examples/) folder for a quick overview.
-To try an example, run:
-
-```sh
-./scripts/run_example examples/_001_hello.d
-# Or: .\scripts\run_example.bat examples\_001_hello.d
-# Or: ./scripts/run_example examples/_001_hello.d ldc2
-```
 
 ## Frequently Asked Questions
-
-### Why aren't you using X library?
-
-Here are a few things I like about Joka that I don't see in other libraries:
-
-* Minimalistic: Avoids abstractions
-* Focused: Doesn't try to support every use case
-* Simple: Uses a single global allocator, set at compile time
-* Friendly: Memory-safety features and many examples
 
 ### Does Joka have an allocator API?
 
 No. Joka is designed to feel a bit like the C standard library because that's easier for most people to understand and keeps the library simple.
-This approach also lets memory-safety features, like allocation tracking, work more effectively than they would with a generic allocator API.
+
+### Will Joka get a global context like Jai?
+
+No. A public global context tends to make low-level APIs messy and fragile.
+That doesn't mean it's a bad idea. It can be useful for libraries with a specific purpose, such as UI frameworks.
 
 ### Why aren't some functions `@nogc`?
 
-Because the D garbage collector can be used as a global allocator.
+Because the D garbage collector can be used to allocate memory with the `JokaGcMemory` version.
 
 ### Why are you supporting the D garbage collector?
 
-Because I can and it's useful sometimes.
+It's another tool for memory management.
+Joka normally uses a tracking allocator in debug builds to help identify mistakes, but the `JokaGcMemory` version exists for people who prioritize safety.
+This approach is similar to the one used in [Fil-C](https://fil-c.org/).
 
-### What are you using Joka for?
+### What is Joka used for?
 
-Primarily for [Parin](https://github.com/Kapendev/parin), a game engine I'm working on.
-
-## TODO
-
-* Maybe think about IO.
-* Maybe "copy-paste" this thing: [subprocess.h](https://github.com/sheredom/subprocess.h)
+It's primarily used for [Parin](https://github.com/Kapendev/parin), a game engine.
