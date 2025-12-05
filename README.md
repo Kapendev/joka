@@ -17,13 +17,16 @@ WebAssembly is supported with the `betterC` flag, but a tool like [Emscripten](h
 
 ## Modules
 
+* `joka.algo`: Range utilities
 * `joka.ascii`: ASCII string utilities
 * `joka.cli`: Command-line parsing utilities
 * `joka.containers`: General-purpose containers
+* `joka.interpolation`: [IES](https://dlang.org/spec/istring.html) support
 * `joka.io`: Input and output functions
 * `joka.math`: Mathematical data structures and functions
 * `joka.memory`: Functions for dealing with memory
-* `joka.types`: Type definitions and compile-time utilities
+* `joka.types`: Common type definitions
+* `joka.stdc`: C standard library functions
 
 ## Versions
 

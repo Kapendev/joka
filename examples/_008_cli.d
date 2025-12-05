@@ -8,9 +8,9 @@ void main(string[] args) {
     if (args.length == 1) println(" None");
     foreach (token; args[1 .. $].toArgTokens()) {
         with (ArgType) final switch (token.type) {
-            case singleItem: printfln(" Single Item: {}", token.name); break;
-            case shortOption: printfln(" Short Option: {}", token.name); break;
-            case longOption: printfln(" Long Option: {}", token.name); break;
+            case singleItem: printfln(" Single Item: {}", token); break;
+            case shortOption: printfln(" Short Option: {}", token); break;
+            case longOption: printfln(" Long Option: {}", token); break;
         }
     }
     println();

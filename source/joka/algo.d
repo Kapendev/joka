@@ -147,7 +147,9 @@ auto sum(R)(R range) {
     static assert(!(is(R : const(A)[N], A, Sz N)), "Static arrays can't be passed.");
 
     static if (is(R : const(T)[], T)) {
-        return sum(range.toRange());
+        auto result = range[0].init;
+        foreach (item; range) result += item;
+        return result;
     } else {
         enum isValueIndexType = is(typeof(R.front()) : const(ValueIndex!(V, I)), V, I);
 
