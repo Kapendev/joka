@@ -67,7 +67,7 @@ struct List(T) {
     }
 
     @trusted
-    void appendBlank(IStr file = __FILE__, Sz line = __LINE__) {
+    bool appendBlank(IStr file = __FILE__, Sz line = __LINE__) {
         Sz newLength = length + 1;
         if (newLength > capacity) {
             capacity = findListCapacity(newLength);
@@ -77,26 +77,29 @@ struct List(T) {
         } else {
             items = items.ptr[0 .. newLength];
         }
+        return false;
     }
 
     @trusted
-    void append(const(T)[] args...) {
+    bool append(const(T)[] args...) {
         auto oldLength = length;
         resizeBlank(length + args.length);
         if (length != oldLength) jokaMemcpy(items.ptr + oldLength, args.ptr, args.length * T.sizeof);
+        return false;
     }
 
     // NOTE: There is no good reason here for args having a default value, but I keep it for reference.
     @trusted
-    void appendSource(IStr file = __FILE__, Sz line = __LINE__, const(T)[] args = []...) {
+    bool appendSource(IStr file = __FILE__, Sz line = __LINE__, const(T)[] args = []...) {
         auto oldLength = length;
         resizeBlank(length + args.length, file, line);
         if (length != oldLength) jokaMemcpy(items.ptr + oldLength, args.ptr, args.length * T.sizeof);
+        return false;
     }
 
     @trusted
-    void push(const(T) arg, IStr file = __FILE__, Sz line = __LINE__) {
-        appendSource(file, line, arg);
+    bool push(const(T) arg, IStr file = __FILE__, Sz line = __LINE__) {
+        return appendSource(file, line, arg);
     }
 
     @nogc
@@ -236,26 +239,29 @@ struct BufferList(T) {
     }
 
     @trusted
-    void appendBlank(IStr file = __FILE__, Sz line = __LINE__) {
-        if (length >= capacity) return;
+    bool appendBlank(IStr file = __FILE__, Sz line = __LINE__) {
+        if (length >= capacity) return true;
         length += 1;
+        return false;
     }
 
     @trusted
-    void append(const(T)[] args...) {
+    bool append(const(T)[] args...) {
         auto oldLength = length;
         resizeBlank(length + args.length);
-        if (length != oldLength) jokaMemcpy(ptr + oldLength, args.ptr, args.length * T.sizeof);
+        if (length == oldLength) return true;
+        jokaMemcpy(ptr + oldLength, args.ptr, args.length * T.sizeof);
+        return false;
     }
 
     @trusted
-    void appendSource(IStr file = __FILE__, Sz line = __LINE__, const(T)[] args = []...) {
-        append(args);
+    bool appendSource(IStr file = __FILE__, Sz line = __LINE__, const(T)[] args = []...) {
+        return append(args);
     }
 
     @trusted
-    void push(const(T) arg, IStr file = __FILE__, Sz line = __LINE__) {
-        appendSource(file, line, arg);
+    bool push(const(T) arg, IStr file = __FILE__, Sz line = __LINE__) {
+        return appendSource(file, line, arg);
     }
 
     void remove(Sz i) {
@@ -363,26 +369,29 @@ struct FixedList(T, Sz N) {
     }
 
     @trusted
-    void appendBlank(IStr file = __FILE__, Sz line = __LINE__) {
-        if (length >= capacity) return;
+    bool appendBlank(IStr file = __FILE__, Sz line = __LINE__) {
+        if (length >= capacity) return true;
         length += 1;
+        return false;
     }
 
     @trusted
-    void append(const(T)[] args...) {
+    bool append(const(T)[] args...) {
         auto oldLength = length;
         resizeBlank(length + args.length);
-        if (length != oldLength) jokaMemcpy(ptr + oldLength, args.ptr, args.length * T.sizeof);
+        if (length == oldLength) return true;
+        jokaMemcpy(ptr + oldLength, args.ptr, args.length * T.sizeof);
+        return false;
     }
 
     @trusted
-    void appendSource(IStr file = __FILE__, Sz line = __LINE__, const(T)[] args = []...) {
-        append(args);
+    bool appendSource(IStr file = __FILE__, Sz line = __LINE__, const(T)[] args = []...) {
+        return append(args);
     }
 
     @trusted
-    void push(const(T) arg, IStr file = __FILE__, Sz line = __LINE__) {
-        appendSource(file, line, arg);
+    bool push(const(T) arg, IStr file = __FILE__, Sz line = __LINE__) {
+        return appendSource(file, line, arg);
     }
 
     void remove(Sz i) {
@@ -1288,13 +1297,13 @@ IStr fmtIntoList(bool canAppend = false, S = LStr, A...)(ref S list, Interpolati
     // NOTE: Both `fmtStr` and `fmtArgs` can be copy-pasted when working with IES. Main copy is in the `fmt` function.
     enum fmtStr = () {
         Str result; static foreach (i, T; A) {
-            static if (isInterLit!T) { result ~= args[i].toString(); }
-            else static if (isInterExp!T) { result ~= defaultAsciiFmtArgStr; }
+            static if (isInterLitType!T) { result ~= args[i].toString(); }
+            else static if (isInterExpType!T) { result ~= defaultAsciiFmtArgStr; }
         } return result;
     }();
     enum fmtArgs = () {
         Str result; static foreach (i, T; A) {
-            static if (isInterLit!T || isInterExp!T) {}
+            static if (isInterLitType!T || isInterExpType!T) {}
             else { result ~= "args[" ~ i.stringof ~ "],"; }
         } return result;
     }();
