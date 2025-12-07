@@ -71,4 +71,6 @@ It's primarily used for [Parin](https://github.com/Kapendev/parin), a game engin
     The combination `-betterC -i` works in most cases and is recommended for anyone still learning D.
 
 3. Using `struct[N]`.
-    Some parts of the D runtime are needed when using types like this and they can be missing due to how `betterC` works. The solution is to implement the missing functions or use a custom static array type ([./source/joka/types.d:61](https://github.com/Kapendev/joka/blob/main/source/joka/types.d#L61)).
+    Some parts of the D runtime (`_memsetn`, ...) are needed when using types like this and they can be missing due to how `betterC` works. The solution is to implement the missing functions or use a custom static array type ([./source/joka/types.d:61](https://github.com/Kapendev/joka/blob/main/source/joka/types.d#L61)).
+
+4. `TypeInfo` errors. Search for `new` in the source code and remove it.
