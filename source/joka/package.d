@@ -7,6 +7,7 @@
 
 module joka;
 
+public import joka.algo;
 public import joka.ascii;
 public import joka.cli;
 public import joka.containers;

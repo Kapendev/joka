@@ -12,6 +12,6 @@ struct Person {
 void main() {
     auto p = Person("Ghadius");
     printfln("I am {}.", p);
-    println(i"Yes, I am the real $(p).");
+    println(i"I am $(p).");
     println(Sep(" "), 1, 2, 3, "GO!");
 }
