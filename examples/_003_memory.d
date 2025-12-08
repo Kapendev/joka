@@ -28,7 +28,20 @@ void main() {
     ubyte[1024] buffer = void;
     auto arena2 = Arena(buffer);
     a = arena2.make!char('C');
-    b = arena2.make!long(3);
+    b = arena2.make!long(99);
     trace(*a, *b);
     arena2.clear();
+
+    // A scoped version of an arena clears its memory automatically at the end of the block.
+    auto arena3 = Arena(buffer);
+    with (ScopedArena(arena3)) {
+        make!char('C');
+        with (ScopedArena(arena3)) {
+            make!short(2);
+            make!char('D');
+            trace(arena3.offset == 5);
+        }
+        trace(arena3.offset == 1);
+    }
+    trace(arena3.offset == 0);
 }

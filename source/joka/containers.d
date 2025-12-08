@@ -969,10 +969,12 @@ struct Arena {
         ready(capacity, file, line);
     }
 
+    @nogc
     this(ubyte* data, Sz capacity) {
         ready(data, capacity);
     }
 
+    @nogc
     this(ubyte[] data) {
         ready(data);
     }
@@ -986,6 +988,8 @@ struct Arena {
         isOwning = true;
     }
 
+    @trusted nothrow @nogc:
+
     void ready(ubyte* newData, Sz newCapacity) {
         free();
         data = newData;
@@ -995,8 +999,6 @@ struct Arena {
     void ready(ubyte[] newData) {
         ready(newData.ptr, newData.length);
     }
-
-    @trusted nothrow @nogc:
 
     void* malloc(Sz size, Sz alignment) {
         Sz alignedOffset = void;
@@ -1058,6 +1060,10 @@ struct Arena {
 
     void rollback() {
         offset = checkpointOffset;
+    }
+
+    void rollback(Sz value) {
+        offset = value;
     }
 
     void dropCheckpoint() {
@@ -1212,6 +1218,91 @@ struct GrowingArena {
             chunk.ignoreLeak();
         }
         return this;
+    }
+}
+
+struct ScopedArena {
+    Arena _arena;
+    Arena* _otherArenaPtr;
+    GrowingArena* _otherGrowingArenaPtr;
+    Sz _otherArenaCheckpointOffset;
+
+    @trusted nothrow:
+
+    @nogc
+    this(ubyte* data, Sz capacity) {
+        this._arena.ready(data, capacity);
+    }
+
+    @nogc
+    this(ubyte[] data) {
+        this._arena.ready(data);
+    }
+
+    @nogc
+    this(ref Arena data) {
+        this._otherArenaPtr = &data;
+        this._otherArenaCheckpointOffset = _otherArenaPtr.offset;
+    }
+
+    @nogc
+    this(ref GrowingArena data) {
+        this._otherGrowingArenaPtr = &data;
+    }
+
+    @nogc
+    ~this() {
+        if (_otherArenaPtr) _otherArenaPtr.rollback(_otherArenaCheckpointOffset);
+        if (_otherGrowingArenaPtr) _otherGrowingArenaPtr.clear();
+        _arena.rollback();
+    }
+
+    void* malloc(Sz size, Sz alignment) {
+        if (_otherArenaPtr) return _otherArenaPtr.malloc(size, alignment);
+        if (_otherGrowingArenaPtr) return _otherGrowingArenaPtr.malloc(size, alignment);
+        return _arena.malloc(size, alignment);
+    }
+
+    void* realloc(void* ptr, Sz oldSize, Sz newSize, Sz alignment) {
+        if (_otherArenaPtr) return _otherArenaPtr.realloc(ptr, oldSize, newSize, alignment);
+        if (_otherGrowingArenaPtr) return _otherGrowingArenaPtr.realloc(ptr, oldSize, newSize, alignment);
+        return _arena.realloc(ptr, oldSize, newSize, alignment);
+    }
+
+    T* makeBlank(T)() {
+        if (_otherArenaPtr) return _otherArenaPtr.makeBlank!T();
+        if (_otherGrowingArenaPtr) return _otherGrowingArenaPtr.makeBlank!T();
+        return _arena.makeBlank!T();
+    }
+
+    T* make(T)() {
+        if (_otherArenaPtr) return _otherArenaPtr.make!T();
+        if (_otherGrowingArenaPtr) return _otherGrowingArenaPtr.make!T();
+        return _arena.make!T();
+    }
+
+    T* make(T)(const(T) value) {
+        if (_otherArenaPtr) return _otherArenaPtr.make!T(value);
+        if (_otherGrowingArenaPtr) return _otherGrowingArenaPtr.make!T(value);
+        return _arena.make!T(value);
+    }
+
+    T[] makeSliceBlank(T)(Sz length) {
+        if (_otherArenaPtr) return _otherArenaPtr.makeSliceBlank!T(length);
+        if (_otherGrowingArenaPtr) return _otherGrowingArenaPtr.makeSliceBlank!T(length);
+        return _arena.makeSliceBlank!T(length);
+    }
+
+    T[] makeSlice(T)(Sz length) {
+        if (_otherArenaPtr) return _otherArenaPtr.makeSlice!T(length);
+        if (_otherGrowingArenaPtr) return _otherGrowingArenaPtr.makeSlice!T(length);
+        return _arena.makeSlice!T(length);
+    }
+
+    T[] makeSlice(T)(Sz length, const(T) value) {
+        if (_otherArenaPtr) return _otherArenaPtr.makeSlice!T(length, value);
+        if (_otherGrowingArenaPtr) return _otherGrowingArenaPtr.makeSlice!T(length, value);
+        return _arena.makeSlice!T(length, value);
     }
 }
 
@@ -1784,4 +1875,24 @@ unittest {
     assert(arena.offset == 0);
     assert(arena.data == null);
     assert(arena.isOwning == false);
+
+    with (ScopedArena(buffer)) {
+        assert(*make!char('C') == 'C');
+        assert(*make!short(69) == 69);
+        assert(*make!char('D') == 'D');
+        assert(_arena.offset == 5);
+    }
+
+    arena = Arena(512);
+    with (ScopedArena(arena)) {
+        make!char('C');
+        with (ScopedArena(arena)) {
+            make!short(2);
+            make!char('D');
+            assert(arena.offset == 5);
+        }
+        assert(arena.offset == 1);
+    }
+    assert(arena.offset == 0);
+    arena.free();
 }
