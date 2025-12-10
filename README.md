@@ -85,7 +85,7 @@ main :: proc() {
 }
 ```
 
-To sum up, Joka is trying to be safe about this.
+To sum up, Joka is trying to be simple and safe about this.
 
 ### Why aren't some functions `@nogc`?
 
