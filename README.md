@@ -50,13 +50,49 @@ That doesn't mean it's a bad idea. It can be useful for libraries with a specifi
 
 ### Why isn't there a `jokaFreeSlice` function?
 
-Because slices are meant to behave like arrays, not pointers.
-They also show up everywhere in D code, and if you could free a slice directly it would be far too easy to pass one by accident.
+Because slices are meant to be used like arrays, not pointers.
+They also show up everywhere in D code, meaning it would be far too easy to free the wrong one by accident.
 Using `jokaFree(slice.ptr)` avoids that. It makes the unsafe part obvious and helps prevent mistakes.
+Another benefit is that it's easier to reason about.
+Joka has only one function that frees memory.
+
+For context, the Odin language has three functions for freeing memory:
+
+- `free`
+- `free_all`
+- `delete`
+
+It might be hard to tell what each one does just from the name if you are new to Odin.
+The one that frees memory using slices is `delete`.
+
+```odin
+main :: proc() {
+    buffer: [256]u8    // Create a buffer on the stack.
+    slice := buffer[:] // Take a slice from the buffer.
+    // ...
+    delete(slice)      // Try to free the memory.
+}
+```
+
+Oops. To be fair, Odin does this because the alternative would be more verbose.
+
+```odin
+main :: proc() {
+    buffer: [256]u8
+    slice := buffer[:]
+    // ...
+    free(raw_data(slice))
+}
+```
+
+To sum up, Joka is trying to be safe about this.
 
 ### Why aren't some functions `@nogc`?
 
-Because the D garbage collector can be used to allocate memory with the `JokaGcMemory` version. The `@nogc` attribute is just a hint to the compiler, telling it to check that called functions also carry that hint. It can be helpful but not essential for writing GC-free code. Attributes are a design tool, not a memory management tool.
+Because the D garbage collector can be used to allocate memory with the `JokaGcMemory` version.
+The `@nogc` attribute is just a hint to the compiler, telling it to check that called functions also carry that hint.
+It can be helpful but not essential for writing GC-free code.
+Attributes are a design tool, not a memory management tool.
 
 ### Why are you supporting the D garbage collector?
 
@@ -64,8 +100,9 @@ It's another tool for memory management.
 Joka normally uses a tracking allocator in debug builds to help identify mistakes, but the `JokaGcMemory` version exists for people who prioritize safety.
 This approach is similar to the one used in [Fil-C](https://fil-c.org/).
 
-### Any examples about how to use the tracking allocator?
+### Any examples that use the tracking allocator?
 
+* [Joka examples](./examples/_003_memory.d)
 * [Parin](https://github.com/Kapendev/parin/blob/main/TOUR.md#memory-tracking)
 
 ### What is Joka used for?
