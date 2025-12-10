@@ -48,15 +48,25 @@ No. Joka is designed to feel a bit like the C standard library because that's ea
 No. A public global context tends to make generic low-level APIs fragile.
 That doesn't mean it's a bad idea. It can be useful for libraries with a specific purpose, such as UI frameworks.
 
+### Why isn't there a `jokaFreeSlice` function?
+
+Because slices are meant to behave like arrays, not pointers.
+They also show up everywhere in D code, and if you could free a slice directly it would be far too easy to pass one by accident.
+Using `jokaFree(slice.ptr)` avoids that. It makes the unsafe part obvious and helps prevent mistakes.
+
 ### Why aren't some functions `@nogc`?
 
-Because the D garbage collector can be used to allocate memory with the `JokaGcMemory` version. The `@nogc` attribute is just a hint to the compiler, telling it to check that called functions also carry that hint. It can be helpful but not essential for writing GC-free code.
+Because the D garbage collector can be used to allocate memory with the `JokaGcMemory` version. The `@nogc` attribute is just a hint to the compiler, telling it to check that called functions also carry that hint. It can be helpful but not essential for writing GC-free code. Attributes are a design tool, not a memory management tool.
 
 ### Why are you supporting the D garbage collector?
 
 It's another tool for memory management.
 Joka normally uses a tracking allocator in debug builds to help identify mistakes, but the `JokaGcMemory` version exists for people who prioritize safety.
 This approach is similar to the one used in [Fil-C](https://fil-c.org/).
+
+### Any examples about how to use the tracking allocator?
+
+* [Parin](https://github.com/Kapendev/parin/blob/main/TOUR.md#memory-tracking)
 
 ### What is Joka used for?
 
@@ -65,12 +75,16 @@ It's primarily used for [Parin](https://github.com/Kapendev/parin), a game engin
 ### What are common `betterC` errors and how do I fix them?
 
 1. Using `betterC` as a global `@nogc` attribute.
-    This flag does more than just remove the garbage collector and adds extra checks that can sometimes be overly restrictive. If writing GC-free code is important and compiler assistance is really needed, then add `@nogc:` at the top of every file. To reiterate, the `@nogc` attribute is just a hint to the compiler, telling it to check that called functions also carry that hint. It can be helpful but not essential for writing GC-free code.
+    This flag does more than just remove the garbage collector and adds extra checks that can sometimes be overly restrictive.
+    If writing GC-free code is important and compiler assistance is really needed, then add `@nogc:` at the top of every file.
+    To reiterate, the `@nogc` attribute is just a hint to the compiler, telling it to check that called functions also carry that hint.
+    It can be helpful but not essential for writing GC-free code.
 
 2. Using `betterC` without the `i` flag.
     The combination `-betterC -i` works in most cases and is recommended for anyone still learning D.
 
 3. Using `struct[N]`.
-    Some parts of the D runtime (`_memsetn`, ...) are needed when using types like this and they can be missing due to how `betterC` works. The solution is to implement the missing functions or use a custom static array type ([./source/joka/types.d:61](https://github.com/Kapendev/joka/blob/main/source/joka/types.d#L61)).
+    Some parts of the D runtime (`_memsetn`, ...) are needed when using types like this and they can be missing due to how `betterC` works.
+    The solution is to implement the missing functions or use a custom static array type ([./source/joka/types.d:61](https://github.com/Kapendev/joka/blob/main/source/joka/types.d#L61)).
 
 4. `TypeInfo` errors. Search for `new` in the source code and remove it.

@@ -1000,7 +1000,7 @@ struct Arena {
         ready(newData.ptr, newData.length);
     }
 
-    void* malloc(Sz size, Sz alignment) {
+    void* malloc(Sz size, Sz alignment, IStr file = __FILE__, Sz line = __LINE__) {
         Sz alignedOffset = void;
         if (offset == 0) {
             auto ptr = cast(Sz) data;
@@ -1013,7 +1013,7 @@ struct Arena {
         return cast(void*) (data + alignedOffset);
     }
 
-    void* realloc(void* ptr, Sz oldSize, Sz newSize, Sz alignment) {
+    void* realloc(void* ptr, Sz oldSize, Sz newSize, Sz alignment, IStr file = __FILE__, Sz line = __LINE__) {
         if (ptr == null) return malloc(newSize, alignment);
         auto newPtr = malloc(newSize, alignment);
         if (newPtr == null) return null;
@@ -1022,35 +1022,41 @@ struct Arena {
         return newPtr;
     }
 
-    T* makeBlank(T)() {
+    T* makeBlank(T)(IStr file = __FILE__, Sz line = __LINE__) {
         return cast(T*) malloc(T.sizeof, T.alignof);
     }
 
-    T* make(T)() {
+    T* make(T)(IStr file = __FILE__, Sz line = __LINE__) {
         auto result = makeBlank!T();
         *result = T.init;
         return result;
     }
 
-    T* make(T)(const(T) value) {
+    T* make(T)(const(T) value, IStr file = __FILE__, Sz line = __LINE__) {
         auto result = makeBlank!T();
         *result = cast(T) value;
         return result;
     }
 
-    T[] makeSliceBlank(T)(Sz length) {
+    T[] makeSliceBlank(T)(Sz length, IStr file = __FILE__, Sz line = __LINE__) {
         return (cast(T*) malloc(T.sizeof * length, T.alignof))[0 .. length];
     }
 
-    T[] makeSlice(T)(Sz length) {
+    T[] makeSlice(T)(Sz length, IStr file = __FILE__, Sz line = __LINE__) {
         auto result = makeSliceBlank!T(length);
         foreach (ref item; result) item = T.init;
         return result;
     }
 
-    T[] makeSlice(T)(Sz length, const(T) value) {
+    T[] makeSlice(T)(Sz length, const(T) value, IStr file = __FILE__, Sz line = __LINE__) {
         auto result = makeSliceBlank!T(length);
         foreach (ref item; result) item = value;
+        return result;
+    }
+
+    T[] jokaMakeSlice(T)(const(T)[] values, IStr file = __FILE__, Sz line = __LINE__) {
+        auto result = makeSliceBlank!T(values.length);
+        result.ptr.jokaMemcpy(values.ptr, T.sizeof * values.length);
         return result;
     }
 
@@ -1186,6 +1192,12 @@ struct GrowingArena {
         return result;
     }
 
+    T[] jokaMakeSlice(T)(const(T)[] values, IStr file = __FILE__, Sz line = __LINE__) {
+        auto result = makeSliceBlank!T(values.length, file, line);
+        result.ptr.jokaMemcpy(values.ptr, T.sizeof * values.length);
+        return result;
+    }
+
     @trusted nothrow @nogc:
 
     void clear() {
@@ -1221,89 +1233,65 @@ struct GrowingArena {
     }
 }
 
-struct ScopedArena {
-    Arena _arena;
-    Arena* _otherArenaPtr;
-    GrowingArena* _otherGrowingArenaPtr;
-    Sz _otherArenaCheckpointOffset;
+struct _ScopedArena(T) {
+    T* _currentArena;
+    Sz _currentArenaCheckpointOffset;
 
     @trusted nothrow:
 
     @nogc
-    this(ubyte* data, Sz capacity) {
-        this._arena.ready(data, capacity);
-    }
-
-    @nogc
-    this(ubyte[] data) {
-        this._arena.ready(data);
-    }
-
-    @nogc
-    this(ref Arena data) {
-        this._otherArenaPtr = &data;
-        this._otherArenaCheckpointOffset = _otherArenaPtr.offset;
-    }
-
-    @nogc
-    this(ref GrowingArena data) {
-        this._otherGrowingArenaPtr = &data;
+    this(ref T data) {
+        this._currentArena = &data;
+        static if (is(T == Arena)) {
+            this._currentArenaCheckpointOffset = data.offset;
+        }
     }
 
     @nogc
     ~this() {
-        if (_otherArenaPtr) _otherArenaPtr.rollback(_otherArenaCheckpointOffset);
-        if (_otherGrowingArenaPtr) _otherGrowingArenaPtr.clear();
-        _arena.rollback();
+        static if (is(T == Arena)) {
+            _currentArena.rollback(_currentArenaCheckpointOffset);
+        } else {
+            _currentArena.clear();
+        }
     }
 
-    void* malloc(Sz size, Sz alignment) {
-        if (_otherArenaPtr) return _otherArenaPtr.malloc(size, alignment);
-        if (_otherGrowingArenaPtr) return _otherGrowingArenaPtr.malloc(size, alignment);
-        return _arena.malloc(size, alignment);
+    void* malloc(Sz size, Sz alignment, IStr file = __FILE__, Sz line = __LINE__) {
+        return _currentArena.malloc(size, alignment, file, line);
     }
 
-    void* realloc(void* ptr, Sz oldSize, Sz newSize, Sz alignment) {
-        if (_otherArenaPtr) return _otherArenaPtr.realloc(ptr, oldSize, newSize, alignment);
-        if (_otherGrowingArenaPtr) return _otherGrowingArenaPtr.realloc(ptr, oldSize, newSize, alignment);
-        return _arena.realloc(ptr, oldSize, newSize, alignment);
+    void* realloc(void* ptr, Sz oldSize, Sz newSize, Sz alignment, IStr file = __FILE__, Sz line = __LINE__) {
+        return _currentArena.realloc(ptr, oldSize, newSize, alignment, file, line);
     }
 
-    T* makeBlank(T)() {
-        if (_otherArenaPtr) return _otherArenaPtr.makeBlank!T();
-        if (_otherGrowingArenaPtr) return _otherGrowingArenaPtr.makeBlank!T();
-        return _arena.makeBlank!T();
+    T* makeBlank(T)(IStr file = __FILE__, Sz line = __LINE__) {
+        return _currentArena.makeBlank!T(file, line);
     }
 
-    T* make(T)() {
-        if (_otherArenaPtr) return _otherArenaPtr.make!T();
-        if (_otherGrowingArenaPtr) return _otherGrowingArenaPtr.make!T();
-        return _arena.make!T();
+    T* make(T)(IStr file = __FILE__, Sz line = __LINE__) {
+        return _currentArena.make!T(file, line);
     }
 
-    T* make(T)(const(T) value) {
-        if (_otherArenaPtr) return _otherArenaPtr.make!T(value);
-        if (_otherGrowingArenaPtr) return _otherGrowingArenaPtr.make!T(value);
-        return _arena.make!T(value);
+    T* make(T)(const(T) value, IStr file = __FILE__, Sz line = __LINE__) {
+        return _currentArena.make!T(value, file, line);
     }
 
-    T[] makeSliceBlank(T)(Sz length) {
-        if (_otherArenaPtr) return _otherArenaPtr.makeSliceBlank!T(length);
-        if (_otherGrowingArenaPtr) return _otherGrowingArenaPtr.makeSliceBlank!T(length);
-        return _arena.makeSliceBlank!T(length);
+    T[] makeSliceBlank(T)(Sz length, IStr file = __FILE__, Sz line = __LINE__) {
+        return _currentArena.makeSliceBlank!T(length, file, line);
     }
 
-    T[] makeSlice(T)(Sz length) {
-        if (_otherArenaPtr) return _otherArenaPtr.makeSlice!T(length);
-        if (_otherGrowingArenaPtr) return _otherGrowingArenaPtr.makeSlice!T(length);
-        return _arena.makeSlice!T(length);
+    T[] makeSlice(T)(Sz length, IStr file = __FILE__, Sz line = __LINE__) {
+        return _currentArena.makeSlice!T(length, file, line);
     }
 
-    T[] makeSlice(T)(Sz length, const(T) value) {
-        if (_otherArenaPtr) return _otherArenaPtr.makeSlice!T(length, value);
-        if (_otherGrowingArenaPtr) return _otherGrowingArenaPtr.makeSlice!T(length, value);
-        return _arena.makeSlice!T(length, value);
+    T[] makeSlice(T)(Sz length, const(T) value, IStr file = __FILE__, Sz line = __LINE__) {
+        return _currentArena.makeSlice!T(length, value, file, line);
     }
+}
+
+@trusted
+_ScopedArena!T ScopedArena(T)(ref T arena) {
+    return _ScopedArena!T(arena);
 }
 
 @trusted @nogc {
@@ -1875,13 +1863,6 @@ unittest {
     assert(arena.offset == 0);
     assert(arena.data == null);
     assert(arena.isOwning == false);
-
-    with (ScopedArena(buffer)) {
-        assert(*make!char('C') == 'C');
-        assert(*make!short(69) == 69);
-        assert(*make!char('D') == 'D');
-        assert(_arena.offset == 5);
-    }
 
     arena = Arena(512);
     with (ScopedArena(arena)) {

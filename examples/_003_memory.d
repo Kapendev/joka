@@ -16,6 +16,12 @@ void main() {
     scope (exit) jokaFree(slice.ptr);
     trace(slice.length);
 
+    // Group allocations to make memory tracking clearer and more organized.
+    with (AllocationGroup("Part 3")) {
+        jokaFree(jokaMakeSlice!char("I like D.").ptr);
+        jokaFree(jokaMakeSlice!char("I also like C.").ptr);
+    }
+
     // Allocate 1KB of memory using an arena.
     auto arena1 = Arena(1024);
     scope (exit) arena1.free();
