@@ -206,3 +206,11 @@ It's primarily used for [Parin](https://github.com/Kapendev/parin), a game engin
     The solution is to implement the missing functions or use a custom static array type ([./source/joka/types.d:61](https://github.com/Kapendev/joka/blob/main/source/joka/types.d#L61)).
 
 4. `TypeInfo` errors. Search for `new` in the source code and remove it.
+
+### Why use D without the GC?
+
+Because manual memory management is fun!
+
+### The end?
+
+[Yes.](https://youtu.be/jqKCwHHZH98?si=tWS3I68b8CaDzy-V)
