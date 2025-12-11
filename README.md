@@ -4,6 +4,18 @@ A nogc utility library for the [D programming language](https://dlang.org/).
 Joka provides data structures and functions that can work without garbage collection, offering precise memory control.
 It is designed to complement the D standard library, not replace it.
 
+```d
+/// Vectors, printing, and string interpolation.
+
+import joka;
+
+void main() {
+    auto a = IVec3(9, 4, 6);
+    auto b = a.swizzle("zxx").chop();
+    println(i"From $(a) to $(b)."); // From (9 4 6) to (6 9).
+}
+```
+
 ## Why Joka
 
 - Minimalistic: Avoids many abstractions
@@ -14,11 +26,13 @@ It is designed to complement the D standard library, not replace it.
 
 ## WebAssembly Support
 
-WebAssembly is supported with the `betterC` flag, but a tool like [Emscripten](https://emscripten.org/) is required. In case of errors, the `i` flag may help. The combination `-betterC -i` works in most cases.
+WebAssembly is supported with the `betterC` flag, but a tool like [Emscripten](https://emscripten.org/) is required.
+In case of errors, the `i` flag may help. The combination `-betterC -i` works in most cases.
 
 ## Memory Tracking
 
-Joka includes a lightweight memory tracking system that can detect leaks or invalid frees in debug builds. By default, the helper function `memoryTrackingInfo` produces output like this:
+Joka includes a lightweight memory tracking system that can detect leaks or invalid frees in debug builds.
+By default, the helper function `memoryTrackingInfo` produces output like this:
 
 ```
 Memory Leaks: 4 (total 699 bytes, 5 ignored)
