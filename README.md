@@ -24,6 +24,10 @@ void main() {
 - Friendly: Memory-safety features and many examples
 - WebAssembly: It just works
 
+> [!NOTE]
+> The project is still early in development.
+> If something is missing, it will probably be added when someone (usually the main developer) needs it.
+
 ## WebAssembly Support
 
 WebAssembly is supported with the `betterC` flag, but a tool like [Emscripten](https://emscripten.org/) is required.
@@ -139,7 +143,7 @@ For context, the Odin language has three functions for freeing memory:
 - `delete`
 
 It might be hard to tell what each one does just from the name if you are new to Odin.
-The one that frees memory using slices is `delete`.
+The one that frees memory using slices is `delete`. It looks like this when used:
 
 ```odin
 main :: proc() {
@@ -150,25 +154,33 @@ main :: proc() {
 }
 ```
 
-Oops. To be fair, Odin does this because the alternative would be more verbose.
-
-```odin
-main :: proc() {
-    buffer: [256]u8
-    slice := buffer[:]
-    // ...
-    free(raw_data(slice))
-}
-```
-
-To sum up, Joka is trying to be simple and safe about this.
+Oops! To sum up, Joka is trying to be simple and safe about this.
 
 ### Why aren't some functions `@nogc`?
 
 Because the D garbage collector can be used to allocate memory with the `JokaGcMemory` version.
 The `@nogc` attribute is just a hint to the compiler, telling it to check that called functions also carry that hint.
 It can be helpful but not essential for writing GC-free code.
-Attributes are a design tool, not a memory management tool.
+
+For example, consider this function:
+
+```d
+char[] temporaryString() {
+    static char[64][32] buffers = void;
+    static currentBuffer = 0;
+
+    currentBuffer = (currentBuffer + 1) % buffers.length;
+    return buffers[currentBuffer][];
+}
+```
+
+This function uses a static buffer to create a temporary string at runtime.
+It never allocates with the GC, so it is a nogc function in practice, but it is not a `@nogc` function.
+If you try to call it from a `@nogc` function, the compiler will reject it simply because the attribute is missing.
+What this shows is that attributes in D are a design tool, not a memory management tool.
+
+For what it's worth, I (Kapendev) don't use attributes in my own projects except for libraries.
+I recommend avoiding them most of the time, especially if you're new to D.
 
 ### Why are you supporting the D garbage collector?
 
@@ -185,8 +197,6 @@ It's primarily used for [Parin](https://github.com/Kapendev/parin), a game engin
 1. Using `betterC` as a global `@nogc` attribute.
     This flag does more than just remove the garbage collector and adds extra checks that can sometimes be overly restrictive.
     If writing GC-free code is important and compiler assistance is really needed, then add `@nogc:` at the top of every file.
-    To reiterate, the `@nogc` attribute is just a hint to the compiler, telling it to check that called functions also carry that hint.
-    It can be helpful but not essential for writing GC-free code.
 
 2. Using `betterC` without the `i` flag.
     The combination `-betterC -i` works in most cases and is recommended for anyone still learning D.
