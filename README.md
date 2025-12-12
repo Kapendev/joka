@@ -122,34 +122,6 @@ No. Joka is designed to feel a bit like the C standard library because that's ea
 No. A public global context tends to make generic low-level APIs fragile.
 That doesn't mean it's a bad idea. It can be useful for libraries with a specific purpose, such as UI frameworks.
 
-### Why isn't there a `jokaFreeSlice` function?
-
-Because slices are meant to be used like arrays, not pointers.
-They also show up everywhere in D code, meaning it would be far too easy to free the wrong one by accident.
-Using `jokaFree(slice.ptr)` avoids that. It makes the unsafe part obvious and helps prevent mistakes.
-Another benefit is that it's easier to reason about.
-Joka has only one function that frees memory.
-
-For context, the Odin language has three functions for freeing memory:
-
-- `free`
-- `free_all`
-- `delete`
-
-It might be hard to tell what each one does just from the name if you are new to Odin.
-The one that frees memory using slices is `delete`. It looks like this when used:
-
-```odin
-main :: proc() {
-    buffer: [256]u8    // Create a buffer on the stack.
-    slice := buffer[:] // Take a slice from the buffer.
-    // ...
-    delete(slice)      // Try to free the memory.
-}
-```
-
-Oops! To sum up, Joka is trying to be simple and safe about this.
-
 ### Why aren't some functions `@nogc`?
 
 Because the D garbage collector can be used to allocate memory with the `JokaGcMemory` version.
@@ -182,14 +154,44 @@ It's another tool for memory management.
 Joka normally uses a tracking allocator in debug builds to help identify mistakes, but the `JokaGcMemory` version exists for people who prioritize safety.
 This approach is similar to the one used in [Fil-C](https://fil-c.org/).
 
+### Is it hard to mix Joka with other D libraries?
+
+No. Joka doesn't impose arbitrary restrictions on your code, so it works smoothly with Phobos or other libraries.
+Some libraries choose to be `@safe`, `@nogc`, or `nothrow` only, but those are their constraints, not Joka's.
+I (Kapendev) avoid the "attribute-oriented" style of structuring a project entirely.
+
+### Why isn't there a `jokaFreeSlice` function?
+
+Because slices are meant to be used like arrays, not pointers.
+They also show up everywhere in D code, meaning it would be far too easy to free the wrong one by accident.
+Using `jokaFree(slice.ptr)` avoids that. It makes the unsafe part obvious and helps prevent mistakes.
+Another benefit is that it's easier to reason about.
+Joka has only one function that frees memory.
+
+For context, the Odin language has three functions for freeing memory:
+
+- `free`
+- `free_all`
+- `delete`
+
+It might be hard to tell what each one does just from the name if you are new to Odin.
+The one that frees memory using slices is `delete`. It looks like this when used:
+
+```odin
+main :: proc() {
+    buffer: [256]u8    // Create a buffer on the stack.
+    slice := buffer[:] // Take a slice from the buffer.
+    // ...
+    delete(slice)      // Try to free the memory.
+}
+```
+
+Oops! To sum up, Joka is trying to be simple and safe about this.
+
 ### Is WebAssembly supported?
 
 Yes. WebAssembly is supported with the `betterC` flag, but a tool like [Emscripten](https://emscripten.org/) is required.
 In case of errors, the `i` flag may help. The combination `-betterC -i` works in most cases.
-
-### What is Joka used for?
-
-It's primarily used for [Parin](https://github.com/Kapendev/parin), a game engine.
 
 ### What are common `betterC` errors and how do I fix them?
 
@@ -205,6 +207,10 @@ It's primarily used for [Parin](https://github.com/Kapendev/parin), a game engin
     The solution is to implement the missing functions or use a custom static array type ([./source/joka/types.d:61](https://github.com/Kapendev/joka/blob/main/source/joka/types.d#L61)).
 
 4. `TypeInfo` errors. Search for `new` in the source code and remove it.
+
+### What is Joka used for?
+
+It's primarily used for [Parin](https://github.com/Kapendev/parin), a game engine.
 
 ### Why use D without the GC?
 
