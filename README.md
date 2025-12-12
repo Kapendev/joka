@@ -104,7 +104,7 @@ Containers tend to be configurable through these types, giving full control over
 ## Quick Start
 
 This guide shows how to install Joka using [DUB](https://dub.pm/).
-Create a new folder and run inside the following command:
+Create a new folder and run inside the following commands:
 
 ```sh
 dub init -n
