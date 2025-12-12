@@ -18,20 +18,42 @@ void main() {
 
 ## Why Joka
 
-- Minimalistic: Avoids many abstractions
-- Focused: Doesn't try to support every use case
-- Simple: Uses a single global allocator set at compile time
-- Friendly: Memory-safety features and many examples
-- WebAssembly: It just works
+- **Minimalistic**: Avoids many abstractions
+- **Focused**: Doesn't try to support every use case
+- **Simple**: Uses a single global allocator set at compile time
+- **Friendly**: Memory-safety features and many examples
 
 > [!NOTE]
 > The project is still early in development.
 > If something is missing, it will probably be added when someone (usually the main developer) needs it.
 
-## WebAssembly Support
+## Core Types
 
-WebAssembly is supported with the `betterC` flag, but a tool like [Emscripten](https://emscripten.org/) is required.
-In case of errors, the `i` flag may help. The combination `-betterC -i` works in most cases.
+Joka containers tend to be configurable through these types, giving full control over how memory is allocated and avoiding the need for a complicated allocator API:
+
+- `List`: Dynamic array using the global allocator
+- `FixedList`: Dynamic array allocated on the stack
+- `BufferList`: Dynamic array backed by caller-provided memory
+- `Arena`: Bump allocator backed by caller-provided memory or the global allocator
+- `GrowingArena`: Bump allocator that expands dynamically using the global allocator
+
+## Modules
+
+- `joka.algo`: Range utilities
+- `joka.ascii`: ASCII string utilities
+- `joka.cli`: Command-line parsing utilities
+- `joka.containers`: General-purpose containers
+- `joka.interpolation`: [IES](https://dlang.org/spec/istring.html) support
+- `joka.io`: Input and output functions
+- `joka.math`: Mathematical data structures and functions
+- `joka.memory`: Functions for dealing with memory
+- `joka.types`: Common type definitions
+- `joka.stdc`: C standard library functions
+
+## Versions
+
+- `JokaCustomMemory`: Allows the declaration of custom memory allocation functions
+- `JokaGcMemory`: Like `JokaCustomMemory`, but preconfigured to use the D garbage collector
 
 ## Memory Tracking
 
@@ -72,34 +94,6 @@ allocateText(); // Not part of any group.
 
 You can check whether memory tracking is active with `static if (isTrackingMemory)`, and if it is, you can inspect the current tracking state via `_memoryTrackingState`.
 `_memoryTrackingState` is thread-local, so each thread has its own separate tracking state.
-
-## Core Types
-
-Containers tend to be configurable through these types, giving full control over how memory is allocated and avoiding the need for a complicated allocator API:
-
-- `List`: Dynamic array using the global allocator
-- `FixedList`: Dynamic array allocated on the stack
-- `BufferList`: Dynamic array backed by caller-provided memory
-- `Arena`: Bump allocator backed by caller-provided memory or the global allocator
-- `GrowingArena`: Bump allocator that expands dynamically using the global allocator
-
-## Modules
-
-- `joka.algo`: Range utilities
-- `joka.ascii`: ASCII string utilities
-- `joka.cli`: Command-line parsing utilities
-- `joka.containers`: General-purpose containers
-- `joka.interpolation`: [IES](https://dlang.org/spec/istring.html) support
-- `joka.io`: Input and output functions
-- `joka.math`: Mathematical data structures and functions
-- `joka.memory`: Functions for dealing with memory
-- `joka.types`: Common type definitions
-- `joka.stdc`: C standard library functions
-
-## Versions
-
-- `JokaCustomMemory`: Allows the declaration of custom memory allocation functions
-- `JokaGcMemory`: Like `JokaCustomMemory`, but preconfigured to use the D garbage collector
 
 ## Quick Start
 
@@ -187,6 +181,11 @@ I recommend avoiding them most of the time, especially if you're new to D.
 It's another tool for memory management.
 Joka normally uses a tracking allocator in debug builds to help identify mistakes, but the `JokaGcMemory` version exists for people who prioritize safety.
 This approach is similar to the one used in [Fil-C](https://fil-c.org/).
+
+### Is WebAssembly supported?
+
+Yes. WebAssembly is supported with the `betterC` flag, but a tool like [Emscripten](https://emscripten.org/) is required.
+In case of errors, the `i` flag may help. The combination `-betterC -i` works in most cases.
 
 ### What is Joka used for?
 
