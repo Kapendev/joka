@@ -70,9 +70,11 @@ struct List(T) {
     bool appendBlank(IStr file = __FILE__, Sz line = __LINE__) {
         Sz newLength = length + 1;
         if (newLength > capacity) {
-            capacity = findListCapacity(newLength);
+            capacity = findListCapacityFastAndAssumeOneAddedItem(newLength, capacity);
             auto rawPtr = jokaRealloc(items.ptr, capacity * T.sizeof, file, line);
-            if (canIgnoreLeak) rawPtr.ignoreLeak();
+            static if (isTrackingMemory) {
+                if (canIgnoreLeak) rawPtr.ignoreLeak();
+            }
             items = (cast(T*) rawPtr)[0 .. newLength];
         } else {
             items = items.ptr[0 .. newLength];
@@ -97,9 +99,11 @@ struct List(T) {
         return false;
     }
 
-    @trusted
+    pragma(inline, true) @trusted
     bool push(const(T) arg, IStr file = __FILE__, Sz line = __LINE__) {
-        return appendSource(file, line, arg);
+        appendBlank(file, line);
+        items.ptr[items.length - 1] = cast(T) arg;
+        return false;
     }
 
     @nogc
@@ -114,9 +118,9 @@ struct List(T) {
         items = items[0 .. $ - 1];
     }
 
-    @nogc
+    pragma(inline, true) @trusted @nogc
     void drop() {
-        if (length) remove(length - 1);
+        if (length) items = items.ptr[0 .. items.length - 1];
     }
 
     @nogc
@@ -128,7 +132,7 @@ struct List(T) {
     T pop() {
         if (length > 0) {
             T temp = items[$ - 1];
-            remove(length - 1);
+            items = items[0 .. $ - 1];
             return temp;
         } else {
             return T.init;
@@ -148,11 +152,13 @@ struct List(T) {
 
     @trusted
     void reserve(Sz newCapacity, IStr file = __FILE__, Sz line = __LINE__) {
-        auto targetCapacity = findListCapacity(newCapacity);
+        auto targetCapacity = findListCapacity(newCapacity, capacity);
         if (targetCapacity > capacity) {
             capacity = targetCapacity;
             auto rawPtr = jokaRealloc(items.ptr, capacity * T.sizeof, file, line);
-            if (canIgnoreLeak) rawPtr.ignoreLeak();
+            static if (isTrackingMemory) {
+                if (canIgnoreLeak) rawPtr.ignoreLeak();
+            }
             items = (cast(T*) rawPtr)[0 .. length];
         }
     }
@@ -269,7 +275,7 @@ struct BufferList(T) {
         return append(args);
     }
 
-    @trusted
+    pragma(inline, true) @trusted
     bool push(const(T) arg, IStr file = __FILE__, Sz line = __LINE__) {
         return appendSource(file, line, arg);
     }
@@ -284,8 +290,9 @@ struct BufferList(T) {
         length -= 1;
     }
 
+    pragma(inline, true)
     void drop() {
-        if (length) remove(length - 1);
+        if (length) length -= 1;
     }
 
     void dropFront() {
@@ -295,7 +302,7 @@ struct BufferList(T) {
     T pop() {
         if (length > 0) {
             T temp = items[$ - 1];
-            remove(length - 1);
+            length -= 1;
             return temp;
         } else {
             return T.init;
@@ -407,7 +414,7 @@ struct FixedList(T, Sz N) {
         return append(args);
     }
 
-    @trusted
+    pragma(inline, true) @trusted
     bool push(const(T) arg, IStr file = __FILE__, Sz line = __LINE__) {
         return appendSource(file, line, arg);
     }
@@ -422,8 +429,9 @@ struct FixedList(T, Sz N) {
         length -= 1;
     }
 
+    pragma(inline, true)
     void drop() {
-        if (length) remove(length - 1);
+        if (length) length -= 1;
     }
 
     void dropFront() {
@@ -433,7 +441,7 @@ struct FixedList(T, Sz N) {
     T pop() {
         if (length > 0) {
             T temp = items[$ - 1];
-            remove(length - 1);
+            length -= 1;
             return temp;
         } else {
             return T.init;
@@ -1344,20 +1352,31 @@ _ScopedArena!T ScopedArena(T)(ref T arena) {
         return fmtSignedGroup(fmtStrs, value, generation);
     }
 
-    Sz findListCapacity(Sz length) {
-        Sz result = defaultListCapacity;
+    pragma(inline, true)
+    Sz findListCapacity(Sz length, Sz currentCapacity = 0) {
+        Sz result = currentCapacity ? currentCapacity : defaultListCapacity;
+        if (result + 1 == length) return result + result;
         while (result < length) result += result;
         return result;
     }
 
+    pragma(inline, true)
+    Sz findListCapacityFastAndAssumeOneAddedItem(Sz length, Sz currentCapacity = 0) {
+        Sz result = currentCapacity ? currentCapacity : defaultListCapacity;
+        return (result + 1 == length) ? result + result : result;
+    }
+
+    pragma(inline, true)
     Sz findGridIndex(Sz row, Sz col, Sz colCount) {
         return colCount * row + col;
     }
 
+    pragma(inline, true)
     Sz findGridRow(Sz gridIndex, Sz colCount) {
         return gridIndex % colCount;
     }
 
+    pragma(inline, true)
     Sz findGridCol(Sz gridIndex, Sz colCount) {
         return gridIndex / colCount;
     }

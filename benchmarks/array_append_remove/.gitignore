@@ -1,0 +1,16 @@
+.dub
+docs.json
+__dummy.html
+docs/
+/array_append_remove
+array_append_remove.so
+array_append_remove.dylib
+array_append_remove.dll
+array_append_remove.a
+array_append_remove.lib
+array_append_remove-test-*
+*.exe
+*.pdb
+*.o
+*.obj
+*.lst
