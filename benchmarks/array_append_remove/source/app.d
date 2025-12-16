@@ -1,4 +1,3 @@
-
 void main(string[] args) {
     auto N = args.length > 1 ? cast(int) args[1].toSigned().getOr(0) : 0;
     if (N == 0) { writeln("Usage: array_append_remove <count>"); return; }
