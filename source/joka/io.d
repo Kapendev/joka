@@ -8,12 +8,12 @@
 /// The `io` module provides input and output functions such as file reading.
 module joka.io;
 
+import stdioc = joka.stdc.stdio;
 import joka.ascii;
 import joka.containers;
 import joka.memory;
 import joka.types;
 import joka.interpolation;
-import stdioc = joka.stdc.stdio;
 
 @trusted:
 

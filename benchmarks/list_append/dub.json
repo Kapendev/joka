@@ -1,0 +1,14 @@
+{
+	"authors": [
+		"Alex"
+	],
+	"dependencies": {
+		"joka": {
+			"path": "../../"
+		},
+		"nulib": "~>0.3.9"
+	},
+	"description": "A minimal D application.",
+	"license": "proprietary",
+	"name": "list_append"
+}
