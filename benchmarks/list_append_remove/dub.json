@@ -10,5 +10,5 @@
 	},
 	"description": "A minimal D application.",
 	"license": "proprietary",
-	"name": "list_append"
+	"name": "list_append_remove"
 }

@@ -11,7 +11,7 @@ auto sw = StopWatch();
 void main(string[] args) {
     auto N = args.length > 1 ? cast(int) args[1].toSigned().getOr(0) : 0;
     if (N == 0) {
-        writeln("list_append <count>");
+        writeln("list_append_remove <count>");
         return;
     }
 
@@ -23,11 +23,27 @@ void main(string[] args) {
     sw.reset();
 
     sw.start();
+    while (appenderArray.length) appenderArray.shrinkTo(appenderArray.length - 1);
+    sw.stop();
+    writeln("Remove ", N, " items in `Appender!int`: ", sw.peek.total!"msecs", " ms");
+    sw.reset();
+    writeln();
+
+
+    sw.start();
     int[] dArray;
     foreach (i; 0 .. N) dArray ~= i;
     sw.stop();
     writeln("Append ", N, " items in `int[]`: ", sw.peek.total!"msecs", " ms");
     sw.reset();
+
+    sw.start();
+    while (dArray.length) dArray.length -= 1;
+    sw.stop();
+    writeln("Remove ", N, " items in `int[]`: ", sw.peek.total!"msecs", " ms");
+    sw.reset();
+    writeln();
+
 
     sw.start();
     vector!int nulibArray;
@@ -37,9 +53,23 @@ void main(string[] args) {
     sw.reset();
 
     sw.start();
+    while (nulibArray.length) nulibArray.popBack();
+    sw.stop();
+    writeln("Remove ", N, " items in `nulib`: ", sw.peek.total!"msecs", " ms");
+    sw.reset();
+    writeln();
+
+
+    sw.start();
     List!int jokaArray;
     foreach (i; 0 .. N) jokaArray.push(i);
     sw.stop();
     writeln("Append ", N, " items in `joka`: ", sw.peek.total!"msecs", " ms");
+    sw.reset();
+
+    sw.start();
+    while (jokaArray.length) jokaArray.drop();
+    sw.stop();
+    writeln("Remove ", N, " items in `joka`: ", sw.peek.total!"msecs", " ms");
     sw.reset();
 }
