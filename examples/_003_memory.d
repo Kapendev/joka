@@ -18,8 +18,8 @@ void main() {
 
     // Group allocations to make memory tracking clearer and more organized.
     with (AllocationGroup("Part 3")) {
-        jokaFree(jokaMakeSlice!char("I like D.").ptr);
-        jokaFree(jokaMakeSlice!char("I also like C.").ptr);
+        jokaMakeSlice!char("I like D.").ptr.jokaFree();
+        jokaMakeSlice!char("I also like C.").ptr.jokaFree();
     }
 
     // Allocate 1KB of memory using an arena.
