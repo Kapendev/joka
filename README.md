@@ -119,7 +119,7 @@ No. Joka is designed to feel a bit like the C standard library because that's ea
 
 ### Does Joka have a global context like Jai?
 
-No. A public global context tends to make generic low-level APIs fragile.
+No. A public global context tends to make generic low-level APIs fragile and ugly.
 That doesn't mean it's a bad idea. It can be useful for libraries with a specific purpose, such as UI frameworks.
 
 ### Why aren't some functions `@nogc`?
