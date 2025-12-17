@@ -38,23 +38,28 @@ Joka containers tend to be configurable through these types, giving full control
 - `Arena`: Bump allocator backed by caller-provided memory or the global allocator
 - `GrowingArena`: Bump allocator that expands dynamically using the global allocator
 
-## Modules
+### Performance Benchmark
 
-- `joka.algo`: Range utilities
-- `joka.ascii`: ASCII string utilities
-- `joka.cli`: Command-line parsing utilities
-- `joka.containers`: General-purpose containers
-- `joka.interpolation`: [IES](https://dlang.org/spec/istring.html) support
-- `joka.io`: Input and output functions
-- `joka.math`: Mathematical data structures and functions
-- `joka.memory`: Functions for dealing with memory
-- `joka.types`: Common type definitions
-- `joka.stdc`: C standard library functions
+Here's a [comparison](benchmarks/array_append_remove) of Joka's dynamic arrays versus other popular libraries when appending and removing 10,000,000 integers on a **Ryzen 3 2200G** with **16 GB of memory**:
 
-## Versions
-
-- `JokaCustomMemory`: Allows the declaration of custom memory allocation functions
-- `JokaGcMemory`: Like `JokaCustomMemory`, but preconfigured to use the D garbage collector
+```d
+Append 10000000 items with `int[]`: 250 ms
+Remove 10000000 items with `int[]`: 25 ms
+Append 10000000 items with `Array!int`: 52 ms
+Remove 10000000 items with `Array!int`: 0 ms
+Append 10000000 items with `Appender!int`: 55 ms
+Remove 10000000 items with `Appender!int`: 0 ms
+Append 10000000 items with `nulib`: 263 ms
+Remove 10000000 items with `nulib`: 42 ms
+Append 10000000 items with `emsi`: 172 ms
+Remove 10000000 items with `emsi`: 24 ms
+Append 10000000 items with `memutils`: 33 ms
+Remove 10000000 items with `memutils`: 0 ms
+Append 10000000 items with `automem`: 60 ms
+Remove 10000000 items with `automem`: 0 ms
+Append 10000000 items with `joka`: 14 ms
+Remove 10000000 items with `joka`: 0 ms
+```
 
 ## Memory Tracking
 
@@ -111,6 +116,25 @@ That's it. Copy-paste one of the [examples](./examples/) to make sure everything
 ## Documentation
 
 Start with the [examples](./examples/) folder for a quick overview.
+
+### Modules
+
+- `joka.algo`: Range utilities
+- `joka.ascii`: ASCII string utilities
+- `joka.cli`: Command-line parsing utilities
+- `joka.containers`: General-purpose containers
+- `joka.interpolation`: [IES](https://dlang.org/spec/istring.html) support
+- `joka.io`: Input and output functions
+- `joka.math`: Mathematical data structures and functions
+- `joka.memory`: Functions for dealing with memory
+- `joka.types`: Common type definitions
+- `joka.stdc`: C standard library functions
+
+### Versions
+
+- `JokaCustomMemory`: Allows the declaration of custom memory allocation functions
+- `JokaGcMemory`: Like `JokaCustomMemory`, but preconfigured to use the D garbage collector
+- `JokaGlobalTracking`: Disables thread-local storage for `_memoryTrackingState`
 
 ## Frequently Asked Questions
 
