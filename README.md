@@ -22,6 +22,7 @@ void main() {
 - **Focused**: Doesn't try to support every use case
 - **Simple**: Uses a single global allocator set at compile time
 - **Friendly**: Memory-safety features and many examples
+- **Lightweight**: Keeps compile times short
 
 > [!NOTE]
 > The project is still early in development.
@@ -119,8 +120,11 @@ No. Joka is designed to feel a bit like the C standard library because that's ea
 
 ### Does Joka have a global context like Jai?
 
-No. A public global context tends to make generic low-level APIs fragile and ugly.
-That doesn't mean it's a bad idea. It can be useful for libraries with a specific purpose, such as UI frameworks.
+No. A public global context tends to make generic low-level APIs fragile. One commonly cited reason for such a system is the ability to intercept third-party code and change its behavior, effectively [circumventing bad APIs](https://www.gingerbill.org/article/2025/12/15/odins-most-misunderstood-feature-context/#circumventing-bad-apis). Joka deliberately avoids this because APIs are designed with specific assumptions and breaking those from the outside tends to introduce subtle bugs. For example, even simple functions like `freeMyObject` can stop behaving correctly once memory management is altered in ways the library didn't anticipate.
+
+> *Author's note (Kapendev):
+> The terms "intercept" and "third-party code" are often used loosely from what I have seen.
+> For example, the Odin community frequently relies on context changes even within their own APIs, treating it as part of the public interface.*
 
 ### Why aren't some functions `@nogc`?
 
@@ -145,8 +149,9 @@ It never allocates with the GC, so it is a nogc function in practice, but it is 
 If you try to call it from a `@nogc` function, the compiler will reject it simply because the attribute is missing.
 What this shows is that attributes in D are a design tool, not a memory management tool.
 
-For what it's worth, I (Kapendev) don't use attributes in my own projects except for libraries.
-I recommend avoiding them most of the time, especially if you're new to D.
+> *Author's note (Kapendev):
+> For what it's worth, I don't use attributes in my own projects except for libraries.
+> I recommend avoiding them most of the time, especially if you're new to D.*
 
 ### Why are you supporting the D garbage collector?
 
@@ -158,7 +163,9 @@ This approach is similar to the one used in [Fil-C](https://fil-c.org/).
 
 No. Joka doesn't impose arbitrary restrictions on your code, so it works smoothly with Phobos or other libraries.
 Some libraries choose to be `@safe`, `@nogc`, or `nothrow` only, but those are their constraints, not Joka's.
-I (Kapendev) avoid the "attribute-oriented" style of structuring a project entirely.
+
+> *Author's note (Kapendev):
+> I avoid the "attribute-oriented" style of structuring a project entirely.*
 
 ### Why isn't there a `jokaFreeSlice` function?
 
