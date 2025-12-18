@@ -16,7 +16,7 @@ main :: proc() {
     for i in 0 ..< n {
         append(&array, i)
     }
-    for len(array) > 0 {
+    for len(array) != 0 {
         pop(&array)
     }
 }

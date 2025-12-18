@@ -5,9 +5,9 @@ if n == 0:
     print("Usage: array_append_remove <count>")
     exit(0)
 
-joka_array = []
+array = []
 for i in range(n):
-    joka_array.append(i)
-while joka_array:
-    joka_array.pop()
+    array.append(i)
+while array:
+    array.pop()
 
