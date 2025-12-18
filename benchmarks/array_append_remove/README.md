@@ -3,5 +3,5 @@
 Run with:
 
 ```
-dub --build=release --compiler=ldc2 -- 10000000
+dub --build=release --compiler=ldc2 -- 100000000
 ```

@@ -1,0 +1,36 @@
+#!/bin/env sh
+
+set -e
+cd "$(dirname "$0")"
+
+n=$1
+[ -z "$n" ] && echo "Usage: run <count>" && exit
+
+test() {
+    echo
+    echo "Testing: $1"
+    time -p "$1" $n
+    rm -f "$1" *.o
+}
+
+test_script() {
+    echo
+    echo "Testing: $2"
+    time -p "$1" $2 $n
+}
+
+echo "Appending and removing $n items..."
+
+odin build ./app_odin.odin -file -o:aggressive
+test ./app_odin
+
+rustc -O ./app_rs.rs
+test ./app_rs
+
+ldc2 -O3 -i -I../../../source ./app_d.d
+test ./app_d
+
+test_script python3 ./app_py.py
+
+echo
+echo 'Done!'
