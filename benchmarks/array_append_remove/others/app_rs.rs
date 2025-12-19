@@ -8,9 +8,9 @@ fn main() {
         return;
     }
 
-    let mut array: Vec<i32> = Vec::new();
+    let mut array = Vec::new();
     for i in 0 .. n {
-        array.push(i as i32);
+        array.push(i);
     }
     while !array.is_empty() {
         array.pop();

@@ -7,11 +7,11 @@ void main(string[] args) {
         return;
     }
 
-    List!int jokaArray;
+    List!int array;
     foreach (i; 0 .. n) {
-        jokaArray.push(i);
+        array.push(i);
     }
-    while (jokaArray.length) {
-        jokaArray.drop();
+    while (array.length) {
+        array.drop();
     }
 }

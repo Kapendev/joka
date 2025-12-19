@@ -3,7 +3,7 @@
 Run with:
 
 ```
-./run 100000000
+./run 1000000000
 ```
 
 ## Note
@@ -11,6 +11,6 @@ Run with:
 Install these tools before running the test:
 
 - D: ldc2
-- Odin: odin
 - Rust: rustc
-- Python: cpython
+- Zig: zig
+- Odin: odin

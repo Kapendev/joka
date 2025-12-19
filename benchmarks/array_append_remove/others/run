@@ -25,10 +25,16 @@ test ./app_d
 rustc -O ./app_rs.rs
 test ./app_rs
 
+zig build-exe app_zig.zig -lc -O ReleaseFast
+test ./app_zig
+
 # NOTE: Added `-no-bounds-check` just to make some people happy.
 odin build ./app_odin.odin -file -o:aggressive -no-bounds-check
 test ./app_odin
 
-test_script python3 ./app_py.py
+#go build ./app_go.go
+#test ./app_go
+
+#test_script python3 ./app_py.py
 
 echo 'Done!'

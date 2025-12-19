@@ -1,0 +1,9 @@
+*.exe
+*.pdb
+*.o
+*.obj
+*.lst
+__dummy_docs
+Rplots.pdf
+.RData
+.Rhistory
