@@ -28,9 +28,11 @@ test ./app_rs
 zig build-exe app_zig.zig -lc -O ReleaseFast
 test ./app_zig
 
-# NOTE: Added `-no-bounds-check` just to make some people happy.
 odin build ./app_odin.odin -file -o:aggressive -no-bounds-check
 test ./app_odin
+
+#nim c -d:release app_nim.nim
+#test ./app_nim
 
 #go build ./app_go.go
 #test ./app_go
