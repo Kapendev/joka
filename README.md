@@ -22,7 +22,6 @@ void main() {
 - **Focused**: Doesn't try to support every use case
 - **Simple**: Uses a single global allocator set at compile time
 - **Friendly**: Memory-safety features and many examples
-- **Lightweight**: Keeps compile times short
 
 > [!NOTE]
 > The project is still early in development.
@@ -40,25 +39,44 @@ Joka containers tend to be configurable through these types, giving full control
 
 ### Performance Benchmark
 
-Here's a [comparison](benchmarks/array_append_remove) of Joka's dynamic arrays versus other popular libraries when appending and removing 10,000,000 integers on a **Ryzen 3 2200G** with **16 GB of memory**:
+Here's a [comparison](benchmarks/array_append_remove) of Joka's dynamic array versus other popular libraries when appending and removing 100,000,000 integers on a **Ryzen 3 2200G** with **16 GB of memory**:
 
 ```d
-Append 10000000 items with `int[]`: 250 ms
-Remove 10000000 items with `int[]`: 25 ms
-Append 10000000 items with `Array!int`: 52 ms
-Remove 10000000 items with `Array!int`: 0 ms
-Append 10000000 items with `Appender!int`: 55 ms
-Remove 10000000 items with `Appender!int`: 0 ms
-Append 10000000 items with `nulib`: 263 ms
-Remove 10000000 items with `nulib`: 42 ms
-Append 10000000 items with `emsi`: 172 ms
-Remove 10000000 items with `emsi`: 24 ms
-Append 10000000 items with `memutils`: 33 ms
-Remove 10000000 items with `memutils`: 0 ms
-Append 10000000 items with `automem`: 60 ms
-Remove 10000000 items with `automem`: 0 ms
-Append 10000000 items with `joka`: 14 ms
-Remove 10000000 items with `joka`: 0 ms
+Append 100000000 items with `int[]`: 2495 ms
+Remove 100000000 items with `int[]`: 258 ms
+Append 100000000 items with `Array!int`: 514 ms
+Remove 100000000 items with `Array!int`: 0 ms
+Append 100000000 items with `Appender!int`: 498 ms
+Remove 100000000 items with `Appender!int`: 0 ms
+Append 100000000 items with `nulib`: 16812 ms
+Remove 100000000 items with `nulib`: 423 ms
+Append 100000000 items with `emsi`: 16077 ms
+Remove 100000000 items with `emsi`: 246 ms
+Append 100000000 items with `memutils`: 332 ms
+Remove 100000000 items with `memutils`: 0 ms
+Append 100000000 items with `automem`: 629 ms
+Remove 100000000 items with `automem`: 0 ms
+Append 100000000 items with `joka`: 140 ms
+Remove 100000000 items with `joka`: 0 ms
+```
+
+Below are also some high-level cross-language results using a similar workload.
+These are **not direct benchmarks** and are intended only as a point of reference.
+
+```py
+Appending and removing 100000000 items...
+Testing: ./app_d
+real 0.16
+user 0.03
+sys 0.12
+Testing: ./app_zig
+real 0.18
+user 0.05
+sys 0.13
+Testing: ./app_odin
+real 0.27
+user 0.10
+sys 0.16
 ```
 
 ## Memory Tracking
@@ -238,6 +256,24 @@ In case of errors, the `i` flag may help. The combination `-betterC -i` works in
     The solution is to implement the missing functions or use a custom static array type ([./source/joka/types.d:61](https://github.com/Kapendev/joka/blob/main/source/joka/types.d#L61)).
 
 4. `TypeInfo` errors. Search for `new` in the source code and remove it.
+
+5. String errors.
+    It's common to want to use functions to create strings at compile time, but this gets harder to do because of some extra checks added by the `betterC` flag.
+    Below is a function that creates a string the "normal" way, followed by an alternative that works with the flag.
+
+    ```d
+    // Works without `betterC`.
+    // The parameter can come from runtime or compile time.
+    string createString(string value) {
+        return val ~ ";\n";
+    }
+
+    // Works with `betterC`.
+    // The parameter must be known at compile time.
+    string createString(string value)() {
+        return val ~ ";\n";
+    }
+    ```
 
 ### What is Joka used for?
 
