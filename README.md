@@ -61,7 +61,7 @@ Remove 100000000 items with `joka`: 0 ms
 ```
 
 Below are also some high-level cross-language results using a similar workload.
-These are **not direct benchmarks** and are intended only as a point of reference.
+These are **not direct benchmarks** and are intended only as a point of reference:
 
 ```py
 Appending and removing 100000000 items...
@@ -259,7 +259,7 @@ In case of errors, the `i` flag may help. The combination `-betterC -i` works in
 
 5. String errors.
     It's common to want to use functions to create strings at compile time, but this gets harder to do because of some extra checks added by the `betterC` flag.
-    Below is a function that creates a string the "normal" way, followed by an alternative that works with the flag.
+    Below is a function that creates a string the "normal" way, followed by an alternative that works with the flag:
 
     ```d
     // Works without `betterC`.
