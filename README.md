@@ -158,11 +158,14 @@ Start with the [examples](./examples/) folder for a quick overview.
 
 ### Does Joka have an allocator API?
 
-No. Joka is designed to feel a bit like the C standard library because that's easier for most people to understand and keeps the library simple. The lack of them isn't a problem thanks to how Joka's core types handle allocation.
+No. Joka is designed to feel a bit like the C standard library because that's easier for most people to understand and keeps the library simple.
+The lack of it isn't a problem thanks to how Joka's core types handle allocation.
 
 ### Does Joka have a global context like Jai?
 
-No. A public global context tends to make generic low-level APIs fragile. One commonly cited reason for such a system is the ability to intercept third-party code and change its behavior, effectively [circumventing bad APIs](https://www.gingerbill.org/article/2025/12/15/odins-most-misunderstood-feature-context/#circumventing-bad-apis). Joka deliberately avoids this because APIs are designed with specific assumptions and breaking those from the outside tends to introduce subtle bugs. For example, even simple functions like `freeMyObject` can stop behaving correctly once memory management is altered in ways the library didn't anticipate.
+No. A public global context tends to make generic low-level APIs fragile.
+One cited reason for such a system is the ability to intercept third-party code and change its behavior, effectively [circumventing bad APIs](https://www.gingerbill.org/article/2025/12/15/odins-most-misunderstood-feature-context/#circumventing-bad-apis).
+Joka deliberately avoids this because APIs are designed with specific assumptions and breaking those from the outside tends to introduce subtle bugs.
 
 > *Author's note (Kapendev):
 > The terms "intercept" and "third-party code" are often used loosely from what I have seen.
