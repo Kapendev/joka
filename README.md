@@ -169,7 +169,7 @@ Joka deliberately avoids this because APIs are designed with specific assumption
 
 > *Author's note (Kapendev):
 > The terms "intercept" and "third-party code" are often used loosely from what I have seen.
-> For example, the Odin community frequently relies on context changes even within their own APIs, treating it as part of the public interface.*
+> For example, the Odin community frequently relies on context changes even within their own APIs, treating it as part of the public interface. Calling it "interception" is a bit misleading, at least in some cases.*
 
 ### Why aren't some functions `@nogc`?
 
