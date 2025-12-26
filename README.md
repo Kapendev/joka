@@ -164,11 +164,11 @@ The lack of it isn't a problem thanks to how Joka's core types handle allocation
 ### Does Joka have a global context like Jai?
 
 No. A public global context tends to make generic low-level APIs fragile.
-One cited reason for such a system is the ability to intercept third-party code and change its behavior, effectively [circumventing bad APIs](https://www.gingerbill.org/article/2025/12/15/odins-most-misunderstood-feature-context/#circumventing-bad-apis).
-Joka deliberately avoids this because APIs are designed with specific assumptions and breaking those from the outside tends to introduce subtle bugs.
+One cited reason for such a system is the ability to [intercept third-party code](https://www.gingerbill.org/article/2025/12/15/odins-most-misunderstood-feature-context/#circumventing-bad-apis) and change its behavior.
+Joka deliberately avoids this because APIs are designed with specific assumptions and breaking those from the outside can introduce subtle bugs.
 
 > *Author's note (Kapendev):
-> The terms "intercept" and "third-party code" are often used loosely from what I have seen.
+> The term "intercept" is often used loosely from what I have seen.
 > For example, the Odin community frequently relies on context changes even within their own APIs, treating it as part of the public interface. Calling it "interception" is a bit misleading, at least in some cases.*
 
 ### Why aren't some functions `@nogc`?
