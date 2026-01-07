@@ -7,11 +7,10 @@
 
 module joka;
 
-public import joka.algo;
 public import joka.ascii;
-public import joka.cli;
 public import joka.containers;
 public import joka.io;
 public import joka.math;
 public import joka.memory;
+public import joka.ranges;
 public import joka.types;

@@ -12,7 +12,6 @@ module joka.containers;
 
 import joka.ascii;
 import joka.memory;
-import joka.interpolation;
 import joka.types;
 
 @safe nothrow:

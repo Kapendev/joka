@@ -8,7 +8,7 @@
 /// The `math` module provides mathematical data structures and functions.
 module joka.math;
 
-import mathc = joka.stdc.math;
+import stdc = joka.stdc;
 import joka.ascii;
 import joka.types;
 
@@ -80,12 +80,13 @@ alias Vec4  = GVec4!float;  /// A 4D vector using floats.
 alias DVec4 = GVec4!double; /// A 4D vector using doubles.
 
 /*
-alias BRect = GRect!byte;   /// A 2D rectangle using bytes.
-alias URect = GRect!uint;   /// A 2D rectangle using uints.
-alias DRect = GRect!double; /// A 2D rectangle using doubles.
+alias BRect = GRect!byte;         /// A 2D rectangle using bytes.
+alias URect = GRect!uint;         /// A 2D rectangle using uints.
+alias DRect = GRect!double;       /// A 2D rectangle using doubles.
 */
-alias IRect = GRect!int;    /// A 2D rectangle using ints.
-alias Rect  = GRect!float;  /// A 2D rectangle using floats.
+alias IRect = GRect!int;          /// A 2D rectangle using ints.
+alias Rect  = GRect!float;        /// A 2D rectangle using floats.
+alias SRect = GRect!(int, short); /// A 2D rectangle using ints for the position and shorts for the size.
 
 /*
 alias BCirc = GCirc!byte;   /// A 2D circle using bytes.
@@ -310,114 +311,58 @@ struct GVec2(T) {
         GVec2!T abs() {
             return GVec2!T(x.abs, y.abs);
         }
-    }
 
-    GVec2!T floor() {
-        static if (__traits(isFloating, T)) {
-            static if (is64) {
-                return GVec2!T(x.floor64, y.floor64);
-            } else {
-                return GVec2!T(x.floor, y.floor);
-            }
-        } else {
-            return this;
+        GVec2!T floor() {
+            return GVec2!T(x._floor, y._floor);
         }
-    }
 
-    GVec2!T round() {
-        static if (__traits(isFloating, T)) {
-            static if (is64) {
-                return GVec2!T(x.round64, y.round64);
-            } else {
-                return GVec2!T(x.round, y.round);
-            }
-        } else {
-            return this;
+        GVec2!T round() {
+            return GVec2!T(x._round, y._round);
         }
-    }
 
-    GVec2!T ceil() {
-        static if (__traits(isFloating, T)) {
-            static if (is64) {
-                return GVec2!T(x.ceil64, y.ceil64);
-            } else {
-                return GVec2!T(x.ceil, y.ceil);
-            }
-        } else {
-            return this;
+        GVec2!T ceil() {
+            return GVec2!T(x._ceil, y._ceil);
         }
     }
 
     GVec2!Float sqrt() {
-        static if (is64) {
-            return GVec2!Float(x.sqrt64, y.sqrt64);
-        } else {
-            return GVec2!Float(x.sqrt, y.sqrt);
-        }
+        return GVec2!Float(x._sqrt, y._sqrt);
     }
 
     GVec2!Float sin() {
-        static if (is64) {
-            return GVec2!Float(x.sin64, y.sin64);
-        } else {
-            return GVec2!Float(x.sin, y.sin);
-        }
+        return GVec2!Float(x._sin, y._sin);
     }
 
     GVec2!Float cos() {
-        static if (is64) {
-            return GVec2!Float(x.cos64, y.cos64);
-        } else {
-            return GVec2!Float(x.cos, y.cos);
-        }
+        return GVec2!Float(x._cos, y._cos);
     }
 
     GVec2!Float tan() {
-        static if (is64) {
-            return GVec2!Float(x.tan64, y.tan64);
-        } else {
-            return GVec2!Float(x.tan, y.tan);
-        }
+        return GVec2!Float(x._tan, y._tan);
     }
 
     GVec2!Float asin() {
-        static if (is64) {
-            return GVec2!Float(x.asin64, y.asin64);
-        } else {
-            return GVec2!Float(x.asin, y.asin);
-        }
+        return GVec2!Float(x._asin, y._asin);
     }
 
     GVec2!Float acos() {
-        static if (is64) {
-            return GVec2!Float(x.acos64, y.acos64);
-        } else {
-            return GVec2!Float(x.acos, y.acos);
-        }
+        return GVec2!Float(x._acos, y._acos);
     }
 
     GVec2!Float atan() {
-        static if (is64) {
-            return GVec2!Float(x.atan64, y.atan64);
-        } else {
-            return GVec2!Float(x.atan, y.atan);
-        }
+        return GVec2!Float(x._atan, y._atan);
     }
 
     Float angle() {
-        return atan2(y, x);
+        return _atan2(y, x);
     }
 
     Float magnitude() {
-        static if (is64) {
-            return (x * x + y * y).sqrt64;
-        } else {
-            return (x * x + y * y).sqrt;
-        }
+        return (x * x + y * y)._sqrt;
     }
 
     Float magnitudeSquared() {
-        return x * x + y * y;
+        return (x * x + y * y);
     }
 
     GVec2!T applyRounding(Rounding type) {
@@ -521,110 +466,54 @@ struct GVec3(T) {
         GVec3!T abs() {
             return GVec3!T(x.abs, y.abs, z.abs);
         }
-    }
 
-    GVec3!T floor() {
-        static if (__traits(isFloating, T)) {
-            static if (is64) {
-                return GVec3!T(x.floor64, y.floor64, z.floor64);
-            } else {
-                return GVec3!T(x.floor, y.floor, z.floor);
-            }
-        } else {
-            return this;
+        GVec3!T floor() {
+            return GVec3!T(x._floor, y._floor, z._floor);
         }
-    }
 
-    GVec3!T round() {
-        static if (__traits(isFloating, T)) {
-            static if (is64) {
-                return GVec3!T(x.round64, y.round64, z.round64);
-            } else {
-                return GVec3!T(x.round, y.round, z.round);
-            }
-        } else {
-            return this;
+        GVec3!T round() {
+            return GVec3!T(x._round, y._round, z._round);
         }
-    }
 
-    GVec3!T ceil() {
-        static if (__traits(isFloating, T)) {
-            static if (is64) {
-                return GVec3!T(x.ceil64, y.ceil64, z.ceil64);
-            } else {
-                return GVec3!T(x.ceil, y.ceil, z.ceil);
-            }
-        } else {
-            return this;
+        GVec3!T ceil() {
+            return GVec3!T(x._ceil, y._ceil, z._ceil);
         }
     }
 
     GVec3!Float sqrt() {
-        static if (is64) {
-            return GVec3!Float(x.sqrt64, y.sqrt64, z.sqrt64);
-        } else {
-            return GVec3!Float(x.sqrt, y.sqrt, z.sqrt);
-        }
+        return GVec3!Float(x._sqrt, y._sqrt, z._sqrt);
     }
 
     GVec3!Float sin() {
-        static if (is64) {
-            return GVec3!Float(x.sin64, y.sin64, z.sin64);
-        } else {
-            return GVec3!Float(x.sin, y.sin, z.sin);
-        }
+        return GVec3!Float(x._sin, y._sin, z._sin);
     }
 
     GVec3!Float cos() {
-        static if (is64) {
-            return GVec3!Float(x.cos64, y.cos64, z.cos64);
-        } else {
-            return GVec3!Float(x.cos, y.cos, z.cos);
-        }
+        return GVec3!Float(x._cos, y._cos, z._cos);
     }
 
     GVec3!Float tan() {
-        static if (is64) {
-            return GVec3!Float(x.tan64, y.tan64, z.tan64);
-        } else {
-            return GVec3!Float(x.tan, y.tan, z.tan);
-        }
+        return GVec3!Float(x._tan, y._tan, z._tan);
     }
 
     GVec3!Float asin() {
-        static if (is64) {
-            return GVec3!Float(x.asin64, y.asin64, z.asin64);
-        } else {
-            return GVec3!Float(x.asin, y.asin, z.asin);
-        }
+        return GVec3!Float(x._asin, y._asin, z._asin);
     }
 
     GVec3!Float acos() {
-        static if (is64) {
-            return GVec3!Float(x.acos64, y.acos64, z.acos64);
-        } else {
-            return GVec3!Float(x.acos, y.acos, z.acos);
-        }
+        return GVec3!Float(x._acos, y._acos, z._acos);
     }
 
     GVec3!Float atan() {
-        static if (is64) {
-            return GVec3!Float(x.atan64, y.atan64, z.atan64);
-        } else {
-            return GVec3!Float(x.atan, y.atan, z.atan);
-        }
+        return GVec3!Float(x._atan, y._atan, z._atan);
     }
 
     Float magnitude() {
-        static if (is64) {
-            return (x * x + y * y + z * z).sqrt64;
-        } else {
-            return (x * x + y * y + z * z).sqrt;
-        }
+        return (x * x + y * y + z * z)._sqrt;
     }
 
     Float magnitudeSquared() {
-        return x * x + y * y + z * z;
+        return (x * x + y * y + z * z);
     }
 
     GVec3!T applyRounding(Rounding type) {
@@ -734,110 +623,54 @@ struct GVec4(T) {
         GVec4!T abs() {
             return GVec4!T(x.abs, y.abs, z.abs, w.abs);
         }
-    }
 
-    GVec4!T floor() {
-        static if (__traits(isFloating, T)) {
-            static if (is64) {
-                return GVec4!T(x.floor64, y.floor64, z.floor64, w.floor64);
-            } else {
-                return GVec4!T(x.floor, y.floor, z.floor, w.floor);
-            }
-        } else {
-            return this;
+        GVec4!T floor() {
+            return GVec4!T(x._floor, y._floor, z._floor, w._floor);
         }
-    }
 
-    GVec4!T round() {
-        static if (__traits(isFloating, T)) {
-            static if (is64) {
-                return GVec4!T(x.round64, y.round64, z.round64, w.round64);
-            } else {
-                return GVec4!T(x.round, y.round, z.round, w.round);
-            }
-        } else {
-            return this;
+        GVec4!T round() {
+            return GVec4!T(x._round, y._round, z._round, w._round);
         }
-    }
 
-    GVec4!T ceil() {
-        static if (__traits(isFloating, T)) {
-            static if (is64) {
-                return GVec4!T(x.ceil64, y.ceil64, z.ceil64, w.ceil64);
-            } else {
-                return GVec4!T(x.ceil, y.ceil, z.ceil, w.ceil);
-            }
-        } else {
-            return this;
+        GVec4!T ceil() {
+            return GVec4!T(x._ceil, y._ceil, z._ceil, w._ceil);
         }
     }
 
     GVec4!Float sqrt() {
-        static if (is64) {
-            return GVec4!Float(x.sqrt64, y.sqrt64, z.sqrt64, w.sqrt64);
-        } else {
-            return GVec4!Float(x.sqrt, y.sqrt, z.sqrt, w.sqrt);
-        }
+        return GVec4!Float(x._sqrt, y._sqrt, z._sqrt, w._sqrt);
     }
 
     GVec4!Float sin() {
-        static if (is64) {
-            return GVec4!Float(x.sin64, y.sin64, z.sin64, w.sin64);
-        } else {
-            return GVec4!Float(x.sin, y.sin, z.sin, w.sin);
-        }
+        return GVec4!Float(x._sin, y._sin, z._sin, w._sin);
     }
 
     GVec4!Float cos() {
-        static if (is64) {
-            return GVec4!Float(x.cos64, y.cos64, z.cos64, w.cos64);
-        } else {
-            return GVec4!Float(x.cos, y.cos, z.cos, w.cos);
-        }
+        return GVec4!Float(x._cos, y._cos, z._cos, w._cos);
     }
 
     GVec4!Float tan() {
-        static if (is64) {
-            return GVec4!Float(x.tan64, y.tan64, z.tan64, w.tan64);
-        } else {
-            return GVec4!Float(x.tan, y.tan, z.tan, w.tan);
-        }
+        return GVec4!Float(x._tan, y._tan, z._tan, w._tan);
     }
 
     GVec4!Float asin() {
-        static if (is64) {
-            return GVec4!Float(x.asin64, y.asin64, z.asin64, w.asin64);
-        } else {
-            return GVec4!Float(x.asin, y.asin, z.asin, w.asin);
-        }
+        return GVec4!Float(x._asin, y._asin, z._asin, w._asin);
     }
 
     GVec4!Float acos() {
-        static if (is64) {
-            return GVec4!Float(x.acos64, y.acos64, z.acos64, w.acos64);
-        } else {
-            return GVec4!Float(x.acos, y.acos, z.acos, w.acos);
-        }
+        return GVec4!Float(x._acos, y._acos, z._acos, w._acos);
     }
 
     GVec4!Float atan() {
-        static if (is64) {
-            return GVec4!Float(x.atan64, y.atan64, z.atan64, w.atan64);
-        } else {
-            return GVec4!Float(x.atan, y.atan, z.atan, w.atan);
-        }
+        return GVec4!Float(x._atan, y._atan, z._atan, w._atan);
     }
 
     Float magnitude() {
-        static if (is64) {
-            return (x * x + y * y + z * z + w * w).sqrt64;
-        } else {
-            return (x * x + y * y + z * z + w * w).sqrt;
-        }
+        return (x * x + y * y + z * z + w * w)._sqrt;
     }
 
     Float magnitudeSquared() {
-        return x * x + y * y + z * z + w * w;
+        return (x * x + y * y + z * z + w * w);
     }
 
     GVec4!T applyRounding(Rounding type) {
@@ -1773,99 +1606,107 @@ pragma(inline, true) @trusted {
     }
 
     float fmod(float x, float y) {
-        return mathc.fmodf(x, y);
+        return stdc.fmodf(x, y);
     }
 
     double fmod64(double x, double y) {
-        return mathc.fmod(x, y);
+        return stdc.fmod(x, y);
     }
 
     float remainder(float x, float y) {
-        return mathc.remainderf(x, y);
+        return stdc.remainderf(x, y);
     }
 
     double remainder64(double x, double y) {
-        return mathc.remainder(x, y);
+        return stdc.remainder(x, y);
     }
 
     float exp(float x) {
-        return mathc.expf(x);
+        return stdc.expf(x);
     }
 
     double exp64(double x) {
-        return mathc.exp(x);
+        return stdc.exp(x);
     }
 
     float exp2(float x) {
-        return mathc.exp2f(x);
+        return stdc.exp2f(x);
     }
 
     double exp264(double x) {
-        return mathc.exp2(x);
+        return stdc.exp2(x);
     }
 
     float expm1(float x) {
-        return mathc.expm1f(x);
+        return stdc.expm1f(x);
     }
 
     double expm164(double x) {
-        return mathc.expm1(x);
+        return stdc.expm1(x);
     }
 
     float log(float x) {
-        return mathc.logf(x);
+        return stdc.logf(x);
     }
 
     double log64(double x) {
-        return mathc.log(x);
+        return stdc.log(x);
     }
 
     float log10(float x) {
-        return mathc.log10f(x);
+        return stdc.log10f(x);
     }
 
     double log1064(double x) {
-        return mathc.log10(x);
+        return stdc.log10(x);
     }
 
     float log2(float x) {
-        return mathc.log2f(x);
+        return stdc.log2f(x);
     }
 
     double log264(double x) {
-        return mathc.log2(x);
+        return stdc.log2(x);
     }
 
     float log1p(float x) {
-        return mathc.log1pf(x);
+        return stdc.log1pf(x);
     }
 
     double log1p64(double x) {
-        return mathc.log1p(x);
+        return stdc.log1p(x);
     }
 
     float pow(float base, float exponent) {
-        return mathc.powf(base, exponent);
+        return stdc.powf(base, exponent);
     }
 
     double pow64(double base, double exponent) {
-        return mathc.pow(base, exponent);
+        return stdc.pow(base, exponent);
     }
 
     float atan2(float y, float x) {
-        return mathc.atan2f(y, x);
+        return stdc.atan2f(y, x);
     }
 
     double atan264(double y, double x) {
-        return mathc.atan2(y, x);
+        return stdc.atan2(y, x);
+    }
+
+    auto _atan2(T)(T y, T x) {
+        static if (is(T == float) || is(T == const(float))) {
+            return atan2(y, x);
+        } else {
+            return atan264(y, x);
+        }
     }
 
     float cbrt(float x) {
-        return mathc.cbrtf(x);
+        return stdc.cbrtf(x);
     }
 
     double cbrt64(double x) {
-        return mathc.cbrt(x);
+        return stdc.cbrt(x);
     }
 
     float roundNothing(float x) {
@@ -1889,11 +1730,21 @@ pragma(inline, true) @trusted {
     }
 
     float floor(float x) {
-        return mathc.floorf(x);
+        return stdc.floorf(x);
     }
 
     double floor64(double  x) {
-        return mathc.floor(x);
+        return stdc.floor(x);
+    }
+
+    T _floor(T)(T x) {
+        static if (__traits(isIntegral, T)) {
+            return x;
+        } else static if (is(T == float) || is(T == const(float))) {
+            return floor(x);
+        } else {
+            return floor64(x);
+        }
     }
 
     float roundX(float x) {
@@ -1909,11 +1760,21 @@ pragma(inline, true) @trusted {
     }
 
     float round(float x) {
-        return mathc.roundf(x);
+        return stdc.roundf(x);
     }
 
     double round64(double x) {
-        return mathc.round(x);
+        return stdc.round(x);
+    }
+
+    T _round(T)(T x) {
+        static if (__traits(isIntegral, T)) {
+            return x;
+        } else static if (is(T == float) || is(T == const(float))) {
+            return round(x);
+        } else {
+            return round64(x);
+        }
     }
 
     float ceilX(float x) {
@@ -1929,11 +1790,21 @@ pragma(inline, true) @trusted {
     }
 
     float ceil(float x) {
-        return mathc.ceilf(x);
+        return stdc.ceilf(x);
     }
 
     double ceil64(double x) {
-        return mathc.ceil(x);
+        return stdc.ceil(x);
+    }
+
+    T _ceil(T)(T x) {
+        static if (__traits(isIntegral, T)) {
+            return x;
+        } else static if (is(T == float) || is(T == const(float))) {
+            return ceil(x);
+        } else {
+            return ceil64(x);
+        }
     }
 
     float applyRounding(float x, Rounding type) {
@@ -1945,59 +1816,115 @@ pragma(inline, true) @trusted {
     }
 
     float sqrt(float x) {
-        return mathc.sqrtf(x);
+        return stdc.sqrtf(x);
     }
 
     double sqrt64(double x) {
-        return mathc.sqrt(x);
+        return stdc.sqrt(x);
+    }
+
+    auto _sqrt(T)(T x) {
+        static if (is(T == float) || is(T == const(float))) {
+            return sqrt(x);
+        } else {
+            return sqrt64(x);
+        }
     }
 
     float sin(float x) {
-        return mathc.sinf(x);
+        return stdc.sinf(x);
     }
 
     double sin64(double x) {
-        return mathc.sin(x);
+        return stdc.sin(x);
+    }
+
+    auto _sin(T)(T x) {
+        static if (is(T == float) || is(T == const(float))) {
+            return sin(x);
+        } else {
+            return sin64(x);
+        }
     }
 
     float cos(float x) {
-        return mathc.cosf(x);
+        return stdc.cosf(x);
     }
 
     double cos64(double x) {
-        return mathc.cos(x);
+        return stdc.cos(x);
+    }
+
+    auto _cos(T)(T x) {
+        static if (is(T == float) || is(T == const(float))) {
+            return cos(x);
+        } else {
+            return cos64(x);
+        }
     }
 
     float tan(float x) {
-        return mathc.tanf(x);
+        return stdc.tanf(x);
     }
 
     double tan64(double x) {
-        return mathc.tan(x);
+        return stdc.tan(x);
+    }
+
+    auto _tan(T)(T x) {
+        static if (is(T == float) || is(T == const(float))) {
+            return tan(x);
+        } else {
+            return tan64(x);
+        }
     }
 
     float asin(float x) {
-        return mathc.asinf(x);
+        return stdc.asinf(x);
     }
 
     double asin64(double x) {
-        return mathc.asin(x);
+        return stdc.asin(x);
+    }
+
+    auto _asin(T)(T x) {
+        static if (is(T == float) || is(T == const(float))) {
+            return asin(x);
+        } else {
+            return asin64(x);
+        }
     }
 
     float acos(float x) {
-        return mathc.acosf(x);
+        return stdc.acosf(x);
     }
 
     double acos64(double x) {
-        return mathc.acos(x);
+        return stdc.acos(x);
+    }
+
+    auto _acos(T)(T x) {
+        static if (is(T == float) || is(T == const(float))) {
+            return acos(x);
+        } else {
+            return acos64(x);
+        }
     }
 
     float atan(float x) {
-        return mathc.atanf(x);
+        return stdc.atanf(x);
     }
 
     double atan64(double x) {
-        return mathc.atan(x);
+        return stdc.atan(x);
+    }
+
+    auto _atan(T)(T x) {
+        static if (is(T == float) || is(T == const(float))) {
+            return atan(x);
+        } else {
+            return atan64(x);
+        }
     }
 
     float lerp(float from, float to, float weight) {
@@ -2282,7 +2209,7 @@ pragma(inline, true) @trusted {
         return Rect(rect.position.toVec(), rect.size.toVec());
     }
 
-    Rect toRect(GRect!(int, short) rect) {
+    Rect toRect(SRect rect) {
         return Rect(rect.position.toVec(), rect.size.toVec());
     }
 

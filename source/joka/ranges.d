@@ -8,9 +8,8 @@
 // NOTE: Maybe look at this: https://github.com/opendlang/d/blob/main/source/odc/algorthimswishlist.md
 
 /// The `algo` module includes functions that work with ranges.
-module joka.algo;
+module joka.ranges;
 
-import joka.ascii;
 import joka.types;
 
 @safe nothrow @nogc:
