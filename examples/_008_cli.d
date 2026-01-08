@@ -3,7 +3,6 @@
 import joka;
 
 void main(string[] args) {
-    // The "normal" way of checking arguments.
     println("Arguments:");
     if (args.length == 1) println(" None");
     foreach (token; ArgTokenRange(args[1 .. $])) {

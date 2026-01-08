@@ -20,6 +20,7 @@ void main() {
 - **Focused**: Doesn't try to support every use case
 - **Simple**: Uses a single global allocator set at compile time
 - **Friendly**: Memory-safety features and many examples
+- **BetterC**: Fully compatible via `-betterC -i` for systems and WebAssembly
 
 ### Performance Benchmark
 
@@ -56,6 +57,10 @@ real 0.18
 Testing: ./app_odin
 real 0.27
 ```
+
+> [!NOTE]
+> The project is still early in development.
+> If something is missing, it will probably be added when someone (usually the main developer) needs it.
 
 ## Quick Start
 
@@ -129,7 +134,6 @@ allocateText(); // Not part of any group.
 You can check whether memory tracking is active with `static if (isTrackingMemory)`, and if it is, you can inspect the current tracking state via `_memoryTrackingState`.
 `_memoryTrackingState` is thread-local, so each thread has its own separate tracking state.
 
-
 ## Frequently Asked Questions
 
 ### Does Joka have an allocator API?
@@ -143,10 +147,9 @@ No. A public global context tends to make generic low-level APIs fragile.
 One cited reason for such a system is the ability to [intercept third-party code](https://odin-lang.org/docs/faq/#what-is-the-context-system-for) and change its behavior.
 Joka deliberately avoids this because APIs are designed with specific assumptions and breaking those from the outside can introduce subtle bugs.
 
-> *Author's note (Kapendev):
-> The terms "intercept" and "third-party" are often used loosely from what I have seen.
-> For example, the communities around the Odin and C3 languages frequently rely on context changes even within their own APIs, treating them as part of the public interface.
-> Calling this system "interception" is a bit misleading when it is [the intended way](https://www.gingerbill.org/article/2025/12/15/odins-most-misunderstood-feature-context/#user_ptr-and-user_index) to use the API.*
+The terms "intercept" and "third-party" are often used loosely from what I have seen.
+For example, the communities around the Odin and C3 languages frequently rely on context changes even within their own APIs, treating them as part of the public interface.
+Calling this system "interception" is a bit misleading when it is [the intended way](https://www.gingerbill.org/article/2025/12/15/odins-most-misunderstood-feature-context/#user_ptr-and-user_index) to use the API.
 
 ### Why aren't some functions `@nogc`?
 
@@ -171,9 +174,8 @@ It never allocates with the GC, so it is a nogc function in practice, but it is 
 If you try to call it from a `@nogc` function, the compiler will reject it simply because the attribute is missing.
 What this shows is that attributes in D are not a memory management tool.
 
-> *Author's note (Kapendev):
-> For what it's worth, I don't use attributes in my own projects except for libraries.
-> I recommend avoiding them most of the time, especially if you're new to D.*
+For what it's worth, I don't use attributes in my own projects except for libraries.
+I recommend avoiding them most of the time, especially if you're new to D.
 
 ### Why are you supporting the D garbage collector?
 
@@ -186,8 +188,7 @@ This approach is similar to the one used in [Fil-C](https://fil-c.org/).
 No. Joka doesn't impose arbitrary restrictions on code, so it works smoothly with Phobos or other libraries.
 Some libraries choose to be `@safe`, `@nogc`, or `nothrow` only, but those are their constraints, not Joka's.
 
-> *Author's note (Kapendev):
-> I avoid the "attribute-oriented" style of structuring a project entirely.*
+I avoid the "attribute-oriented" style of structuring a project entirely.
 
 ### Is WebAssembly supported?
 
@@ -222,7 +223,7 @@ main :: proc() {
 
 To sum up, Joka is trying to be simple and safe about this.
 
-### What are common `betterC` errors and how do I fix them?
+### What are common `betterC` errors?
 
 1. Using `betterC` as a global `@nogc` attribute.
     This flag does more than just remove the garbage collector and adds extra checks that can sometimes be overly restrictive.
@@ -233,10 +234,9 @@ To sum up, Joka is trying to be simple and safe about this.
 
 3. `TypeInfo` errors. Search for `new` in the source code and remove it.
 
-
 4. Using `struct[N]`.
     Some parts of the D runtime (`_memsetn`, ...) are needed when using types like this and they can be missing due to how `betterC` works.
-    The solution for `struct[N]` is to implement the missing functions or use a custom static array type ([./source/joka/types.d:61](https://github.com/Kapendev/joka/blob/main/source/joka/types.d#L61)).
+    The solution for static arrays is to implement the missing functions or use a custom static array type (`StaticArray` in `joka.types`).
 
 5. String errors.
     It's common to want to use functions to create strings at compile time, but this gets harder to do because of some extra checks added by the `betterC` flag.
@@ -246,13 +246,13 @@ To sum up, Joka is trying to be simple and safe about this.
     // Works without `betterC`.
     // The parameter can come from runtime or compile time.
     string createString(string value) {
-        return val ~ ";\n";
+        return value ~ ";\n";
     }
 
     // Works with `betterC`.
     // The parameter must be known at compile time.
     string createString(string value)() {
-        return val ~ ";\n";
+        return value ~ ";\n";
     }
     ```
 
