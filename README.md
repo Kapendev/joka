@@ -75,13 +75,13 @@ Start with the [examples](./examples/) folder for a quick overview.
 
 ### Modules
 
-- [`joka.ascii`](./source/joka/ascii): ASCII strings
-- [`joka.io`](./source/joka/io): Input and output procedures
-- [`joka.math`](./source/joka/math): Mathematics
-- [`joka.memory`](./source/joka/memory): Memory utilities and containers
-- [`joka.ranges`](./source/joka/ranges): Range utilities
-- [`joka.types`](./source/joka/types): Common type definitions
-- [`joka.stdc`](./source/joka/stdc): C standard library functions
+- [`joka.ascii`](./source/joka/ascii.d): ASCII strings
+- [`joka.io`](./source/joka/io.d): Input and output procedures
+- [`joka.math`](./source/joka/math.d): Mathematics
+- [`joka.memory`](./source/joka/memory.d): Memory utilities and containers
+- [`joka.ranges`](./source/joka/ranges.d): Range utilities
+- [`joka.types`](./source/joka/types.d): Common type definitions
+- [`joka.stdc`](./source/joka/stdc.d): C standard library functions
 
 ### Versions
 
