@@ -10,7 +10,6 @@ module joka.io;
 
 import stdc = joka.stdc;
 import joka.ascii;
-import joka.containers;
 import joka.memory;
 import joka.types;
 

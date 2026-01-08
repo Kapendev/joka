@@ -6,13 +6,11 @@ It is designed to complement the D standard library, not replace it.
 
 ```d
 /// Vectors, printing, and string interpolation.
-
 import joka;
 
 void main() {
-    auto a = IVec3(9, 4, 6);
-    auto b = a.swizzle("zxx").chop();
-    println(i"From $(a) to $(b)."); // From (9 4 6) to (6 9).
+    auto value = IVec3(9, 4, 6).swizzle("zxx").chop();
+    println(i"Vector: $(value)"); // Vector: (6 9)
 }
 ```
 
@@ -22,20 +20,6 @@ void main() {
 - **Focused**: Doesn't try to support every use case
 - **Simple**: Uses a single global allocator set at compile time
 - **Friendly**: Memory-safety features and many examples
-
-> [!NOTE]
-> The project is still early in development.
-> If something is missing, it will probably be added when someone (usually the main developer) needs it.
-
-## Core Types
-
-Joka containers tend to be configurable through these types, giving full control over how memory is allocated and avoiding the need for a complicated allocator API:
-
-- `List`: Dynamic array using the global allocator
-- `FixedList`: Dynamic array allocated on the stack
-- `BufferList`: Dynamic array backed by caller-provided memory
-- `Arena`: Bump allocator backed by caller-provided memory or the global allocator
-- `GrowingArena`: Bump allocator that expands dynamically using the global allocator
 
 ### Performance Benchmark
 
@@ -67,19 +51,45 @@ These are **not direct benchmarks** and are intended only as a point of referenc
 Appending and removing 100000000 items...
 Testing: ./app_d
 real 0.16
-user 0.03
-sys 0.12
 Testing: ./app_zig
 real 0.18
-user 0.05
-sys 0.13
 Testing: ./app_odin
 real 0.27
-user 0.10
-sys 0.16
 ```
 
-## Memory Tracking
+## Quick Start
+
+This guide shows how to install Joka using [DUB](https://dub.pm/).
+Create a new folder and run inside the following commands:
+
+```sh
+dub init -n
+dub add joka
+```
+
+That's it. Copy-paste one of the [examples](./examples/) to make sure everything is set up correctly.
+
+## Documentation
+
+Start with the [examples](./examples/) folder for a quick overview.
+
+### Modules
+
+- [`joka.ascii`](./source/joka/ascii): ASCII strings
+- [`joka.io`](./source/joka/io): Input and output procedures
+- [`joka.math`](./source/joka/math): Mathematics
+- [`joka.memory`](./source/joka/memory): Memory utilities and containers
+- [`joka.ranges`](./source/joka/ranges): Range utilities
+- [`joka.types`](./source/joka/types): Common type definitions
+- [`joka.stdc`](./source/joka/stdc): C standard library functions
+
+### Versions
+
+- `JokaCustomMemory`: Allows the declaration of custom memory allocation functions
+- `JokaGcMemory`: Like `JokaCustomMemory`, but preconfigured to use the D garbage collector
+- `JokaGlobalTracking`: Disables thread-local storage for `_memoryTrackingState`
+
+### Memory Tracking
 
 Joka includes a lightweight memory tracking system that can detect leaks or invalid frees in debug builds.
 By default, the helper function `memoryTrackingInfo` produces output like this:
@@ -119,47 +129,13 @@ allocateText(); // Not part of any group.
 You can check whether memory tracking is active with `static if (isTrackingMemory)`, and if it is, you can inspect the current tracking state via `_memoryTrackingState`.
 `_memoryTrackingState` is thread-local, so each thread has its own separate tracking state.
 
-## Quick Start
-
-This guide shows how to install Joka using [DUB](https://dub.pm/).
-Create a new folder and run inside the following commands:
-
-```sh
-dub init -n
-dub add joka
-```
-
-That's it. Copy-paste one of the [examples](./examples/) to make sure everything is set up correctly.
-
-## Documentation
-
-Start with the [examples](./examples/) folder for a quick overview.
-
-### Modules
-
-- `joka.algo`: Range utilities
-- `joka.ascii`: ASCII string utilities
-- `joka.cli`: Command-line parsing utilities
-- `joka.containers`: General-purpose containers
-- `joka.interpolation`: [IES](https://dlang.org/spec/istring.html) support
-- `joka.io`: Input and output functions
-- `joka.math`: Mathematical data structures and functions
-- `joka.memory`: Functions for dealing with memory
-- `joka.types`: Common type definitions
-- `joka.stdc`: C standard library functions
-
-### Versions
-
-- `JokaCustomMemory`: Allows the declaration of custom memory allocation functions
-- `JokaGcMemory`: Like `JokaCustomMemory`, but preconfigured to use the D garbage collector
-- `JokaGlobalTracking`: Disables thread-local storage for `_memoryTrackingState`
 
 ## Frequently Asked Questions
 
 ### Does Joka have an allocator API?
 
 No. Joka is designed to feel a bit like the C standard library because that's easier for most people to understand and keeps the library simple.
-The lack of it isn't a problem thanks to how Joka's core types handle allocation.
+The lack of it isn't a problem thanks to how Joka's containers handle allocation.
 
 ### Does Joka have a global context like Jai?
 
@@ -170,7 +146,7 @@ Joka deliberately avoids this because APIs are designed with specific assumption
 > *Author's note (Kapendev):
 > The terms "intercept" and "third-party" are often used loosely from what I have seen.
 > For example, the communities around the Odin and C3 languages frequently rely on context changes even within their own APIs, treating them as part of the public interface.
-> Calling this system "interception" is a bit misleading when it is the intended way to use the API, and it also encourages APIs to become [leaky](https://www.gingerbill.org/article/2025/12/15/odins-most-misunderstood-feature-context/#user_ptr-and-user_index) and dependent on context changes.*
+> Calling this system "interception" is a bit misleading when it is [the intended way](https://www.gingerbill.org/article/2025/12/15/odins-most-misunderstood-feature-context/#user_ptr-and-user_index) to use the API.*
 
 ### Why aren't some functions `@nogc`?
 
@@ -193,7 +169,7 @@ char[] temporaryString() {
 This function uses a static buffer to create a temporary string at runtime.
 It never allocates with the GC, so it is a nogc function in practice, but it is not a `@nogc` function.
 If you try to call it from a `@nogc` function, the compiler will reject it simply because the attribute is missing.
-What this shows is that attributes in D are a design tool, not a memory management tool.
+What this shows is that attributes in D are not a memory management tool.
 
 > *Author's note (Kapendev):
 > For what it's worth, I don't use attributes in my own projects except for libraries.
@@ -207,11 +183,16 @@ This approach is similar to the one used in [Fil-C](https://fil-c.org/).
 
 ### Is it hard to mix Joka with other D libraries?
 
-No. Joka doesn't impose arbitrary restrictions on your code, so it works smoothly with Phobos or other libraries.
+No. Joka doesn't impose arbitrary restrictions on code, so it works smoothly with Phobos or other libraries.
 Some libraries choose to be `@safe`, `@nogc`, or `nothrow` only, but those are their constraints, not Joka's.
 
 > *Author's note (Kapendev):
 > I avoid the "attribute-oriented" style of structuring a project entirely.*
+
+### Is WebAssembly supported?
+
+Yes. WebAssembly is supported with the `betterC` flag, but a tool like [Emscripten](https://emscripten.org/) is required.
+In case of errors, the `i` flag may help. The combination `-betterC -i` works in most cases.
 
 ### Why isn't there a `jokaFreeSlice` function?
 
@@ -239,12 +220,7 @@ main :: proc() {
 }
 ```
 
-Oops! To sum up, Joka is trying to be simple and safe about this.
-
-### Is WebAssembly supported?
-
-Yes. WebAssembly is supported with the `betterC` flag, but a tool like [Emscripten](https://emscripten.org/) is required.
-In case of errors, the `i` flag may help. The combination `-betterC -i` works in most cases.
+To sum up, Joka is trying to be simple and safe about this.
 
 ### What are common `betterC` errors and how do I fix them?
 
@@ -255,11 +231,12 @@ In case of errors, the `i` flag may help. The combination `-betterC -i` works in
 2. Using `betterC` without the `i` flag.
     The combination `-betterC -i` works in most cases and is recommended for anyone still learning D.
 
-3. Using `struct[N]`.
-    Some parts of the D runtime (`_memsetn`, ...) are needed when using types like this and they can be missing due to how `betterC` works.
-    The solution is to implement the missing functions or use a custom static array type ([./source/joka/types.d:61](https://github.com/Kapendev/joka/blob/main/source/joka/types.d#L61)).
+3. `TypeInfo` errors. Search for `new` in the source code and remove it.
 
-4. `TypeInfo` errors. Search for `new` in the source code and remove it.
+
+4. Using `struct[N]`.
+    Some parts of the D runtime (`_memsetn`, ...) are needed when using types like this and they can be missing due to how `betterC` works.
+    The solution for `struct[N]` is to implement the missing functions or use a custom static array type ([./source/joka/types.d:61](https://github.com/Kapendev/joka/blob/main/source/joka/types.d#L61)).
 
 5. String errors.
     It's common to want to use functions to create strings at compile time, but this gets harder to do because of some extra checks added by the `betterC` flag.
