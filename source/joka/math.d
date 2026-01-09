@@ -9,7 +9,6 @@
 module joka.math;
 
 import stdc = joka.stdc;
-import joka.ascii;
 import joka.types;
 
 // I don't care about `pure`, but I'm a nice person.

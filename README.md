@@ -80,12 +80,11 @@ Start with the [examples](./examples/) folder for a quick overview.
 
 ### Modules
 
-- [`joka.ascii`](./source/joka/ascii.d): ASCII strings
 - [`joka.io`](./source/joka/io.d): Input and output procedures
 - [`joka.math`](./source/joka/math.d): Mathematics
 - [`joka.memory`](./source/joka/memory.d): Memory utilities and containers
 - [`joka.ranges`](./source/joka/ranges.d): Range utilities
-- [`joka.types`](./source/joka/types.d): Common type definitions
+- [`joka.types`](./source/joka/types.d): Common type definitions and ASCII strings
 - [`joka.stdc`](./source/joka/stdc.d): C standard library functions
 
 ### Versions
@@ -93,6 +92,7 @@ Start with the [examples](./examples/) folder for a quick overview.
 - `JokaCustomMemory`: Allows the declaration of custom memory allocation functions
 - `JokaGcMemory`: Like `JokaCustomMemory`, but preconfigured to use the D garbage collector
 - `JokaGlobalTracking`: Disables thread-local storage for `_memoryTrackingState`
+- `JokaPhobosStdc`: Uses the Phobos libc bindings instead of the Joka ones when possible.
 
 ### Memory Tracking
 
@@ -133,6 +133,10 @@ allocateText(); // Not part of any group.
 
 You can check whether memory tracking is active with `static if (isTrackingMemory)`, and if it is, you can inspect the current tracking state via `_memoryTrackingState`.
 `_memoryTrackingState` is thread-local, so each thread has its own separate tracking state.
+
+### Standalone `memory.d`
+
+It is possible to just use the allocation part of the code without a full dependency on Joka. To do this, copy `memory.d` and `types.d` into a project and use the version `JokaPhobosStdc`. This version is required because it tells the code to use the Phobos libc bindings instead of Joka's `stdc.d` module.
 
 ## Frequently Asked Questions
 
