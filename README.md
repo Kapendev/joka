@@ -16,11 +16,12 @@ void main() {
 
 ## Why Joka
 
-- **Minimalistic**: Avoids many abstractions
-- **Focused**: Doesn't try to support every use case
-- **Simple**: Uses a single global allocator set at compile time
-- **Friendly**: Memory-safety features and many examples
-- **BetterC**: Fully compatible via `-betterC -i` for systems and WebAssembly
+- **Minimalistic**: Avoids many abstractions.
+- **Focused**: Doesn't try to support every use case.
+- **Simple**: Uses a single global allocator set at compile time.
+- **Friendly**: Memory-safety features and many examples.
+- **Portable**: Works with DMD, LDC, and GDC.
+- **BetterC**: Fully compatible via `-betterC -i`.
 
 ### Performance Benchmark
 
@@ -80,19 +81,19 @@ Start with the [examples](./examples/) folder for a quick overview.
 
 ### Modules
 
-- [`joka.io`](./source/joka/io.d): Input and output procedures
-- [`joka.math`](./source/joka/math.d): Mathematics
-- [`joka.memory`](./source/joka/memory.d): Memory utilities and containers
-- [`joka.ranges`](./source/joka/ranges.d): Range utilities
-- [`joka.types`](./source/joka/types.d): Common type definitions and ASCII strings
-- [`joka.stdc`](./source/joka/stdc.d): C standard library functions
+- [`joka.io`](./source/joka/io.d): Input and output procedures.
+- [`joka.math`](./source/joka/math.d): Mathematics.
+- [`joka.memory`](./source/joka/memory.d): Memory utilities and containers.
+- [`joka.ranges`](./source/joka/ranges.d): Range utilities.
+- [`joka.types`](./source/joka/types.d): Common type definitions and ASCII strings.
+- [`joka.stdc`](./source/joka/stdc.d): C standard library functions.
 
 ### Versions
 
-- `JokaCustomMemory`: Allows the declaration of custom memory allocation functions
-- `JokaGcMemory`: Like `JokaCustomMemory`, but preconfigured to use the D garbage collector
-- `JokaGlobalTracking`: Disables thread-local storage for `_memoryTrackingState`
-- `JokaPhobosStdc`: Uses the Phobos libc bindings instead of the Joka ones when possible.
+- `JokaCustomMemory`: Allows the declaration of custom allocation functions.
+- `JokaGcMemory`: Like `JokaCustomMemory`, but preconfigured to use the D garbage collector.
+- `JokaGlobalTracking`: Disables thread-local storage for `_memoryTrackingState`.
+- `JokaPhobosStdc`: Uses the Phobos libc bindings instead of Joka's `stdc.d` module when possible.
 
 ### Memory Tracking
 
@@ -136,7 +137,11 @@ You can check whether memory tracking is active with `static if (isTrackingMemor
 
 ### Standalone `memory.d`
 
-It is possible to just use the allocation part of the code without a full dependency on Joka. To do this, copy `memory.d` and `types.d` into a project and use the version `JokaPhobosStdc`. This version is required because it tells the code to use the Phobos libc bindings instead of Joka's `stdc.d` module.
+It's possible to just use the allocation part of the code without a full dependency on Joka.
+To do this, copy `memory.d` and `types.d` into a project and use one of the following versions:
+
+- `JokaPhobosStdc`: Recommended for "just works" things.
+- `JokaCustomMemory`: Recommended for when total control is needed.
 
 ## Frequently Asked Questions
 
