@@ -16,12 +16,11 @@ void main() {
 
 ## Why Joka
 
-- **Minimalistic**: Avoids many abstractions.
-- **Focused**: Doesn't try to support every use case.
-- **Simple**: Uses a single global allocator set at compile time.
-- **Friendly**: Memory-safety features and many examples.
-- **Portable**: Works with DMD, LDC, and GDC.
-- **BetterC**: Fully compatible via `-betterC -i`.
+- **Minimalistic**: Avoids many abstractions
+- **Focused**: Doesn't try to support every use case
+- **Simple**: Uses a single global allocator set at compile time
+- **Friendly**: Memory-safety features and many examples
+- **BetterC**: Fully compatible via `-betterC -i`
 
 ### Performance Benchmark
 
@@ -142,6 +141,7 @@ To do this, copy `memory.d` and `types.d` into a project and use one of the foll
 
 - `JokaPhobosStdc`: Recommended for "just works" things.
 - `JokaCustomMemory`: Recommended for when total control is needed.
+- `JokaGcMemory`: Like `JokaCustomMemory`, but preconfigured to use the D garbage collector.
 
 ## Frequently Asked Questions
 
