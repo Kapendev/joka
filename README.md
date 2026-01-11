@@ -5,12 +5,15 @@ Joka provides data structures and functions that can work without garbage collec
 It is designed to complement the D standard library, not replace it.
 
 ```d
-/// Vectors, printing, and string interpolation.
+/// Arrays, printing, and string interpolation.
 import joka;
 
 void main() {
-    auto value = IVec3(9, 4, 6).swizzle("zxx").chop();
-    println(i"Vector: $(value)"); // Vector: (6 9)
+    auto numbers = List!int(4, 6, 8);
+    scope (exit) numbers.free();
+    foreach (i, number; numbers) {
+        println(i"[$(i)]: $(number)");
+    }
 }
 ```
 

@@ -261,6 +261,25 @@ struct Union(A...) {
         }
     }
 
+    static bool _isBaseAliasingSafe() {
+        bool result = true;
+        foreach (T; A[1 .. $]) {
+            static if (is(T == struct)) {
+                static if (is(typeof(T.tupleof[0]) == struct)) {
+                    if (!is(typeof(T.tupleof[0]) == Base) && !is(typeof(T.tupleof[0].tupleof[0]) == Base)) result = false;
+                } else {
+                    if (!is(typeof(T.tupleof[0]) == Base)) result = false;
+                }
+            } else {
+                if (!is(T == Base)) result = false;
+            }
+        }
+        return result;
+    }
+
+    // NOTE: Did not know how to make it one thing, so it's two things. Monkeyy I don't careee, OK?
+    enum isBaseAliasingSafe = _isBaseAliasingSafe();
+
     template typeOf(T) {
         static assert(isInAliasArgs!(T, A), "Type `" ~ T.stringof ~ "` is not part of the variant.");
         enum typeOf = findInAliasArgs!(T, A);
@@ -351,6 +370,8 @@ bool isNan(double x) {
 }
 
 mixin template distinct(T) {
+    alias Base = T;
+
     T _data;
     alias _data this;
 
@@ -636,7 +657,7 @@ unittest {
     assert(Maybe!int(69, Fault.some).getOr() == 0);
 }
 
-// Variant test.
+// Union test.
 unittest {
     alias Number = Union!(float, double);
 
@@ -668,6 +689,15 @@ unittest {
     auto numberPtr = &number.as!float();
     *numberPtr *= 10;
     assert(number.as!float == 690);
+
+    assert(Number.isBaseAliasingSafe == false);
+    struct Foo1 { float a; }
+    struct Foo2 { alias x = int; float b; }
+    struct Foo3 { Foo1 c; }
+    assert(Union!(float, Foo1).isBaseAliasingSafe == true);
+    assert(Union!(float, Foo2).isBaseAliasingSafe == true);
+    assert(Union!(float, Foo3).isBaseAliasingSafe == true);
+    assert(Union!(float, Foo1, Foo2, Foo3).isBaseAliasingSafe == true);
 }
 
 // Distinct test.
