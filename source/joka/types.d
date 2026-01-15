@@ -8,6 +8,8 @@
 /// The `types` module provides basic type definitions, compile-time functions and ASCII string helpers.
 module joka.types;
 
+// --- Core
+
 alias Sz      = size_t;         /// The result of sizeof.
 alias Pd      = ptrdiff_t;      /// The result of pointer math.
 alias Str     = char[];         /// A string slice of chars.
@@ -178,23 +180,18 @@ struct Maybe(T) {
     }
 }
 
-union UnionData(A...) {
-    static assert(A.length != 0, "Arguments must contain at least one element.");
+struct Union(A...) if (A.length != 0) {
+    alias Types = A;
+    alias Base = A[0];
 
-    static foreach (i, T; A) {
-        mixin("T _m", toCleanNumber!i, ";");
+    union UnionData {
+        static foreach (i, T; A) {
+            mixin("T _m", toCleanNumber!i, ";");
+        }
     }
 
-    alias Types = A;
-    alias Base = A[0];
-}
-
-struct Union(A...) {
-    UnionData!A _data;
+    UnionData _data;
     UnionType _type;
-
-    alias Types = A;
-    alias Base = A[0];
 
     @trusted
     auto call(IStr func, AA...)(AA args) {
@@ -215,7 +212,7 @@ struct Union(A...) {
         }
 
         void opAssign(const(T) rhs) {
-            auto temp = UnionData!A();
+            auto temp = UnionData();
             *(cast(T*) &temp) = cast(T) rhs;
             _data = temp;
             _type = i;
@@ -428,121 +425,121 @@ mixin template xyzwOps(T, TT, Sz N, IStr form = "xyzw") if (__traits(hasMember, 
     pragma(inline, true) @trusted nothrow @nogc {
         T opUnary(IStr op)() {
             static if (N == 2) {
-                return T(
-                    mixin(op, form[0]),
-                    mixin(op, form[1]),
-                );
+                return mixin("T(", op, form[0], ",", op, form[1], ")");
             } else static if (N == 3) {
-                return T(
-                    mixin(op, form[0]),
-                    mixin(op, form[1]),
-                    mixin(op, form[2]),
-                );
+                return mixin("T(", op, form[0], ",", op, form[1], ",", op, form[2], ")");
             } else static if (N == 4) {
-                return T(
-                    mixin(op, form[0]),
-                    mixin(op, form[1]),
-                    mixin(op, form[2]),
-                    mixin(op, form[3]),
-                );
+                return mixin("T(", op, form[0], ",", op, form[1], ",", op, form[2], ",", op, form[3], ")");
             }
         }
 
         T opBinary(IStr op)(T rhs) {
             static if (N == 2) {
-                return T(
-                    cast(TT) mixin(form[0], op, "rhs.", form[0]),
-                    cast(TT) mixin(form[1], op, "rhs.", form[1]),
+                return mixin("T(",
+                    "cast(TT)(", form[0], op, "rhs.", form[0], "),",
+                    "cast(TT)(", form[1], op, "rhs.", form[1], "))"
                 );
             } else static if (N == 3) {
-                return T(
-                    cast(TT) mixin(form[0], op, "rhs.", form[0]),
-                    cast(TT) mixin(form[1], op, "rhs.", form[1]),
-                    cast(TT) mixin(form[2], op, "rhs.", form[2]),
+                return mixin("T(",
+                    "cast(TT)(", form[0], op, "rhs.", form[0], "),",
+                    "cast(TT)(", form[1], op, "rhs.", form[1], "),",
+                    "cast(TT)(", form[2], op, "rhs.", form[2], "))"
                 );
             } else static if (N == 4) {
-                return T(
-                    cast(TT) mixin(form[0], op, "rhs.", form[0]),
-                    cast(TT) mixin(form[1], op, "rhs.", form[1]),
-                    cast(TT) mixin(form[2], op, "rhs.", form[2]),
-                    cast(TT) mixin(form[3], op, "rhs.", form[3]),
+                return mixin("T(",
+                    "cast(TT)(", form[0], op, "rhs.", form[0], "),",
+                    "cast(TT)(", form[1], op, "rhs.", form[1], "),",
+                    "cast(TT)(", form[2], op, "rhs.", form[2], "),",
+                    "cast(TT)(", form[3], op, "rhs.", form[3], "))"
                 );
             }
         }
 
         T opBinary(IStr op)(TT rhs) {
             static if (N == 2) {
-                return T(
-                    cast(TT) mixin(form[0], op, "rhs"),
-                    cast(TT) mixin(form[1], op, "rhs"),
+                return mixin("T(",
+                    "cast(TT)(", form[0], op, "rhs),",
+                    "cast(TT)(", form[1], op, "rhs))"
                 );
             } else static if (N == 3) {
-                return T(
-                    cast(TT) mixin(form[0], op, "rhs"),
-                    cast(TT) mixin(form[1], op, "rhs"),
-                    cast(TT) mixin(form[2], op, "rhs"),
+                return mixin("T(",
+                    "cast(TT)(", form[0], op, "rhs),",
+                    "cast(TT)(", form[1], op, "rhs),",
+                    "cast(TT)(", form[2], op, "rhs))"
                 );
             } else static if (N == 4) {
-                return T(
-                    cast(TT) mixin(form[0], op, "rhs"),
-                    cast(TT) mixin(form[1], op, "rhs"),
-                    cast(TT) mixin(form[2], op, "rhs"),
-                    cast(TT) mixin(form[3], op, "rhs"),
+                return mixin("T(",
+                    "cast(TT)(", form[0], op, "rhs),",
+                    "cast(TT)(", form[1], op, "rhs),",
+                    "cast(TT)(", form[2], op, "rhs),",
+                    "cast(TT)(", form[3], op, "rhs))"
                 );
             }
         }
 
         T opBinaryRight(IStr op)(TT lhs) {
             static if (N == 2) {
-                return T(
-                    cast(TT) mixin("lhs", op, form[0]),
-                    cast(TT) mixin("lhs", op, form[1]),
+                return mixin("T(",
+                    "cast(TT)(lhs", op, form[0], "),",
+                    "cast(TT)(lhs", op, form[1], "))"
                 );
             } else static if (N == 3) {
-                return T(
-                    cast(TT) mixin("lhs", op, form[0]),
-                    cast(TT) mixin("lhs", op, form[1]),
-                    cast(TT) mixin("lhs", op, form[2]),
+                return mixin("T(",
+                    "cast(TT)(lhs", op, form[0], "),",
+                    "cast(TT)(lhs", op, form[1], "),",
+                    "cast(TT)(lhs", op, form[2], "))"
                 );
             } else static if (N == 4) {
-                return T(
-                    cast(TT) mixin("lhs", op, form[0]),
-                    cast(TT) mixin("lhs", op, form[1]),
-                    cast(TT) mixin("lhs", op, form[2]),
-                    cast(TT) mixin("lhs", op, form[3]),
+                return mixin("T(",
+                    "cast(TT)(lhs", op, form[0], "),",
+                    "cast(TT)(lhs", op, form[1], "),",
+                    "cast(TT)(lhs", op, form[2], "),",
+                    "cast(TT)(lhs", op, form[3], "))"
                 );
             }
         }
 
         void opOpAssign(IStr op)(T rhs) {
             static if (N == 2) {
-                mixin(form[0], op, "=rhs.", form[0], ";");
-                mixin(form[1], op, "=rhs.", form[1], ";");
+                mixin(
+                    form[0], op, "=rhs.", form[0], ";",
+                    form[1], op, "=rhs.", form[1], ";"
+                );
             } else static if (N == 3) {
-                mixin(form[0], op, "=rhs.", form[0], ";");
-                mixin(form[1], op, "=rhs.", form[1], ";");
-                mixin(form[2], op, "=rhs.", form[2], ";");
+                mixin(
+                    form[0], op, "=rhs.", form[0], ";",
+                    form[1], op, "=rhs.", form[1], ";",
+                    form[2], op, "=rhs.", form[2], ";"
+                );
             } else static if (N == 4) {
-                mixin(form[0], op, "=rhs.", form[0], ";");
-                mixin(form[1], op, "=rhs.", form[1], ";");
-                mixin(form[2], op, "=rhs.", form[2], ";");
-                mixin(form[3], op, "=rhs.", form[3], ";");
+                mixin(
+                    form[0], op, "=rhs.", form[0], ";",
+                    form[1], op, "=rhs.", form[1], ";",
+                    form[2], op, "=rhs.", form[2], ";",
+                    form[3], op, "=rhs.", form[3], ";"
+                );
             }
         }
 
         void opOpAssign(IStr op)(TT rhs) {
             static if (N == 2) {
-                mixin(form[0], op, "=rhs;");
-                mixin(form[1], op, "=rhs;");
+                mixin(
+                    form[0], op, "=rhs;",
+                    form[1], op, "=rhs;"
+                );
             } else static if (N == 3) {
-                mixin(form[0], op, "=rhs;");
-                mixin(form[1], op, "=rhs;");
-                mixin(form[2], op, "=rhs;");
+                mixin(
+                    form[0], op, "=rhs;",
+                    form[1], op, "=rhs;",
+                    form[2], op, "=rhs;"
+                );
             } else static if (N == 4) {
-                mixin(form[0], op, "=rhs;");
-                mixin(form[1], op, "=rhs;");
-                mixin(form[2], op, "=rhs;");
-                mixin(form[3], op, "=rhs;");
+                mixin(
+                    form[0], op, "=rhs;",
+                    form[1], op, "=rhs;",
+                    form[2], op, "=rhs;",
+                    form[3], op, "=rhs;"
+                );
             }
         }
 
@@ -721,13 +718,19 @@ unittest {
 
 @safe:
 
-enum defaultAsciiBufferCount = 16;   /// Generic string count.
-enum defaultAsciiBufferSize  = 2048; /// Generic string length.
+version (JokaSmallFootprint) {
+    pragma(msg, "Joka: Using less memory for buffers.");
+    enum defaultAsciiBufferCount = 4;
+    enum defaultAsciiBufferSize  = 1024;
+} else {
+    enum defaultAsciiBufferCount = 8;    /// Generic string count.
+    enum defaultAsciiBufferSize  = 2048; /// Generic string length.
+}
 
 enum defaultAsciiFmtArgStr         = "{}"; /// The format argument symbol.
-enum defaultAsciiFmtArgBufferCount = 32;   /// Format argument count.
+enum defaultAsciiFmtArgBufferCount = 16;   /// Format argument count.
 enum defaultAsciiFmtArgBufferSize  = 1024; /// Format argument length.
-enum defaultAsciiFmtBufferCount    = 32;   /// Format string count.
+enum defaultAsciiFmtBufferCount    = 16;   /// Format string count.
 enum defaultAsciiFmtBufferSize     = 2048; /// Format string length.
 
 enum digitChars    = "0123456789";                         /// The set of decimal numeric characters.
@@ -777,16 +780,15 @@ struct Floating {
         return floatingToStr(value, precision);
     }
 
-    IStr toString() {
-        return toStr();
-    }
+    alias toString = toStr;
 }
 
-// ---------- IES Support
+// --- IES Support
+// ===
 static if (__traits(compiles, { import core.interpolation; })) {
     public import core.interpolation;
 } else {
-    // pragma(msg, "Joka: Using custom interpolation functions.");
+    pragma(msg, "Joka: Using custom interpolation functions.");
 
     // Functions below are copy-pasted from core.interpolation.
 
@@ -823,7 +825,7 @@ version (D_BetterC) {
 // NOTE: Helper functions.
 template isInterLitType(TT) { enum isInterLitType = is(TT == InterpolatedLiteral!_, alias _); }
 template isInterExpType(TT) { enum isInterExpType = is(TT == InterpolatedExpression!_, alias _); }
-// ----------
+// ===
 
 /// Converts the value to its string representation.
 @trusted
