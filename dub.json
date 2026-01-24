@@ -2,7 +2,7 @@
     "authors": [
         "Alexandros F. G. Kapretsos"
     ],
-	"copyright": "Copyright © 2025, Alexandros F. G. Kapretsos",
+    "copyright": "Copyright © 2025, Alexandros F. G. Kapretsos",
     "description": "A nogc utility library.",
     "license": "MIT",
     "name": "joka"
