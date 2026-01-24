@@ -12,6 +12,6 @@ void main(string[] args) {
         array.push(i);
     }
     while (array.length) {
-        array.drop();
+        array.pop();
     }
 }

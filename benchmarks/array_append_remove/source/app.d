@@ -93,14 +93,14 @@ void main(string[] args) {
     }
 
     {
-        import joka.containers;
+        import joka.memory;
         List!int jokaArray;
         with (Benchmark()) {
             foreach (i; 0 .. N) jokaArray.push(i);
         }
         writeln("Append ", N, " items with `joka`: ", ms, " ms");
         with (Benchmark()) {
-            while (jokaArray.length) jokaArray.drop();
+            while (jokaArray.length) jokaArray.pop();
         }
         writeln("Remove ", N, " items with `joka`: ", ms, " ms");
     }
@@ -110,7 +110,7 @@ void main(string[] args) {
 
 import std.stdio;
 import std.datetime.stopwatch;
-import joka.ascii;
+import joka.types;
 
 auto _w = StopWatch();
 
