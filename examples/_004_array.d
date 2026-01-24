@@ -12,8 +12,9 @@ void main() {
     foreach (i, number; numbers) printfln(" [{}]: {}", i, number);
 
     // Add and remove from the array.
-    numbers.append(9);
-    printfln("One of my favorite movies is {}.", numbers.pop());
+    numbers.push(9);
+    printfln("One of my favorite movies is {}.", numbers[$ - 1]);
+    numbers.pop();
 
     // A `LStr` is a `List!char` and it doesn't append a zero at the end.
     auto text = LStr("D is... ");
