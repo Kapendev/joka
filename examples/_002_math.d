@@ -20,7 +20,7 @@ void main() {
 
     // Swizzle operations.
     auto c = IVec3(2, 0, 4);
-    trace(c.swizzle(2, 0, 1), c.swizzle("zxy"));
+    trace(c.swizzle(2, 0, 1), c.swizzle("zxy"), c.zxy);
 
     // Create a rectangle and change its position and size.
     auto rect = IRect(a1, 30, 32);
