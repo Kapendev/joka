@@ -94,10 +94,11 @@ Start with the [examples](./examples/) folder for a quick overview.
 
 - `JokaCustomMemory`: Allows the declaration of custom allocation functions.
 - `JokaGcMemory`: Like `JokaCustomMemory`, but preconfigured to use the D garbage collector.
-- `JokaGlobalTracking`: Disables thread-local storage for `_memoryTrackingState`.
 - `JokaPhobosStdc`: Uses the Phobos libc bindings instead of Joka's `stdc.d` module when possible.
-- `JokaRuntimeSymbols`: Allows defining required runtime symbols when they are missing.
+- `JokaGlobalTracking`: Disables thread-local storage for `_memoryTrackingState`.
 - `JokaSmallFootprint`: Uses less memory for some static buffers in Joka.
+- `JokaNoTypes`: Disables the dependency on `types.d` for some modules and uses internal stubs instead.
+- `JokaRuntimeSymbols`: Allows defining required runtime symbols when they are missing.
 
 ### Memory Tracking
 
@@ -150,8 +151,8 @@ To do this, copy `memory.d` and `types.d` into a project and use one of the foll
 
 ### Standalone `math.d`
 
-It's also possible to just use the math part of the code without a full dependency on Joka.
-Copy `math.d` and `types.d` into a project and use the `JokaPhobosStdc` version.
+It's also possible to just use the math part without a full dependency on Joka.
+Copy `math.d` and `types.d` (optional with `JokaNoTypes`) into a project and use `JokaPhobosStdc`.
 
 ## Frequently Asked Questions
 
