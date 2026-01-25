@@ -54,11 +54,21 @@ These are **not direct benchmarks** and are intended only as a point of referenc
 ```py
 Appending and removing 100000000 items...
 Testing: ./app_d
-real 0.16
+real 0.18
+user 0.06
+sys 0.12
+Testing: ./app_rs
+real 0.18
+user 0.05
+sys 0.13
 Testing: ./app_zig
 real 0.18
+user 0.06
+sys 0.12
 Testing: ./app_odin
 real 0.27
+user 0.10
+sys 0.17
 ```
 
 > [!NOTE]
@@ -98,7 +108,7 @@ Start with the [examples](./examples/) folder for a quick overview.
 - `JokaGlobalTracking`: Disables thread-local storage for `_memoryTrackingState`.
 - `JokaSmallFootprint`: Uses less memory for some static buffers in Joka.
 - `JokaNoTypes`: Disables the dependency on `types.d` for some modules and uses internal stubs instead.
-- `JokaRuntimeSymbols`: Allows defining required runtime symbols when they are missing.
+- `JokaRuntimeSymbols`: Allows defining some required runtime symbols when they are missing.
 
 ### Memory Tracking
 
@@ -152,7 +162,7 @@ To do this, copy `memory.d` and `types.d` into a project and use one of the foll
 ### Standalone `math.d`
 
 It's also possible to just use the math part without a full dependency on Joka.
-Copy `math.d` and `types.d` (optional with `JokaNoTypes`) into a project and use `JokaPhobosStdc`.
+Copy `math.d` and `types.d` (optional for this module with `JokaNoTypes`) into a project and use `JokaPhobosStdc`.
 
 ## Frequently Asked Questions
 
@@ -167,7 +177,7 @@ No. A public global context tends to make generic low-level APIs fragile.
 One cited reason for such a system is the ability to [intercept third-party code](https://odin-lang.org/docs/faq/#what-is-the-context-system-for) and change its behavior.
 Joka deliberately avoids this because APIs are designed with specific assumptions and breaking those from the outside can introduce subtle bugs.
 
-The terms "intercept" and "third-party" are often used loosely from what I have seen.
+The terms "intercept" and "third-party" are also often used loosely from what I have seen.
 For example, the communities around the Odin and C3 languages frequently rely on context changes even within their own APIs, treating them as part of the public interface.
 Calling this system "interception" is a bit misleading when it is [the intended way](https://www.gingerbill.org/article/2025/12/15/odins-most-misunderstood-feature-context/#user_ptr-and-user_index) to use the API.
 
