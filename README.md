@@ -1,4 +1,4 @@
-# 🃏 Joka
+# Joka
 
 A nogc utility library for the [D programming language](https://dlang.org/).
 Joka provides data structures and functions that can work without garbage collection, offering precise memory control.
@@ -74,6 +74,8 @@ sys 0.17
 > [!NOTE]
 > The project is still early in development.
 > If something is missing, it will probably be added when someone (usually the main developer) needs it.
+> Joka is also my personal collection of modules designed for my own projects.
+> I recommend [Numem](https://github.com/Inochi2D/numem) for those seeking a standard, "official" solution for the D community.
 
 ## Quick Start
 
