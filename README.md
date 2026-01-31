@@ -154,8 +154,8 @@ You can check whether memory tracking is active with `static if (isTrackingMemor
 
 ### Standalone `memory.d`
 
-It's possible to just use the allocation part of the code without a full dependency on Joka.
-To do this, copy `memory.d` and `types.d` into a project and use one of the following versions:
+It's possible to just use the memory allocation module without a full dependency on Joka.
+To do this, copy `memory.d` and `types.d` (optional for this module with `JokaNoTypes`) into a project and use one of the following versions:
 
 - `JokaPhobosStdc`: Recommended for "just works" things.
 - `JokaCustomMemory`: Recommended for when total control is needed.
@@ -163,7 +163,7 @@ To do this, copy `memory.d` and `types.d` into a project and use one of the foll
 
 ### Standalone `math.d`
 
-It's also possible to just use the math part without a full dependency on Joka.
+It's also possible to just use the math module without a full dependency on Joka.
 Copy `math.d` and `types.d` (optional for this module with `JokaNoTypes`) into a project and use `JokaPhobosStdc`.
 
 ## Frequently Asked Questions
