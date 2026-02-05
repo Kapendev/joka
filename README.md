@@ -174,12 +174,12 @@ Yes, but it's "private" and implicit.
 Joka by default is designed to feel like the C standard library because that keeps things simple and easy to understand.
 The lack of a public API isn't a problem because Joka also handles allocation through the types themselves.
 For example, many containers allow swapping their internal containers (`Container(Type, Internal = List!T)`) at compile time.
-When swapping is not an option, then Joka falls back to a "private" context which will be explained in the next section.
+When swapping is not an option, then Joka usually falls back to a global context which will be explained in the next section.
 
 ### Does Joka have a global context like Jai?
 
-Yes, but it has an intentionally ugly name (`_memoryState`) to discourage people from using it.
-The reason for this is that a public global context tends to make generic low-level APIs fragile.
+Yes and it has an intentionally ugly name (`_memoryState`) to discourage people from using it.
+The reason for this is that a public global context tends to make low-level APIs fragile.
 In Joka, the context is encouraged to be used only for exceptional cases.
 
 Below is some helpful information about it:
@@ -187,7 +187,7 @@ Below is some helpful information about it:
 ```d
 struct MemoryState {
     void* allocatorState;
-    AllocatorMallocFunc allocatorMallocFunc; // NOTE: If this is null, then we should return to the default allocator setup.
+    AllocatorMallocFunc allocatorMallocFunc; // NOTE: If null, then it will use the default allocator setup.
     AllocatorReallocFunc allocatorReallocFunc;
     AllocatorFreeFunc allocatorFreeFunc;
 }
@@ -198,7 +198,7 @@ void _jokaRestoreDefaultAllocatorSetup();
 
 The context can be avoided entirely with the `JokaCustomMemory` version if needed.
 
-#### Intercepting third-party code.
+#### Intercepting third-party code
 
 One cited reason for such a system is the ability to [intercept third-party code](https://odin-lang.org/docs/faq/#what-is-the-context-system-for) and change its behavior.
 In my opinion this idea is somewhat vague and in some communities, the term "interception" is used loosely from what I have seen.
