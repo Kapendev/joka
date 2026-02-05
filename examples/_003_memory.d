@@ -23,31 +23,23 @@ void main() {
     }
 
     // Allocate 1KB of memory using an arena.
-    auto arena1 = Arena(1024);
-    scope (exit) arena1.free();
-    auto a = arena1.make!char('D');
-    auto b = arena1.make!long(4);
-    trace(*a, *b);
-    arena1.clear();
-
-    // Arenas can also use external memory.
     ubyte[1024] buffer = void;
-    auto arena2 = Arena(buffer);
-    a = arena2.make!char('C');
-    b = arena2.make!long(99);
+    auto arena = Arena(buffer);
+    auto a = arena.make!char('C');
+    auto b = arena.make!long(99);
     trace(*a, *b);
-    arena2.clear();
+    arena.clear();
 
     // A scoped version of an arena clears its memory automatically at the end of the block.
-    auto arena3 = Arena(buffer);
-    with (ScopedArena(arena3)) {
+    arena = Arena(buffer);
+    with (ScopedArena(arena)) {
         make!char('C');
-        with (ScopedArena(arena3)) {
+        with (ScopedArena(arena)) {
             make!short(2);
             make!char('D');
-            trace(arena3.offset == 5);
+            trace(arena.offset == 5);
         }
-        trace(arena3.offset == 1);
+        trace(arena.offset == 1);
     }
-    trace(arena3.offset == 0);
+    trace(arena.offset == 0);
 }

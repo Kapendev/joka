@@ -182,7 +182,7 @@ Yes and it has an intentionally ugly name (`__memoryState`) to discourage people
 The reason for this is that a public global context tends to make low-level APIs fragile.
 In Joka, the context is encouraged to be used only for exceptional cases.
 
-Below is some helpful information about it:
+Below is some information about it:
 
 ```d
 struct MemoryState {
@@ -192,16 +192,23 @@ struct MemoryState {
     AllocatorFreeFunc allocatorFreeFunc;
 }
 
-MemoryState _memoryState;
-void _jokaRestoreDefaultAllocatorSetup();
+void jokaRestoreDefaultAllocatorSetup(MemoryState* state);
+void jokaEnsureCapture(MemoryState* capture);
+
+MemoryState __memoryState;
 ```
 
-The context can be avoided entirely with the `JokaCustomMemory` version if needed.
+The context can be ignored with the `jokaSystem*` functions.
+For example, the `GrowingArena` type is using `jokaSystemMalloc` and `jokaSystemFree`.
+Or it can be avoided entirely with the `JokaCustomMemory` version if needed.
+
+Some types like `List` keep track of the allocator they are using.
+The member that has the allocator is usually called a `capture`.
 
 #### Intercepting third-party code
 
 One cited reason for such a system is the ability to [intercept third-party code](https://odin-lang.org/docs/faq/#what-is-the-context-system-for) and change its behavior.
-In my opinion this idea is somewhat vague and in some communities, the term "interception" is used loosely from what I have seen.
+In my opinion this idea is somewhat vague from what I have seen.
 For example, the communities around the Odin and C3 languages frequently rely on context changes even within their own APIs, treating them as part of the public interface.
 Calling this "interception" is misleading when it is actually [the intended way](https://www.gingerbill.org/article/2025/12/15/odins-most-misunderstood-feature-context/#user_ptr-and-user_index) to use the API.
 
