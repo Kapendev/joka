@@ -170,18 +170,42 @@ Copy `math.d` and `types.d` (optional for this module with `JokaNoTypes`) into a
 
 ### Does Joka have an allocator API?
 
-No. Joka is designed to feel a bit like the C standard library because that's easier for most people to understand and keeps the library simple.
-The lack of it isn't a problem thanks to how Joka's containers handle allocation.
+Yes, but it's "private" and implicit.
+Joka by default is designed to feel like the C standard library because that keeps things simple and easy to understand.
+The lack of a public API isn't a problem because Joka also handles allocation through the types themselves.
+For example, many containers allow swapping their internal containers (`Container(Type, Internal = List!T)`) at compile time.
+When swapping is not an option, then Joka falls back to a "private" context which will be explained in the next section.
 
 ### Does Joka have a global context like Jai?
 
-No. A public global context tends to make generic low-level APIs fragile.
-One cited reason for such a system is the ability to [intercept third-party code](https://odin-lang.org/docs/faq/#what-is-the-context-system-for) and change its behavior.
-Joka deliberately avoids this because APIs are designed with specific assumptions and breaking those from the outside can introduce subtle bugs.
+Yes, but it has an intentionally ugly name (`_memoryState`) to discourage people from using it.
+The reason for this is that a public global context tends to make generic low-level APIs fragile.
+In Joka, the context is encouraged to be used only for exceptional cases.
 
-The terms "intercept" and "third-party" are also often used loosely from what I have seen.
+Below is some helpful information about it:
+
+```d
+struct MemoryState {
+    void* allocatorState;
+    AllocatorMallocFunc allocatorMallocFunc; // NOTE: If this is null, then we should return to the default allocator setup.
+    AllocatorReallocFunc allocatorReallocFunc;
+    AllocatorFreeFunc allocatorFreeFunc;
+}
+
+MemoryState _memoryState;
+void _jokaRestoreDefaultAllocatorSetup();
+```
+
+The context can be avoided entirely with the `JokaCustomMemory` version if needed.
+
+#### Intercepting third-party code.
+
+One cited reason for such a system is the ability to [intercept third-party code](https://odin-lang.org/docs/faq/#what-is-the-context-system-for) and change its behavior.
+In my opinion this idea is somewhat vague and in some communities, the term "interception" is used loosely from what I have seen.
 For example, the communities around the Odin and C3 languages frequently rely on context changes even within their own APIs, treating them as part of the public interface.
-Calling this system "interception" is a bit misleading when it is [the intended way](https://www.gingerbill.org/article/2025/12/15/odins-most-misunderstood-feature-context/#user_ptr-and-user_index) to use the API.
+Calling this "interception" is misleading when it is actually [the intended way](https://www.gingerbill.org/article/2025/12/15/odins-most-misunderstood-feature-context/#user_ptr-and-user_index) to use the API.
+
+My recommendation is to avoid this kind of thing if you don't like spaghetti.
 
 ### Why aren't some functions `@nogc`?
 
