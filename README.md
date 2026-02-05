@@ -178,7 +178,7 @@ When swapping is not an option, then Joka usually falls back to a global context
 
 ### Does Joka have a global context like Jai?
 
-Yes and it has an intentionally ugly name (`_memoryState`) to discourage people from using it.
+Yes and it has an intentionally ugly name (`__memoryState`) to discourage people from using it.
 The reason for this is that a public global context tends to make low-level APIs fragile.
 In Joka, the context is encouraged to be used only for exceptional cases.
 
