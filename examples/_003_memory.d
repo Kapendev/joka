@@ -42,4 +42,21 @@ void main() {
         trace(arena.offset == 1);
     }
     trace(arena.offset == 0);
+
+    // Use an arena as the current memory context for types like `List`.
+    arena = Arena(buffer);
+    with (ScopedMemoryContext(arena)) {
+        auto list = List!int(4, 2, 0);
+        list.push(6);
+        list.push(9);
+
+        auto i = 0;
+        trace(list[i++] == 4);
+        trace(list[i++] == 2);
+        trace(list[i++] == 0);
+        trace(list[i++] == 6);
+        trace(list[i++] == 9);
+        // Don't need to free the list because it's using the arena.
+    }
+    trace(arena.offset != 0);
 }

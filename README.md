@@ -180,24 +180,33 @@ When swapping is not an option, then Joka usually falls back to a global context
 
 ### Does Joka have a global context like Jai?
 
-Yes and it has an intentionally ugly name (`__memoryState`) to discourage people from using it.
+Yes and it has an intentionally ugly name (`__memoryContext`) to discourage people from using it.
 The reason for this is that a public global context tends to make low-level APIs fragile.
 In Joka, the context is encouraged to be used only for exceptional cases.
 
 Below is some information about it:
 
 ```d
-struct MemoryState {
+struct MemoryContext {
     void* allocatorState;
-    AllocatorMallocFunc allocatorMallocFunc; // NOTE: If null, then it will use the default allocator setup.
+    AllocatorMallocFunc allocatorMallocFunc;   // NOTE: If null, then the default allocator setup should be used.
     AllocatorReallocFunc allocatorReallocFunc;
     AllocatorFreeFunc allocatorFreeFunc;
 }
 
-void jokaRestoreDefaultAllocatorSetup(MemoryState* state);
-void jokaEnsureCapture(MemoryState* capture);
+struct ScopedMemoryContext {
+    MemoryContext _previousMemoryContext;
+    MemoryContext _currentMemoryContext;
 
-MemoryState __memoryState;
+    this(MemoryContext newContext);
+    this(ref Arena arena);
+    this(ref GrowingArena arena);
+}
+
+void jokaRestoreDefaultAllocatorSetup(MemoryContext* context);
+void jokaEnsureCapture(MemoryContext* capture);
+
+MemoryContext __memoryContext;
 ```
 
 The context can be ignored with the `jokaSystem*` functions.
