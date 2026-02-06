@@ -74,8 +74,7 @@ sys 0.17
 > [!NOTE]
 > The project is still early in development.
 > If something is missing, it will probably be added when someone (usually the main developer) needs it.
-> Joka is also my personal collection of modules designed for my own projects.
-> I recommend [NuMem](https://github.com/Inochi2D/numem) for those seeking a standard, "official" solution for the D community.
+> [NuMem](https://github.com/Inochi2D/numem) or [NuLib](https://github.com/Inochi2D/nulib) are good alternatives.
 
 ## Quick Start
 
@@ -107,7 +106,6 @@ Start with the [examples](./examples/) folder for a quick overview.
 - `JokaCustomMemory`: Allows the declaration of custom allocation functions.
 - `JokaGcMemory`: Like `JokaCustomMemory`, but preconfigured to use the D garbage collector.
 - `JokaPhobosStdc`: Uses the Phobos libc bindings instead of Joka's `stdc.d` module when possible.
-- `JokaGlobalTracking`: Disables thread-local storage for `_memoryTrackingState`.
 - `JokaSmallFootprint`: Uses less memory for some static buffers in Joka.
 - `JokaNoTypes`: Disables the dependency on `types.d` for some modules and uses internal stubs instead.
 - `JokaRuntimeSymbols`: Allows defining some required runtime symbols when they are missing.
@@ -161,6 +159,10 @@ To do this, copy `memory.d` and `types.d` (optional for this module with `JokaNo
 - `JokaCustomMemory`: Recommended for when total control is needed.
 - `JokaGcMemory`: Like `JokaCustomMemory`, but preconfigured to use the D garbage collector.
 
+> [!NOTE]
+> Using `JokaNoTypes` will change how some functions work.
+> For example, the `toStr` functions will return empty strings.
+
 ### Standalone `math.d`
 
 It's also possible to just use the math module without a full dependency on Joka.
@@ -208,7 +210,7 @@ The member that has the allocator is usually called a `capture`.
 #### Intercepting third-party code
 
 One cited reason for such a system is the ability to [intercept third-party code](https://odin-lang.org/docs/faq/#what-is-the-context-system-for) and change its behavior.
-In my opinion this idea is somewhat vague from what I have seen.
+In my opinion this idea is somewhat vague.
 For example, the communities around the Odin and C3 languages frequently rely on context changes even within their own APIs, treating them as part of the public interface.
 Calling this "interception" is misleading when it is actually [the intended way](https://www.gingerbill.org/article/2025/12/15/odins-most-misunderstood-feature-context/#user_ptr-and-user_index) to use the API.
 
