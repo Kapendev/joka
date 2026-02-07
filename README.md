@@ -203,8 +203,10 @@ struct ScopedMemoryContext {
     this(ref GrowingArena arena);
 }
 
-void jokaRestoreDefaultAllocatorSetup(MemoryContext* context);
-void jokaEnsureCapture(MemoryContext* capture);
+_ScopedDefaultMemoryContext ScopedDefaultMemoryContext();
+
+void jokaRestoreDefaultAllocatorSetup(ref MemoryContext context);
+void jokaEnsureCapture(ref MemoryContext capture);
 
 MemoryContext __memoryContext;
 ```

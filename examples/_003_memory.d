@@ -59,4 +59,17 @@ void main() {
         // Don't need to free the list because it's using the arena.
     }
     trace(arena.offset != 0);
+
+    // Sometimes it makes sense to mix a custom memory context with the default one.
+    // For example, a function `foo()` needs to allocate things in a specific way.
+    // This can be done safely with the `ScopedDefaultMemoryContext` type.
+    arena = Arena(buffer);
+    with (ScopedMemoryContext(arena)) {
+        // Will use the custom memory context in this scope.
+        with (ScopedDefaultMemoryContext()) {
+            // Will use the default memory context in this scope.
+            // This call will leak memory, but it's OK because we want to test things.
+            jokaMake!int(999);
+        }
+    }
 }
