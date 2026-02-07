@@ -27,48 +27,48 @@ void main() {
 
 ### Performance Benchmark
 
-Here's a [comparison](benchmarks/array_append_remove) of Joka's dynamic array versus other popular libraries when appending and removing 100,000,000 integers on a **Ryzen 3 2200G** with **16 GB of memory**:
+Here's a [comparison](benchmarks/array_append_remove) of Joka's dynamic array versus other popular libraries when appending and removing 20,000,000 integers on a **Ryzen 3 2200G** with **16 GB of memory**:
 
 ```d
-Append 100000000 items with `int[]`: 2495 ms
-Remove 100000000 items with `int[]`: 258 ms
-Append 100000000 items with `Array!int`: 514 ms
-Remove 100000000 items with `Array!int`: 0 ms
-Append 100000000 items with `Appender!int`: 498 ms
-Remove 100000000 items with `Appender!int`: 0 ms
-Append 100000000 items with `nulib`: 16812 ms
-Remove 100000000 items with `nulib`: 423 ms
-Append 100000000 items with `emsi`: 16077 ms
-Remove 100000000 items with `emsi`: 246 ms
-Append 100000000 items with `memutils`: 332 ms
-Remove 100000000 items with `memutils`: 0 ms
-Append 100000000 items with `automem`: 629 ms
-Remove 100000000 items with `automem`: 0 ms
-Append 100000000 items with `joka`: 140 ms
-Remove 100000000 items with `joka`: 0 ms
+Append 20000000 items with `int[]`: 509 ms
+Remove 20000000 items with `int[]`: 52 ms
+Append 20000000 items with `Array!int`: 102 ms
+Remove 20000000 items with `Array!int`: 0 ms
+Append 20000000 items with `Appender!int`: 103 ms
+Remove 20000000 items with `Appender!int`: 0 ms
+Append 20000000 items with `nulib`: 300 ms
+Remove 20000000 items with `nulib`: 84 ms
+Append 20000000 items with `emsi`: 138 ms
+Remove 20000000 items with `emsi`: 49 ms
+Append 20000000 items with `memutils`: 67 ms
+Remove 20000000 items with `memutils`: 0 ms
+Append 20000000 items with `automem`: 126 ms
+Remove 20000000 items with `automem`: 0 ms
+Append 20000000 items with `joka`: 34 ms
+Remove 20000000 items with `joka`: 0 ms
 ```
 
 Below are also some high-level cross-language results using a similar workload.
 These are **not direct benchmarks** and are intended only as a point of reference:
 
 ```py
-Appending and removing 100000000 items...
+Appending and removing 20000000 items...
 Testing: ./app_d
-real 0.18
-user 0.06
-sys 0.12
+real 0.04
+user 0.00
+sys 0.03
 Testing: ./app_rs
-real 0.18
-user 0.05
-sys 0.13
+real 0.04
+user 0.01
+sys 0.03
 Testing: ./app_zig
-real 0.18
-user 0.06
-sys 0.12
+real 0.04
+user 0.01
+sys 0.02
 Testing: ./app_odin
-real 0.27
-user 0.10
-sys 0.17
+real 0.06
+user 0.02
+sys 0.04
 ```
 
 > [!NOTE]
@@ -172,14 +172,14 @@ Copy `math.d` and `types.d` (optional for this module with `JokaNoTypes`) into a
 
 ### Does Joka have an allocator API?
 
-Yes, but it's "private" and implicit.
+Yes, look at `MemoryContext` in `memory.d`.
 Joka by default is designed to feel like the C standard library because that keeps things simple and easy to understand.
 More about the API will be explained in the next section.
 
 ### Does Joka have a global context like Jai?
 
 Yes and it has an intentionally ugly name (`__memoryContext`) to discourage people from using it.
-The reason for this is that a context tends to make low-level APIs fragile.
+The reason for this is that a global context tends to make low-level APIs fragile.
 In Joka, it is encouraged to be used only for exceptional cases.
 
 Compared to Jai, Joka's version is only about memory management.
@@ -188,9 +188,9 @@ Below is some information about it:
 ```d
 struct MemoryContext {
     void* allocatorState;
-    AllocatorMallocFunc allocatorMallocFunc;   // NOTE: If null, then the default allocator setup should be used.
-    AllocatorReallocFunc allocatorReallocFunc;
-    AllocatorFreeFunc allocatorFreeFunc;
+    AllocatorMallocFunc malloc;
+    AllocatorReallocFunc realloc;
+    AllocatorFreeFunc free;
 }
 
 struct ScopedMemoryContext {
@@ -210,12 +210,13 @@ void jokaEnsureCapture(ref MemoryContext capture);
 MemoryContext __memoryContext;
 ```
 
-The context can be ignored with the `jokaSystem*` functions.
-For example, the `GrowingArena` type is using `jokaSystemMalloc` and `jokaSystemFree`.
-Or it can be avoided entirely with the `JokaCustomMemory` version if needed.
-
 Some types like `List` keep track of the allocator they are using.
 The member that has the allocator is usually called a `capture`.
+It is recommended to call `jokaEnsureCapture` on a capture before using it.
+
+The context can also be ignored with the `jokaSystem*` functions.
+For example, the `GrowingArena` type is using `jokaSystemMalloc` and `jokaSystemFree`.
+Or it can be avoided entirely with the `JokaCustomMemory` version if needed.
 
 #### Intercepting third-party code
 
@@ -225,7 +226,6 @@ For example, the communities around the Odin and C3 languages frequently rely on
 Calling this "interception" is misleading when it is actually [the intended way](https://www.gingerbill.org/article/2025/12/15/odins-most-misunderstood-feature-context/#user_ptr-and-user_index) to use the API.
 
 My recommendation is to avoid this kind of thing if you don't like spaghetti.
-If everyone keeps tweaking the context, your code becomes completely unpredictable.
 Of course, this is not a huge problem if you have full control over your dependencies.
 
 ### Why aren't some functions `@nogc`?
@@ -253,6 +253,7 @@ What this shows is that attributes in D are not a memory management tool.
 
 For what it's worth, I don't use attributes in my own projects except for libraries.
 I recommend avoiding them most of the time, especially if you're new to D.
+A easier way (maybe) to check for GC usage is with the `-vgc` flag.
 
 ### Why are you supporting the D garbage collector?
 
