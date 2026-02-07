@@ -153,20 +153,20 @@ You can check whether memory tracking is active with `static if (isTrackingMemor
 ### Standalone `memory.d`
 
 It's possible to just use the memory allocation module without a full dependency on Joka.
-To do this, copy `memory.d` and `types.d` (optional for this module with `JokaNoTypes`) into a project and use one of the following versions:
+To do this, copy `memory.d` and `types.d` into a project and use one of the following versions:
 
 - `JokaPhobosStdc`: Recommended for "just works" things.
 - `JokaCustomMemory`: Recommended for when total control is needed.
 - `JokaGcMemory`: Like `JokaCustomMemory`, but preconfigured to use the D garbage collector.
 
-> [!NOTE]
-> Using `JokaNoTypes` will change how some functions work.
-> For example, the `toStr` functions will return empty strings.
-
 ### Standalone `math.d`
 
 It's also possible to just use the math module without a full dependency on Joka.
 Copy `math.d` and `types.d` (optional for this module with `JokaNoTypes`) into a project and use `JokaPhobosStdc`.
+
+> [!NOTE]
+> Using `JokaNoTypes` will change how some functions work.
+> For example, the `toStr` functions for vectors will return empty strings.
 
 ## Frequently Asked Questions
 
@@ -174,16 +174,15 @@ Copy `math.d` and `types.d` (optional for this module with `JokaNoTypes`) into a
 
 Yes, but it's "private" and implicit.
 Joka by default is designed to feel like the C standard library because that keeps things simple and easy to understand.
-The lack of a public API isn't a problem because Joka also handles allocation through the types themselves.
-For example, many containers allow swapping their internal containers (`Container(Type, Internal = List!T)`) at compile time.
-When swapping is not an option, then Joka usually falls back to a global context which will be explained in the next section.
+More about the API will be explained in the next section.
 
 ### Does Joka have a global context like Jai?
 
 Yes and it has an intentionally ugly name (`__memoryContext`) to discourage people from using it.
-The reason for this is that a public global context tends to make low-level APIs fragile.
-In Joka, the context is encouraged to be used only for exceptional cases.
+The reason for this is that a context tends to make low-level APIs fragile.
+In Joka, it is encouraged to be used only for exceptional cases.
 
+Compared to Jai, Joka's version is only about memory management.
 Below is some information about it:
 
 ```d
@@ -226,6 +225,8 @@ For example, the communities around the Odin and C3 languages frequently rely on
 Calling this "interception" is misleading when it is actually [the intended way](https://www.gingerbill.org/article/2025/12/15/odins-most-misunderstood-feature-context/#user_ptr-and-user_index) to use the API.
 
 My recommendation is to avoid this kind of thing if you don't like spaghetti.
+If everyone keeps tweaking the context, your code becomes completely unpredictable.
+Of course, this is not a huge problem if you have full control over your dependencies.
 
 ### Why aren't some functions `@nogc`?
 
