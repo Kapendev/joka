@@ -188,10 +188,18 @@ Below is some information about it:
 ```d
 struct MemoryContext {
     void* allocatorState;
-    AllocatorMallocFunc malloc;
-    AllocatorReallocFunc realloc;
-    AllocatorFreeFunc free;
+    AllocatorMallocFunc mallocFunc;
+    AllocatorReallocFunc reallocFunc;
+    AllocatorFreeFunc freeFunc;
+
+    void* malloc(Sz alignment, Sz size, IStr file, Sz line);
+    void* realloc(Sz alignment, void* oldPtr, Sz oldSize, Sz newSize, IStr file, Sz line);
+    void free(Sz alignment, void* oldPtr, Sz oldSize, IStr file, Sz line);
 }
+
+alias AllocatorMallocFunc  = void* function(void* allocatorState, Sz alignment, Sz size, IStr file, Sz line);
+alias AllocatorReallocFunc = void* function(void* allocatorState, Sz alignment, void* oldPtr, Sz oldSize, Sz newSize, IStr file, Sz line);
+alias AllocatorFreeFunc    = void function(void* allocatorState, Sz alignment, void* oldPtr, Sz oldSize, IStr file, Sz line);
 
 struct ScopedMemoryContext {
     MemoryContext _previousMemoryContext;
@@ -253,7 +261,7 @@ What this shows is that attributes in D are not a memory management tool.
 
 For what it's worth, I don't use attributes in my own projects except for libraries.
 I recommend avoiding them most of the time, especially if you're new to D.
-A easier way (maybe) to check for GC usage is with the `-vgc` flag.
+An easier way (maybe) to check for GC usage is with the `-vgc` flag.
 
 ### Why are you supporting the D garbage collector?
 
