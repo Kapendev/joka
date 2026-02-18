@@ -188,7 +188,6 @@ Below is some information about it:
 ```d
 struct MemoryContext {
     void* allocatorState;
-    AllocatorMallocFunc mallocFunc;
     AllocatorReallocFunc reallocFunc;
     AllocatorFreeFunc freeFunc;
 
@@ -199,18 +198,17 @@ struct MemoryContext {
 
 alias AllocatorMallocFunc  = void* function(void* allocatorState, Sz alignment, Sz size, IStr file, Sz line);
 alias AllocatorReallocFunc = void* function(void* allocatorState, Sz alignment, void* oldPtr, Sz oldSize, Sz newSize, IStr file, Sz line);
-alias AllocatorFreeFunc    = void function(void* allocatorState, Sz alignment, void* oldPtr, Sz oldSize, IStr file, Sz line);
+alias AllocatorFreeFunc    = void  function(void* allocatorState, Sz alignment, void* oldPtr, Sz oldSize, IStr file, Sz line);
 
 struct ScopedMemoryContext {
     MemoryContext _previousMemoryContext;
-    MemoryContext _currentMemoryContext;
 
     this(MemoryContext newContext);
     this(ref Arena arena);
     this(ref GrowingArena arena);
 }
 
-_ScopedDefaultMemoryContext ScopedDefaultMemoryContext();
+ScopedMemoryContext ScopedDefaultMemoryContext();
 
 void jokaRestoreDefaultAllocatorSetup(ref MemoryContext context);
 void jokaEnsureCapture(ref MemoryContext capture);
