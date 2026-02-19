@@ -193,7 +193,7 @@ struct MemoryContext {
 
     void* malloc(Sz alignment, Sz size, IStr file, Sz line);
     void* realloc(Sz alignment, void* oldPtr, Sz oldSize, Sz newSize, IStr file, Sz line);
-    void free(Sz alignment, void* oldPtr, Sz oldSize, IStr file, Sz line);
+    void  free(Sz alignment, void* oldPtr, Sz oldSize, IStr file, Sz line);
 }
 
 alias AllocatorMallocFunc  = void* function(void* allocatorState, Sz alignment, Sz size, IStr file, Sz line);
@@ -226,13 +226,13 @@ Or it can be avoided entirely with the `JokaCustomMemory` version if needed.
 
 #### Intercepting third-party code
 
-One cited reason for such a system is the ability to [intercept third-party code](https://odin-lang.org/docs/faq/#what-is-the-context-system-for) and change its behavior.
-In my opinion this idea is somewhat vague.
-For example, the communities around the Odin and C3 languages frequently rely on context changes even within their own APIs, treating them as part of the public interface.
-Calling this "interception" is misleading when it is actually [the intended way](https://www.gingerbill.org/article/2025/12/15/odins-most-misunderstood-feature-context/#user_ptr-and-user_index) to use the API.
+One cited reason for such a system is the ability to [intercept third-party code](https://odin-lang.org/docs/faq/#what-is-the-context-system-for).
+That is a nice feature, but it's easily abusable.
+For example, the community around the Odin language relies on context changes for almost everything, even within their own APIs.
+Calling this "interception" is misleading when it is actually [the intended way](https://www.gingerbill.org/article/2025/12/15/odins-most-misunderstood-feature-context/#heading-3-7) to use the API.
 
 My recommendation is to avoid this kind of thing if you don't like spaghetti.
-Of course, this is not a huge problem if you have full control over your dependencies.
+Of course, this isn't a huge problem if you have full control over your dependencies.
 
 ### Why aren't some functions `@nogc`?
 
