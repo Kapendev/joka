@@ -173,7 +173,7 @@ Copy `math.d` and `types.d` (optional for this module with `JokaNoTypes`) into a
 ### Does Joka have an allocator API?
 
 Yes, look at `MemoryContext` in `memory.d`.
-Joka by default is designed to feel like the C standard library because that keeps things simple and easy to understand.
+Joka by default is designed to feel like the C standard library because that keeps things simple, but many data structures do accept an allocator.
 More about the API will be explained in the next section.
 
 ### Does Joka have a global context like Jai?
@@ -257,9 +257,9 @@ It never allocates with the GC, so it is a nogc function in practice, but it is 
 If you try to call it from a `@nogc` function, the compiler will reject it simply because the attribute is missing.
 What this shows is that attributes in D are not a memory management tool.
 
-For what it's worth, I don't use attributes in my own projects except for libraries.
-I recommend avoiding them most of the time, especially if you're new to D.
-An easier way (maybe) to check for GC usage is with the `-vgc` flag.
+For what it's worth, I generally avoid attributes in my own projects unless I'm writing a library.
+You can also track GC usage using the `-vgc` flag.
+A combination of this flag alongside the `@nogc` attribute has been working well for me.
 
 ### Why are you supporting the D garbage collector?
 
