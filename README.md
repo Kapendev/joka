@@ -173,7 +173,7 @@ Copy `math.d` and `types.d` (optional for this module with `JokaNoTypes`) into a
 ### Does Joka have an allocator API?
 
 Yes, look at `MemoryContext` in `memory.d`.
-Joka by default is designed to feel like the C standard library because that keeps things simple, but many data structures do accept an allocator.
+Joka by default is designed to feel like the C standard library, but many data structures do accept an optional allocator.
 More about the API will be explained in the next section.
 
 ### Does Joka have a global context like Jai?
