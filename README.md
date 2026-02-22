@@ -27,48 +27,47 @@ void main() {
 
 ### Performance Benchmark
 
-Here's a [comparison](benchmarks/array_append_remove) of Joka's dynamic array versus other popular libraries when appending and removing 20,000,000 integers on a **Ryzen 3 2200G** with **16 GB of memory**:
+Here's a [comparison](benchmarks/array_append_remove) of Joka's dynamic array versus other popular libraries when appending and removing 50,000,000 integers on a **Ryzen 3 2200G** with **16 GB of memory**:
 
 ```d
-Append 20000000 items with `int[]`: 509 ms
-Remove 20000000 items with `int[]`: 52 ms
-Append 20000000 items with `Array!int`: 102 ms
-Remove 20000000 items with `Array!int`: 0 ms
-Append 20000000 items with `Appender!int`: 103 ms
-Remove 20000000 items with `Appender!int`: 0 ms
-Append 20000000 items with `nulib`: 300 ms
-Remove 20000000 items with `nulib`: 84 ms
-Append 20000000 items with `emsi`: 138 ms
-Remove 20000000 items with `emsi`: 49 ms
-Append 20000000 items with `memutils`: 67 ms
-Remove 20000000 items with `memutils`: 0 ms
-Append 20000000 items with `automem`: 126 ms
-Remove 20000000 items with `automem`: 0 ms
-Append 20000000 items with `joka`: 34 ms
-Remove 20000000 items with `joka`: 0 ms
+Append 50000000 items with `int[]`: 1116 ms
+Remove 50000000 items with `int[]`: 130 ms
+Append 50000000 items with `Array!int`: 264 ms
+Remove 50000000 items with `Array!int`: 0 ms
+Append 50000000 items with `Appender!int`: 244 ms
+Remove 50000000 items with `Appender!int`: 0 ms
+Append 50000000 items with `nulib`: 777 ms
+Remove 50000000 items with `nulib`: 212 ms
+Append 50000000 items with `emsi`: 352 ms
+Remove 50000000 items with `emsi`: 123 ms
+Append 50000000 items with `memutils`: 168 ms
+Remove 50000000 items with `memutils`: 0 ms
+Append 50000000 items with `automem`: 333 ms
+Remove 50000000 items with `automem`: 0 ms
+Append 50000000 items with `joka`: 167 ms
+Remove 50000000 items with `joka`: 0 ms
 ```
 
 Below are also some high-level cross-language results using a similar workload.
 These are **not direct benchmarks** and are intended only as a point of reference:
 
 ```py
-Appending and removing 20000000 items...
 Testing: ./app_d
-real 0.04
-user 0.00
-sys 0.03
-Testing: ./app_rs
-real 0.04
-user 0.01
-sys 0.03
-Testing: ./app_zig
-real 0.04
-user 0.01
-sys 0.02
-Testing: ./app_odin
-real 0.06
+real 0.09
 user 0.02
-sys 0.04
+sys 0.06
+Testing: ./app_rs
+real 0.09
+user 0.03
+sys 0.06
+Testing: ./app_zig
+real 0.09
+user 0.03
+sys 0.06
+Testing: ./app_odin
+real 0.14
+user 0.05
+sys 0.08
 ```
 
 > [!NOTE]
