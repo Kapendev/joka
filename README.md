@@ -171,13 +171,13 @@ Copy `math.d` and `types.d` (optional for this module with `JokaNoTypes`) into a
 
 ### Does Joka have an allocator API?
 
-Yes, look at `MemoryContext` in `memory.d`.
+Yes. Look at `MemoryContext` in `memory.d`.
 Joka by default is designed to feel like the C standard library, but many data structures do accept an optional allocator.
 More about the API will be explained in the next section.
 
 ### Does Joka have a global context like Jai?
 
-Yes and it has an intentionally ugly name (`__memoryContext`) to discourage people from using it.
+Yes, and it has an intentionally ugly name (`__memoryContext`) to discourage people from using it.
 The reason for this is that a global context tends to make low-level APIs fragile.
 In Joka, it is encouraged to be used only for exceptional cases.
 
@@ -195,7 +195,6 @@ struct MemoryContext {
     void  free(Sz alignment, void* oldPtr, Sz oldSize, IStr file, Sz line);
 }
 
-alias AllocatorMallocFunc  = void* function(void* allocatorState, Sz alignment, Sz size, IStr file, Sz line);
 alias AllocatorReallocFunc = void* function(void* allocatorState, Sz alignment, void* oldPtr, Sz oldSize, Sz newSize, IStr file, Sz line);
 alias AllocatorFreeFunc    = void  function(void* allocatorState, Sz alignment, void* oldPtr, Sz oldSize, IStr file, Sz line);
 
@@ -210,6 +209,7 @@ struct ScopedMemoryContext {
 ScopedMemoryContext ScopedDefaultMemoryContext();
 
 void jokaRestoreDefaultAllocatorSetup(ref MemoryContext context);
+void jokaRestoreNullAllocatorSetup(ref MemoryContext context);
 void jokaEnsureCapture(ref MemoryContext capture);
 
 MemoryContext __memoryContext;
@@ -275,7 +275,7 @@ I avoid the "attribute-oriented" style of structuring a project entirely.
 
 ### Is WebAssembly supported?
 
-Yes. WebAssembly is supported with the `betterC` flag, but a tool like [Emscripten](https://emscripten.org/) is required.
+Yes. WebAssembly is supported with the `-betterC` flag, but a tool like [Emscripten](https://emscripten.org/) is required.
 In case of errors, the `i` flag may help. The combination `-betterC -i` works in most cases.
 
 ### Why isn't there a `jokaFreeSlice` function?
@@ -306,36 +306,36 @@ main :: proc() {
 
 To sum up, Joka is trying to be simple and safe about this.
 
-### What are common `betterC` errors?
+### What are common `-betterC` errors?
 
-1. Using `betterC` as a global `@nogc` attribute.
+1. Using `-betterC` as a global `@nogc` attribute.
     This flag does more than just remove the garbage collector and adds extra checks that can sometimes be overly restrictive.
     If writing GC-free code is important and compiler assistance is really needed, then add `@nogc:` at the top of every file.
 
-2. Using `betterC` without the `i` flag.
-    The combination `-betterC -i` works in most cases and is recommended for anyone still learning D.
+2. Using `-betterC` without the `i` flag.
+    The combination `-betterC -i` works in most cases.
 
 3. `TypeInfo` errors. Search for `new` in the source code and remove it.
 
 4. Using `struct[N]`.
-    Some parts of the D runtime (`_memsetn`, ...) are needed when using types like this and they can be missing due to how `betterC` works.
+    Some parts of the D runtime (`_memsetn`, ...) are needed when using types like this and they can be missing due to how `-betterC` works.
     The solution for static arrays is to implement the missing functions or use a custom static array type (`StaticArray` in `joka.types`).
 
 5. String errors.
-    It's common to want to use functions to create strings at compile time, but this gets harder to do because of some extra checks added by the `betterC` flag.
+    It's common to want to use functions to create strings at compile time, but this gets harder because of some extra checks added by the `-betterC` flag.
     Below is a function that creates a string the "normal" way, followed by an alternative that works with the flag:
 
     ```d
-    // Works without `betterC`.
+    // Doesn't work with `-betterC`.
     // The parameter can come from runtime or compile time.
     string createString(string value) {
-        return value ~ ";\n";
+        return value ~ "_OwO";
     }
 
-    // Works with `betterC`.
+    // Works with `-betterC`.
     // The parameter must be known at compile time.
     string createString(string value)() {
-        return value ~ ";\n";
+        return value ~ "_UwU";
     }
     ```
 
