@@ -27,7 +27,7 @@ void main() {
 
 ### Performance Benchmark
 
-Here's a [comparison](benchmarks/array_append_remove) of Joka's dynamic array versus other popular libraries when appending and removing 50,000,000 integers on a **Ryzen 3 2200G** with **16 GB of memory**:
+Here's a [comparison](benchmarks/array_append_remove) of Joka's dynamic array versus other popular libraries when appending and removing 50,000,000 integers on a **Ryzen 3 2200G running Ubuntu**, with **16 GB of memory**:
 
 ```d
 Append 50000000 items with `int[]`: 1116 ms
@@ -312,7 +312,7 @@ To sum up, Joka is trying to be simple and safe about this.
     This flag does more than just remove the garbage collector and adds extra checks that can sometimes be overly restrictive.
     If writing GC-free code is important and compiler assistance is really needed, then add `@nogc:` at the top of every file.
 
-2. Using `-betterC` without the `i` flag.
+2. Using `-betterC` without the `-i` flag.
     The combination `-betterC -i` works in most cases.
 
 3. `TypeInfo` errors. Search for `new` in the source code and remove it.
