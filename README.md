@@ -85,7 +85,8 @@ dub init -n
 dub add joka
 ```
 
-That's it. Copy-paste one of the [examples](./examples/) to make sure everything is set up correctly.
+That's it.
+Copy-paste one of the [examples](./examples/) to make sure everything is working correctly.
 
 ## Documentation
 
