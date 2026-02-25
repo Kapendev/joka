@@ -308,36 +308,36 @@ To sum up, Joka is trying to be simple and safe about this.
 
 ### What are common `-betterC` errors?
 
-1. Using `-betterC` as a global `@nogc` attribute.
-    This flag does more than just remove the garbage collector and adds extra checks that can sometimes be overly restrictive.
-    If writing GC-free code is important and compiler assistance is really needed, then add `@nogc:` at the top of every file.
+Using `-betterC` as a global `@nogc` attribute.
+This flag does more than just remove the garbage collector and adds extra checks that can sometimes be overly restrictive.
+If writing GC-free code is important and compiler assistance is really needed, then add `@nogc:` at the top of every file.
 
-2. Using `-betterC` without the `-i` flag.
-    The combination `-betterC -i` works in most cases.
+Another is using `-betterC` without the `-i` flag.
+The combination `-betterC -i` works in most cases.
 
-3. `TypeInfo` errors. Search for `new` in the source code and remove it.
+Then there are the `TypeInfo` errors. Search for `new` in the source code and remove it.
 
-4. Using `struct[N]`.
-    Some parts of the D runtime (`_memsetn`, ...) are needed when using types like this and they can be missing due to how `-betterC` works.
-    The solution for static arrays is to implement the missing functions or use a custom static array type (`StaticArray` in `joka.types`).
+The clasic is using `struct[N]`.
+Some parts of the D runtime (`_memsetn`, ...) are needed when using types like this and they can be missing due to how `-betterC` works.
+The solution for static arrays is to implement the missing functions or use a custom static array type (`StaticArray` in `joka.types`).
 
-5. String errors.
-    It's common to want to use functions to create strings at compile time, but this gets harder because of some extra checks added by the `-betterC` flag.
-    Below is a function that creates a string the "normal" way, followed by an alternative that works with the flag:
+A basic one is string errors.
+It's common to want to use functions to create strings at compile time, but this gets harder because of some extra checks added by the `-betterC` flag.
+Below is a function that creates a string the "normal" way, followed by an alternative that works with the flag:
 
-    ```d
-    // Doesn't work with `-betterC`.
-    // The parameter can come from runtime or compile time.
-    string createString(string value) {
-        return value ~ "_OwO";
-    }
+```d
+// Doesn't work with `-betterC`.
+// The parameter can come from runtime or compile time.
+string createString(string value) {
+    return value ~ "_OwO";
+}
 
-    // Works with `-betterC`.
-    // The parameter must be known at compile time.
-    string createString(string value)() {
-        return value ~ "_UwU";
-    }
-    ```
+// Works with `-betterC`.
+// The parameter must be known at compile time.
+string createString(string value)() {
+    return value ~ "_UwU";
+}
+```
 
 ### What is Joka used for?
 
