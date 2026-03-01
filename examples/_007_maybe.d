@@ -11,13 +11,10 @@ Number foo(int a) {
 }
 
 Number boo(int a, int b) {
-    with (Number) {
-        // Both `none` and `some` are static functions of the result.
-        Fault trap;
-        auto x = foo(a).get(trap); if (trap) return none;
-        auto y = foo(b).get(trap); if (trap) return none;
-        return some(x + y);
-    }
+    Fault trap;
+    auto x = foo(a).get(trap); if (trap) return Number();
+    auto y = foo(b).get(trap); if (trap) return Number();
+    return Number(x + y);
 }
 
 void main() {

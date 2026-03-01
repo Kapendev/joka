@@ -277,7 +277,7 @@ I avoid the "attribute-oriented" style of structuring a project entirely.
 ### Is WebAssembly supported?
 
 Yes. WebAssembly is supported with the `-betterC` flag, but a tool like [Emscripten](https://emscripten.org/) is required.
-In case of errors, the `i` flag may help. The combination `-betterC -i` works in most cases.
+In case of errors, the `-i` flag may help. The combination `-betterC -i` works in most cases.
 
 ### Why isn't there a `jokaFreeSlice` function?
 
