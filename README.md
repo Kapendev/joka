@@ -182,6 +182,7 @@ Copy `math.d` and `types.d` (optional for this module with `JokaNoTypes`) into a
 - `Grid`: 2D array
 - `Arena`: Fixed linear allocator
 - `GrowingArena`: Growing linear allocator
+- `MemoryContext`: Allocator API
 
 ## Frequently Asked Questions
 
