@@ -176,6 +176,7 @@ Copy `math.d` and `types.d` (optional for this module with `JokaNoTypes`) into a
 - `SparseList`: Sparse array
 - `GenList`: Generational array
 - `BitList`: Bit array
+- `BitSet`: Bit set
 - `Grid`: 2D array
 - `Arena`: Fixed linear allocator
 - `GrowingArena`: Growing linear allocator
