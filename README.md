@@ -168,8 +168,10 @@ Copy `math.d` and `types.d` (optional for this module with `JokaNoTypes`) into a
 > Using `JokaNoTypes` will change how some functions work.
 > For example, the `toStr` functions for vectors will return empty strings.
 
-### Containers
+### Types
 
+- `Union`: Tagged union
+- `Maybe`: Optional type
 - `List`: Dynamic array
 - `BufferList`: Fixed-buffer array
 - `FixedList`: Stack-based array
