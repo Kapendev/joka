@@ -168,6 +168,18 @@ Copy `math.d` and `types.d` (optional for this module with `JokaNoTypes`) into a
 > Using `JokaNoTypes` will change how some functions work.
 > For example, the `toStr` functions for vectors will return empty strings.
 
+### Containers
+
+- `List`: Dynamic array
+- `BufferList`: Fixed-buffer array
+- `FixedList`: Stack-based array
+- `SparseList`: Sparse array
+- `GenList`: Generational array
+- `BitList`: Bit array
+- `Grid`: 2D array
+- `Arena`: Fixed linear allocator
+- `GrowingArena`: Growing linear allocator
+
 ## Frequently Asked Questions
 
 ### Does Joka have an allocator API?
