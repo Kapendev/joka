@@ -110,6 +110,26 @@ Start with the [examples](./examples/) folder for a quick overview.
 - `JokaNoTypes`: Disables the dependency on `types.d` for some modules and uses internal stubs instead.
 - `JokaRuntimeSymbols`: Allows defining some required runtime symbols when they are missing.
 
+### Types
+
+- `Maybe`: Optional type
+- `Union`: Tagged union
+- `List`: Dynamic array
+- `BufferList`: Fixed-buffer array
+- `FixedList`: Stack-based array
+- `SparseList`: Sparse array
+- `GenList`: Generational array
+- `BitList`: Bit array
+- `BitSet`: Bit set
+- `Grid`: 2D array
+- `Arena`: Fixed linear allocator
+- `GrowingArena`: Growing linear allocator
+- `MemoryContext`: Allocator API
+- `NumericRange`: Number sequence
+- `SliceRange`: Slice view
+- `EnumeratedRange`: Indexed sequence
+- `TransformedRange`: Map or filter result
+
 ### Memory Tracking
 
 Joka includes a lightweight memory tracking system that can detect leaks or invalid frees in debug builds.
@@ -167,22 +187,6 @@ Copy `math.d` and `types.d` (optional for this module with `JokaNoTypes`) into a
 > [!NOTE]
 > Using `JokaNoTypes` will change how some functions work.
 > For example, the `toStr` functions for vectors will return empty strings.
-
-### Types
-
-- `Union`: Tagged union
-- `Maybe`: Optional type
-- `List`: Dynamic array
-- `BufferList`: Fixed-buffer array
-- `FixedList`: Stack-based array
-- `SparseList`: Sparse array
-- `GenList`: Generational array
-- `BitList`: Bit array
-- `BitSet`: Bit set
-- `Grid`: 2D array
-- `Arena`: Fixed linear allocator
-- `GrowingArena`: Growing linear allocator
-- `MemoryContext`: Allocator API
 
 ## Frequently Asked Questions
 
