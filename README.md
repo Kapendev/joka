@@ -112,6 +112,7 @@ Start with the [examples](./examples/) folder for a quick overview.
 
 ### Types
 
+- `Fault`: Error code
 - `Maybe`: Optional type
 - `Union`: Tagged union
 - `List`: Dynamic array
@@ -242,7 +243,6 @@ It is recommended to call `jokaEnsureCapture` on a capture before using it.
 
 The context can also be ignored with the `jokaSystem*` functions.
 For example, the `GrowingArena` type is using `jokaSystemMalloc` and `jokaSystemFree`.
-Or it can be avoided entirely with the `JokaCustomMemory` version if needed.
 
 #### Intercepting third-party code
 
