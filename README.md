@@ -130,6 +130,7 @@ Start with the [examples](./examples/) folder for a quick overview.
 - `SliceRange`: Slice view
 - `EnumeratedRange`: Indexed sequence
 - `TransformedRange`: Map or filter result
+- `ArgTokenRange`: Command-line arguments
 
 ### Memory Tracking
 
