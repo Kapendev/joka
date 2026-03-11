@@ -100,7 +100,7 @@ Start with the [examples](./examples/) folder for a quick overview.
 - [`joka.ranges`](./source/joka/ranges.d): Range utilities
 - [`joka.types`](./source/joka/types.d): Common type definitions and ASCII strings
 - [`joka.stdc`](./source/joka/stdc.d): C standard library functions
-- [`joka.wit`](./source/joka/wit.d): [WIT](https://component-model.bytecodealliance.org/design/wit.html#interfaces) helpers
+- [`joka.wit`](./source/joka/wit.d): Wasm Interface Type ([WIT](https://component-model.bytecodealliance.org/design/wit.html#interfaces)) helpers
 
 ### Versions
 

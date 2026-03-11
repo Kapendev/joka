@@ -12,7 +12,6 @@ alias Temperature = Union!(float, Fahrenheit, Celsius, Kelvin);
 
 void freeze(ref Temperature t) {
     // The `as` function will cast without type checking.
-    // Use the `to` function if you want safer access.
     with (t) switch (type) {
         case typeOf!Fahrenheit:
             as!Fahrenheit.degrees = 32; break;
