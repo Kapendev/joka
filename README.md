@@ -94,12 +94,13 @@ Start with the [examples](./examples/) folder for a quick overview.
 
 ### Modules
 
-- [`joka.io`](./source/joka/io.d): Input and output procedures.
-- [`joka.math`](./source/joka/math.d): Mathematics.
-- [`joka.memory`](./source/joka/memory.d): Memory utilities and containers.
-- [`joka.ranges`](./source/joka/ranges.d): Range utilities.
-- [`joka.types`](./source/joka/types.d): Common type definitions and ASCII strings.
-- [`joka.stdc`](./source/joka/stdc.d): C standard library functions.
+- [`joka.io`](./source/joka/io.d): Input and output procedures
+- [`joka.math`](./source/joka/math.d): Mathematics
+- [`joka.memory`](./source/joka/memory.d): Memory utilities and containers
+- [`joka.ranges`](./source/joka/ranges.d): Range utilities
+- [`joka.types`](./source/joka/types.d): Common type definitions and ASCII strings
+- [`joka.stdc`](./source/joka/stdc.d): C standard library functions
+- [`joka.wit`](./source/joka/wit.d): [WIT](https://component-model.bytecodealliance.org/design/wit.html#interfaces) helpers
 
 ### Versions
 
