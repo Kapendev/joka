@@ -20,9 +20,10 @@ void main() {
 ## Why Joka
 
 - **Minimalistic**: Avoids many abstractions
+- **Modular**: Minimal cross-module dependencies
 - **Focused**: Doesn't try to support every use case
-- **Simple**: Uses a single global allocator set at compile time
-- **Friendly**: Memory-safety features and many examples
+- **Simple**: Uses basic structs for everything
+- **Friendly**: Includes many examples
 - **BetterC**: Fully compatible via `-betterC -i`
 
 ### Performance Benchmark
@@ -100,7 +101,7 @@ Start with the [examples](./examples/) folder for a quick overview.
 - [`joka.ranges`](./source/joka/ranges.d): Range utilities
 - [`joka.types`](./source/joka/types.d): Common type definitions and ASCII strings
 - [`joka.stdc`](./source/joka/stdc.d): C standard library functions
-- [`joka.wit`](./source/joka/wit.d): Wasm Interface Type ([WIT](https://component-model.bytecodealliance.org/design/wit.html#interfaces)) helpers
+- [`joka.wit`](./source/joka/wit.d): Wasm Interface Type helpers
 
 ### Versions
 
