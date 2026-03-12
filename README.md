@@ -2,7 +2,7 @@
 
 A nogc utility library for the [D programming language](https://dlang.org/).
 Joka provides data structures and functions that can work without garbage collection, offering precise memory control.
-It is designed to complement the D standard library, not replace it.
+It is designed for C-style memory management and as a lightweight complement to the D standard library.
 
 ```d
 /// Arrays, printing, and string interpolation.
@@ -20,7 +20,7 @@ void main() {
 ## Why Joka
 
 - **Minimalistic**: Avoids many abstractions
-- **Modular**: Minimal cross-module dependencies
+- **Modular**: Has minimal cross-module dependencies
 - **Focused**: Doesn't try to support every use case
 - **Simple**: Uses basic structs for everything
 - **Friendly**: Includes many examples
@@ -114,6 +114,7 @@ Start with the [examples](./examples/) folder for a quick overview.
 
 ### Types
 
+- `ForeignSlice`: Non-D slice
 - `Fault`: Error code
 - `Maybe`: Optional type
 - `Union`: Tagged union
