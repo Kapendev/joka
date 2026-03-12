@@ -23,7 +23,7 @@ void main() {
 - **Modular**: Has minimal cross-module dependencies
 - **Focused**: Doesn't try to support every use case
 - **Simple**: Uses basic structs for everything
-- **Friendly**: Includes many examples
+- **Friendly**: Includes a tracking allocator and many examples
 - **BetterC**: Fully compatible via `-betterC -i`
 
 ### Performance Benchmark
@@ -116,15 +116,16 @@ Start with the [examples](./examples/) folder for a quick overview.
 
 - `ForeignSlice`: Non-D slice
 - `Fault`: Error code
-- `Maybe`: Optional type
+- `Maybe`: Optional type + error code
+- `Option`: Optional type (generally prefer `Maybe`)
 - `Union`: Tagged union
 - `List`: Dynamic array
 - `BufferList`: Fixed-buffer array
 - `FixedList`: Stack-based array
 - `SparseList`: Sparse array
 - `GenList`: Generational array
-- `BitList`: Bit array
-- `BitSet`: Bit set
+- `BitList`: Dynamic bit array
+- `BitSet`: Static bit set
 - `Grid`: 2D array
 - `Arena`: Fixed linear allocator
 - `GrowingArena`: Growing linear allocator
