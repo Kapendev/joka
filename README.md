@@ -215,7 +215,6 @@ Below is some information about it:
 struct MemoryContext {
     void* allocatorState;
     AllocatorReallocFunc reallocFunc;
-    AllocatorFreeFunc freeFunc;
 
     void* malloc(Sz alignment, Sz size, IStr file, Sz line);
     void* realloc(Sz alignment, void* oldPtr, Sz oldSize, Sz newSize, IStr file, Sz line);
@@ -223,7 +222,6 @@ struct MemoryContext {
 }
 
 alias AllocatorReallocFunc = void* function(void* allocatorState, Sz alignment, void* oldPtr, Sz oldSize, Sz newSize, IStr file, Sz line);
-alias AllocatorFreeFunc    = void  function(void* allocatorState, Sz alignment, void* oldPtr, Sz oldSize, IStr file, Sz line);
 
 struct ScopedMemoryContext {
     MemoryContext _previousMemoryContext;
