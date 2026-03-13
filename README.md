@@ -21,7 +21,6 @@ void main() {
 
 - **Minimalistic**: Avoids many abstractions
 - **Modular**: Has minimal cross-module dependencies
-- **Focused**: Doesn't try to support every use case
 - **Simple**: Uses basic structs for everything
 - **Friendly**: Includes a tracking allocator and many examples
 - **BetterC**: Fully compatible via `-betterC -i`
@@ -116,8 +115,9 @@ Start with the [examples](./examples/) folder for a quick overview.
 
 - `ForeignSlice`: Non-D slice
 - `Fault`: Error code
-- `Maybe`: Optional type + error code
-- `Option`: Optional type (generally prefer `Maybe`)
+- `Maybe`: Optional value + error code
+- `Option`: Optional value (generally prefer `Maybe`)
+- `Result`: Success or error value (generally prefer `Maybe`)
 - `Union`: Tagged union
 - `List`: Dynamic array
 - `BufferList`: Fixed-buffer array
