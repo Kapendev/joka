@@ -295,7 +295,7 @@ I avoid the "attribute-oriented" style of structuring a project entirely.
 ### Is WebAssembly supported?
 
 Yes. WebAssembly is supported with the `-betterC` flag, but a tool like [Emscripten](https://emscripten.org/) is required to make every module work.
-Some modules can work without it: `memory.d` and `math.d` for example.
+Some modules can work without it: `memory.d` with `JokaCustomMemory` and `math.d` with `JokaMathStubs` for example.
 In case of errors, the `-i` flag may help.
 The combination `-betterC -i` works in most cases.
 
