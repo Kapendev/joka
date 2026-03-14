@@ -106,10 +106,10 @@ Start with the [examples](./examples/) folder for a quick overview.
 
 - `JokaCustomMemory`: Allows the declaration of custom allocation functions.
 - `JokaGcMemory`: Like `JokaCustomMemory`, but preconfigured to use the D garbage collector.
-- `JokaPhobosStdc`: Uses the Phobos libc bindings instead of Joka's `stdc.d` module when possible.
 - `JokaSmallFootprint`: Uses less memory for some static buffers in Joka.
-- `JokaNoTypes`: Disables the dependency on `types.d` for some modules and uses internal stubs instead.
-- `JokaRuntimeSymbols`: Allows defining some required runtime symbols when they are missing.
+- `JokaNoTypes`: Removes the dependency on `types.d` from some modules and uses internal stubs instead.
+- `JokaMathStubs`: Removes the `math.h` dependency from the `math.d` module and uses internal stubs instead. Useful when working with WebAssembly.
+- `JokaRuntimeSymbols`: Allows defining some required runtime symbols when they are missing. Currently only useful when working with Windows + `-betterC`.
 
 ### Types
 
@@ -179,16 +179,12 @@ You can check whether memory tracking is active with `static if (isTrackingMemor
 ### Standalone `memory.d`
 
 It's possible to just use the memory allocation module without a full dependency on Joka.
-To do this, copy `memory.d` and `types.d` into a project and use one of the following versions:
-
-- `JokaPhobosStdc`: Recommended for "just works" things.
-- `JokaCustomMemory`: Recommended for when total control is needed.
-- `JokaGcMemory`: Like `JokaCustomMemory`, but preconfigured to use the D garbage collector.
+To do this, copy `memory.d` and `types.d` into a project.
 
 ### Standalone `math.d`
 
 It's also possible to just use the math module without a full dependency on Joka.
-Copy `math.d` and `types.d` (optional for this module with `JokaNoTypes`) into a project and use `JokaPhobosStdc`.
+Copy `math.d` and `types.d` (optional for this module with `JokaNoTypes`) into a project.
 
 > [!NOTE]
 > Using `JokaNoTypes` will change how some functions work.
@@ -282,7 +278,6 @@ What this shows is that attributes in D are not a memory management tool.
 
 For what it's worth, I generally avoid attributes in my own projects unless I'm writing a library.
 You can also track GC usage using the `-vgc` flag.
-A combination of this flag alongside the `@nogc` attribute has been working well for me.
 
 ### Why are you supporting the D garbage collector?
 
@@ -299,8 +294,10 @@ I avoid the "attribute-oriented" style of structuring a project entirely.
 
 ### Is WebAssembly supported?
 
-Yes. WebAssembly is supported with the `-betterC` flag, but a tool like [Emscripten](https://emscripten.org/) is required.
-In case of errors, the `-i` flag may help. The combination `-betterC -i` works in most cases.
+Yes. WebAssembly is supported with the `-betterC` flag, but a tool like [Emscripten](https://emscripten.org/) is required to make every module work.
+Some modules can work without it: `memory.d` and `math.d` for example.
+In case of errors, the `-i` flag may help.
+The combination `-betterC -i` works in most cases.
 
 ### Why isn't there a `jokaFreeSlice` function?
 

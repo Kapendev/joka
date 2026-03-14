@@ -147,7 +147,6 @@ version (JokaCustomMemory) {
     }
 } else version (JokaGcMemory) {
     import memoryd = core.memory;
-    import stringc = core.stdc.string;
 
     void* jokaSystemMalloc(Sz size, IStr file = __FILE__, Sz line = __LINE__) {
         return memoryd.GC.malloc(size);
@@ -164,15 +163,15 @@ version (JokaCustomMemory) {
         return jokaSystemRealloc(oldPtr, newSize, file, line);
     }
 } else {
-    version(JokaPhobosStdc) {
-        import stdlibc = core.stdc.stdlib;
-    } else {
-        import stdlibc = joka.stdc;
+    private {
+        extern(C) pragma(mangle, "malloc")  nothrow @nogc void* stdc_malloc(size_t size);
+        extern(C) pragma(mangle, "realloc") nothrow @nogc void* stdc_realloc(void* ptr, size_t size);
+        extern(C) pragma(mangle, "free")    nothrow @nogc void  stdc_free(void* ptr);
     }
 
     void* jokaSystemMalloc(Sz size, IStr file = __FILE__, Sz line = __LINE__) {
         if (size == 0) return null;
-        auto result = stdlibc.malloc(size);
+        auto result = stdc_malloc(size);
         static if (isTrackingMemory) {
             if (result) {
                 _memoryTrackingState.table[result] = _MallocInfo(
@@ -198,7 +197,7 @@ version (JokaCustomMemory) {
         if (ptr) {
             static if (isTrackingMemory) {
                 if (auto mallocValue = ptr in _memoryTrackingState.table) {
-                    result = stdlibc.realloc(ptr, size);
+                    result = stdc_realloc(ptr, size);
                     if (result) {
                         _memoryTrackingState.table[result] = _MallocInfo(
                             file,
@@ -225,7 +224,7 @@ version (JokaCustomMemory) {
                     }
                 }
             } else {
-                result = stdlibc.realloc(ptr, size);
+                result = stdc_realloc(ptr, size);
             }
         } else {
             result = jokaSystemMalloc(size, file, line);
@@ -237,7 +236,7 @@ version (JokaCustomMemory) {
         static if (isTrackingMemory) {
             if (ptr == null) return;
             if (auto mallocValue = ptr in _memoryTrackingState.table) {
-                stdlibc.free(ptr);
+                stdc_free(ptr);
                 debug {
                     _memoryTrackingState.totalBytes -= mallocValue.size;
                     _memoryTrackingState.table.remove(ptr);
@@ -258,7 +257,7 @@ version (JokaCustomMemory) {
                 }
             }
         } else {
-            stdlibc.free(ptr);
+            stdc_free(ptr);
         }
     }
 
@@ -1450,7 +1449,7 @@ struct GenIndex {
     Gen value;
     Gen generation;
 
-    pragma(inline, true) @safe nothrow @nogc pure:
+    pragma(inline, true) @safe nothrow @nogc:
 
     bool isNone() {
         return value < 0;
@@ -1656,7 +1655,7 @@ struct GBitList(T, D = List!T) if (__traits(isUnsigned, T)) {
 
     pragma(inline, true) @nogc {
         Sz capacity() {
-            return buckets.length * bucketCapacity;
+            return cast(Sz) (buckets.length * bucketCapacity);
         }
 
         bool isEmpty() {
