@@ -101,7 +101,7 @@ Start with the [examples](./examples/) folder for a quick overview.
 - [`joka.types`](./source/joka/types.d): Common type definitions and ASCII strings
 - [`joka.stdc`](./source/joka/stdc.d): C standard library functions
 - [`joka.wit`](./source/joka/wit.d): Wasm Interface Type helpers
-- [`joka.wasi`](./source/joka/wasi.d): WebAssembly System Interface helpers
+- [`joka.wasi`](./source/joka/wasi): WebAssembly System Interface helpers
 
 ### Versions
 
@@ -297,7 +297,7 @@ I avoid the "attribute-oriented" style of structuring a project entirely.
 ### Is WebAssembly supported?
 
 Yes. WebAssembly is supported with the `-betterC` flag, but a tool like [Emscripten](https://emscripten.org/) is required to make every module work.
-Some modules can work without it: `memory.d` with `JokaCustomMemory` and `math.d` with `JokaMathStubs` for example.
+Some modules can work without it: `memory.d` with `JokaCustomMemory` and `JokaTypesStubs`, and `math.d` with `JokaMathStubs` for example.
 In case of errors, the `-i` flag may help.
 The combination `-betterC -i` works in most cases.
 
