@@ -110,6 +110,7 @@ Start with the [examples](./examples/) folder for a quick overview.
 - `JokaSmallFootprint`: Uses less memory for some static buffers in Joka.
 - `JokaNoTypes`: Removes the dependency on `types.d` from some modules and uses internal stubs instead.
 - `JokaTypesStubs`: Removes the `string.h` dependency from the `types.d` module and uses internal stubs instead. Useful when working with WebAssembly.
+- `JokaMemoryStubs`: Removes the `stdlib.h` dependency from the `memory.d` module and uses internal stubs instead. Useful when working with WebAssembly.
 - `JokaMathStubs`: Removes the `math.h` dependency from the `math.d` module and uses internal stubs instead. Useful when working with WebAssembly.
 - `JokaRuntimeSymbols`: Allows defining some required runtime symbols when they are missing. Currently only useful when working with Windows + `-betterC`. Might get removed in new Joka releases.
 
@@ -318,6 +319,24 @@ Compile and run with [Wasmtime](https://wasmtime.dev/):
 
 ```sh
 ldc2 -betterC -i --mtriple=wasm32 --checkaction=halt --d-version=JokaTypesStubs app.d
+wasmtime app.wasm
+```
+
+Additionally, the `wasm32-wasi` target can be used to make the print functions in the `io.d` module work.
+Below is an example of this:
+
+```d
+import joka.io;
+import joka.types;
+
+extern(C)
+void _start() {
+    println("Value is: ", 40 + 29);
+}
+```
+
+```
+ldc2 -betterC -i --mtriple=wasm32 --checkaction=halt --d-version=JokaTypesStubs --d-version=JokaMemoryStubs app.d
 wasmtime app.wasm
 ```
 
