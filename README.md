@@ -296,25 +296,25 @@ I avoid the "attribute-oriented" style of structuring a project entirely.
 
 ### Is WebAssembly supported?
 
-Yes. WebAssembly is supported with the `-betterC` flag, but a tool like [Emscripten](https://emscripten.org/) is required to make every module work.
-Some can work without it: `memory.d` with `JokaCustomMemory` and `JokaTypesStubs`, and `math.d` with `JokaMathStubs` for example.
+Yes. It is supported with the `-betterC` flag, but a tool like [Emscripten](https://emscripten.org/) is required to make every module work.
+Some can work without Emscripten: `memory.d` with `JokaCustomMemory` and `JokaTypesStubs`, and `math.d` with `JokaMathStubs` for example.
 In case of errors, the `-i` flag may help.
 
-Below is a hello-world example:
+Below is a [WASI](https://wasi.dev/) hello-world example:
 
 ```d
-import joka.types;
 import joka.wasip1;
+import joka.types;
 
 extern(C)
 void _start() {
     auto value = 40 + 29;
     auto text = "Value is: {}\n".fmt(value).toCiovec();
-    fdWrite(fdStdout, &text, 1, null);
+    fdWrite(stdout, &text, 1, null);
 }
 ```
 
-Compile & run it with [Wasmtime](https://wasmtime.dev/):
+Compile and run with [Wasmtime](https://wasmtime.dev/):
 
 ```sh
 ldc2 -betterC -i --mtriple=wasm32 --checkaction=halt --d-version=JokaTypesStubs app.d
