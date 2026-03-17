@@ -336,7 +336,7 @@ void _start() {
 ```
 
 ```
-ldc2 -betterC -i --mtriple=wasm32 --checkaction=halt --d-version=JokaTypesStubs --d-version=JokaMemoryStubs app.d
+ldc2 -betterC -i --mtriple=wasm32-wasi --checkaction=halt --d-version=JokaTypesStubs --d-version=JokaMemoryStubs app.d
 wasmtime app.wasm
 ```
 
