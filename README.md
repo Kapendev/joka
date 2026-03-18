@@ -101,6 +101,7 @@ Start with the [examples](./examples/) folder for a quick overview.
 - [`joka.types`](./source/joka/types.d): Common type definitions and ASCII strings
 - [`joka.stdc`](./source/joka/stdc.d): C standard library functions
 - [`joka.wasip1`](./source/joka/wasip1.d): WebAssembly System Interface Preview 1 helpers
+- [`joka.wasm4`](./source/joka/wasm4.d): WASM-4 fantasy console interface
 - [`joka.wit`](./source/joka/wit.d): Wasm Interface Type helpers
 
 ### Versions
@@ -297,12 +298,11 @@ I avoid the "attribute-oriented" style of structuring a project entirely.
 
 ### Is WebAssembly supported?
 
-Yes, and it is fully supported using the `-betterC -i` flags.
-
-Joka is tested and confirmed to work with both [Emscripten](https://emscripten.org/) and [Wasmtime](https://wasmtime.dev/).
+Yes, and it is supported using the `-betterC -i` flags.
+Joka is tested to work with [Emscripten](https://emscripten.org/) and [Wasmtime](https://wasmtime.dev/).
 Even if you aren't using on of the above runtimes, you can still use some of Joka's modules by enabling "stubs."
 These stubs tell the compiler to use Joka's own minimal implementations for features usually provided by libc.
-This keeps your binary dependency-free.
+This keeps the code dependency-free.
 Check the versions section in this README for more information about them.
 
 Below is a [WASI](https://wasi.dev/) hello-world example:
@@ -322,11 +322,11 @@ void _start() {
 Compile and run with Wasmtime:
 
 ```sh
-ldc2 -betterC -i --mtriple=wasm32 --checkaction=halt --d-version=JokaTypesStubs app.d
+ldc2 -betterC -i --mtriple=wasm32 --checkaction=halt app.d
 wasmtime app.wasm
 ```
 
-Additionally, the `wasm32-wasi` target can be used to enable some versions like `JokaTypesStubs` by default and get WASI specific implementations:
+Additionally, the `wasm32-wasi` target can be used to enable some versions like `JokaMemoryStubs` by default and get WASI specific implementations:
 
 ```d
 import joka.io;
@@ -341,6 +341,8 @@ void _start() {
 ldc2 -betterC -i --mtriple=wasm32-wasi app.d
 wasmtime app.wasm
 ```
+
+Joka also includes a basic [WASM-4 template](./scripts/wasm4_template) in the scripts folder.
 
 ### Why isn't there a `jokaFreeSlice` function?
 
