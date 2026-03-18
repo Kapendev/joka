@@ -22,8 +22,8 @@ void main() {
 - **Minimalistic**: Avoids many abstractions
 - **Modular**: Has minimal cross-module dependencies
 - **Simple**: Uses basic structs for everything
-- **Friendly**: Includes a tracking allocator and many examples
 - **BetterC**: Fully compatible via `-betterC -i`
+- **WASI-Friendly**: Lightweight enough to run on a single 64KB page
 
 ### Performance Benchmark
 
@@ -297,9 +297,13 @@ I avoid the "attribute-oriented" style of structuring a project entirely.
 
 ### Is WebAssembly supported?
 
-Yes. It is supported with the `-betterC` flag, but a tool like [Emscripten](https://emscripten.org/) is required to make every module work.
-Some can work without Emscripten: `memory.d` with `JokaMemoryStubs` and `JokaTypesStubs`, and `math.d` with `JokaMathStubs` for example.
-In case of errors, the `-i` flag may help.
+Yes, and it is fully supported using the `-betterC -i` flags.
+
+Joka is tested and confirmed to work with both [Emscripten](https://emscripten.org/) and [Wasmtime](https://wasmtime.dev/).
+Even if you aren't using on of the above runtimes, you can still use some of Joka's modules by enabling "stubs."
+These stubs tell the compiler to use Joka's own minimal implementations for features usually provided by libc.
+This keeps your binary dependency-free.
+Check the versions section in this README for more information about them.
 
 Below is a [WASI](https://wasi.dev/) hello-world example:
 
@@ -315,16 +319,14 @@ void _start() {
 }
 ```
 
-Compile and run with [Wasmtime](https://wasmtime.dev/):
+Compile and run with Wasmtime:
 
 ```sh
 ldc2 -betterC -i --mtriple=wasm32 --checkaction=halt --d-version=JokaTypesStubs app.d
 wasmtime app.wasm
 ```
 
-Additionally, the `wasm32-wasi` target can be used to make the print functions in the `io.d` module work, for example.
-By default, Joka will enable some versions like `JokaTypesStubs` for this target.
-Below is an example of this:
+Additionally, the `wasm32-wasi` target can be used to enable some versions like `JokaTypesStubs` by default and get WASI specific implementations:
 
 ```d
 import joka.io;
