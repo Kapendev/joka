@@ -298,7 +298,7 @@ I avoid the "attribute-oriented" style of structuring a project entirely.
 ### Is WebAssembly supported?
 
 Yes. It is supported with the `-betterC` flag, but a tool like [Emscripten](https://emscripten.org/) is required to make every module work.
-Some can work without Emscripten: `memory.d` with `JokaCustomMemory` and `JokaTypesStubs`, and `math.d` with `JokaMathStubs` for example.
+Some can work without Emscripten: `memory.d` with `JokaMemoryStubs` and `JokaTypesStubs`, and `math.d` with `JokaMathStubs` for example.
 In case of errors, the `-i` flag may help.
 
 Below is a [WASI](https://wasi.dev/) hello-world example:
@@ -322,12 +322,12 @@ ldc2 -betterC -i --mtriple=wasm32 --checkaction=halt --d-version=JokaTypesStubs 
 wasmtime app.wasm
 ```
 
-Additionally, the `wasm32-wasi` target can be used to make the print functions in the `io.d` module work.
+Additionally, the `wasm32-wasi` target can be used to make the print functions in the `io.d` module work, for example.
+By default, Joka will enable some versions like `JokaTypesStubs` for this target.
 Below is an example of this:
 
 ```d
 import joka.io;
-import joka.types;
 
 extern(C)
 void _start() {
@@ -336,7 +336,7 @@ void _start() {
 ```
 
 ```
-ldc2 -betterC -i --mtriple=wasm32-wasi --checkaction=halt --d-version=JokaTypesStubs --d-version=JokaMemoryStubs app.d
+ldc2 -betterC -i --mtriple=wasm32-wasi app.d
 wasmtime app.wasm
 ```
 
