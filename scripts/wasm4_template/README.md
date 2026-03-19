@@ -8,7 +8,7 @@ Build and run the game with:
 
 ```sh
 ./run
-# Or: ./run.bat
+# Or: .\run.bat
 ```
 
 ## Links
