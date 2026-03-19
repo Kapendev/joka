@@ -21,6 +21,7 @@ ldc2 -of=$output \
     --d-version=JokaSmallFootprint \
     --d-version=JokaMathStubs \
     -L--export=update \
+    -L--strip-all \
     -L--no-entry \
     -L--stack-first \
     -L--import-memory \
