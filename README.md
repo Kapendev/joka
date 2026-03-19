@@ -23,7 +23,7 @@ void main() {
 - **Modular**: Has minimal cross-module dependencies
 - **Simple**: Uses basic structs for everything
 - **BetterC**: Fully compatible via `-betterC -i`
-- **WASI-Friendly**: Lightweight enough to run on a single 64KB page
+- **WebAssembly**: Lightweight enough to run on a single 64KB page
 
 ### Performance Benchmark
 
@@ -139,6 +139,60 @@ Start with the [examples](./examples/) folder for a quick overview.
 - `EnumeratedRange`: Indexed sequence
 - `TransformedRange`: Map or filter result
 - `ArgTokenRange`: Command-line arguments
+
+### WebAssembly
+
+Joka supports WebAssembly via the `-betterC -i` flags and integrates seamlessly with  [Emscripten](https://emscripten.org/) and [Wasmtime](https://wasmtime.dev/).
+For environments without those runtimes, you can still use some of Joka's modules by enabling "stubs."
+Check the [versions](#versions) section for more information about them.
+
+Below is a [WASI](https://wasi.dev/) hello-world example:
+
+```d
+import joka.wasip1;
+import joka.types;
+
+extern(C)
+void _start() {
+    auto value = 40 + 29;
+    auto text = "Value is: {}\n".fmt(value).toCiovec();
+    fdWrite(stdout, &text, 1, null);
+}
+```
+
+Compile and run with Wasmtime:
+
+```sh
+ldc2 -betterC -i --mtriple=wasm32 --checkaction=halt app.d
+wasmtime app.wasm
+```
+
+Additionally, the `wasm32-wasi` target can be used to enable some versions like `JokaMemoryStubs` by default and get WASI specific implementations:
+
+```d
+import joka.io;
+
+extern(C)
+void _start() {
+    println("Value is: ", 40 + 29);
+}
+```
+
+```
+ldc2 -betterC -i --mtriple=wasm32-wasi app.d
+wasmtime app.wasm
+```
+
+A basic [WASM-4 template](./scripts/wasm4_template) is also available in the [scripts](./scripts) folder.
+To get started, copy the contents of that folder into your project folder.
+A WASM-4 project should follow this structure:
+
+```
+my_wasm4_project/
+├── app.d
+├── joka/
+└── run
+```
 
 ### Memory Tracking
 
@@ -295,61 +349,6 @@ No. Joka doesn't impose arbitrary restrictions on code, so it works smoothly wit
 Some libraries choose to be `@safe`, `@nogc`, or `nothrow` only, but those are their constraints, not Joka's.
 
 I avoid the "attribute-oriented" style of structuring a project entirely.
-
-### Is WebAssembly supported?
-
-Yes, and it is supported using the `-betterC -i` flags.
-Joka works well with [Emscripten](https://emscripten.org/) and [Wasmtime](https://wasmtime.dev/).
-Even without those two runtimes, it is still possible to use some of Joka's modules by enabling "stubs."
-Check the versions section in this README for more information about them.
-
-Below is a [WASI](https://wasi.dev/) hello-world example:
-
-```d
-import joka.wasip1;
-import joka.types;
-
-extern(C)
-void _start() {
-    auto value = 40 + 29;
-    auto text = "Value is: {}\n".fmt(value).toCiovec();
-    fdWrite(stdout, &text, 1, null);
-}
-```
-
-Compile and run with Wasmtime:
-
-```sh
-ldc2 -betterC -i --mtriple=wasm32 --checkaction=halt app.d
-wasmtime app.wasm
-```
-
-Additionally, the `wasm32-wasi` target can be used to enable some versions like `JokaMemoryStubs` by default and get WASI specific implementations:
-
-```d
-import joka.io;
-
-extern(C)
-void _start() {
-    println("Value is: ", 40 + 29);
-}
-```
-
-```
-ldc2 -betterC -i --mtriple=wasm32-wasi app.d
-wasmtime app.wasm
-```
-
-A basic [WASM-4 template](./scripts/wasm4_template) is also available in the [scripts](./scripts) folder.
-To get started, copy the contents of that folder into your project folder.
-A project should follow this structure:
-
-```
-my_wasm4_project/
-├── app.d
-├── joka/
-└── run
-```
 
 ### Why isn't there a `jokaFreeSlice` function?
 
