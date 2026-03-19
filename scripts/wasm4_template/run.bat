@@ -22,7 +22,6 @@ ldc2 -of=%output% ^
     --checkaction=halt ^
     --d-version=JokaMathStubs ^
     -L--export=update ^
-    -L--allow-undefined ^
     -L--no-entry ^
     -L--stack-first ^
     -L--import-memory ^

@@ -20,12 +20,11 @@ ldc2 -of=$output              \
     --checkaction=halt        \
     --d-version=JokaMathStubs \
     -L--export=update         \
-    -L--allow-undefined       \
     -L--no-entry              \
     -L--stack-first           \
     -L--import-memory         \
     -L--initial-memory=65536  \
     -L--max-memory=65536      \
-    -L-zstack-size=14752      \
+    -L-zstack-size=14752
 
 w4 run-native "$output"
