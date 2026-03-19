@@ -20,6 +20,7 @@ ldc2 -of=%output% ^
     -i -betterC ^
     --mtriple=wasm32 ^
     --checkaction=halt ^
+    --d-version=JokaSmallFootprint ^
     --d-version=JokaMathStubs ^
     -L--export=update ^
     -L--no-entry ^
