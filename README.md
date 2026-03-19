@@ -299,10 +299,8 @@ I avoid the "attribute-oriented" style of structuring a project entirely.
 ### Is WebAssembly supported?
 
 Yes, and it is supported using the `-betterC -i` flags.
-Joka is tested to work with [Emscripten](https://emscripten.org/) and [Wasmtime](https://wasmtime.dev/).
-Even if you aren't using on of the above runtimes, you can still use some of Joka's modules by enabling "stubs."
-These stubs tell the compiler to use Joka's own minimal implementations for features usually provided by libc.
-This keeps the code dependency-free.
+Joka works well with [Emscripten](https://emscripten.org/) and [Wasmtime](https://wasmtime.dev/).
+Even without those two runtimes, it is still possible to use some of Joka's modules by enabling "stubs."
 Check the versions section in this README for more information about them.
 
 Below is a [WASI](https://wasi.dev/) hello-world example:
