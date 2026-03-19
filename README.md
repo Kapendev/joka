@@ -340,7 +340,16 @@ ldc2 -betterC -i --mtriple=wasm32-wasi app.d
 wasmtime app.wasm
 ```
 
-Joka also includes a basic [WASM-4 template](./scripts/wasm4_template) in the scripts folder.
+A basic [WASM-4 template](./scripts/wasm4_template) is also available in the [scripts](./scripts) folder.
+To get started, copy the contents of that folder into your project folder.
+A project should follow this structure:
+
+```
+my_wasm4_project/
+├── app.d
+├── joka/
+└── run
+```
 
 ### Why isn't there a `jokaFreeSlice` function?
 
