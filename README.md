@@ -98,8 +98,9 @@ Start with the [examples](./examples/) folder for a quick overview.
 - [`joka.math`](./source/joka/math.d): Mathematics
 - [`joka.memory`](./source/joka/memory.d): Memory utilities and containers
 - [`joka.ranges`](./source/joka/ranges.d): Range utilities
-- [`joka.types`](./source/joka/types.d): Common type definitions and ASCII strings
 - [`joka.stdc`](./source/joka/stdc.d): C standard library functions
+- [`joka.types`](./source/joka/types.d): Common type definitions and ASCII strings
+- [`joka.ui`](./source/joka/ui.d): Immediate mode UI library
 - [`joka.wasip1`](./source/joka/wasip1.d): WebAssembly System Interface Preview 1 helpers
 - [`joka.wasm4`](./source/joka/wasm4.d): WASM-4 fantasy console interface
 - [`joka.wit`](./source/joka/wit.d): Wasm Interface Type helpers

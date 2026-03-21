@@ -22,6 +22,7 @@ ldc2 -of=%output% ^
     --checkaction=halt ^
     --d-version=JokaSmallFootprint ^
     --d-version=JokaMathStubs ^
+    --d-version=JokaMemoryStubs ^
     -L--export=update ^
     -L--strip-all ^
     -L--no-entry ^
