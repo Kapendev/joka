@@ -3,5 +3,5 @@
 ## I am too lazy to remember these commands.
 
 set -xe
-ls examples/*.d | xargs -I xx dmd -i -of=.temp -I=source -J=source/joka -run xx
+ls examples/*.d | grep -v "_010_ui.d" | xargs -I xx dmd -i -of=.temp -I=source -J=source/joka -run xx
 dmd -i -of=.temp -I=source -J=source/joka -run ./examples/_008_cli.d one two -a --foo
