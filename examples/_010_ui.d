@@ -14,7 +14,7 @@ void update() {
     static isFirstFrame = true;
 
     if (isFirstFrame) {
-        ui = UiContext(null, null, null);
+        ui = UiContext(null, null);
         w4.palette[0] = 0x40332f;
         w4.palette[1] = 0x856d52;
         w4.palette[2] = 0x95c798;
@@ -79,9 +79,7 @@ void update() {
                 break;
             case text:
                 *w4.drawColors = 4;
-                auto textWidth = command.text.dataLength * 8 - 1;
-                auto textHeight = 8 - 1;
-                w4.text(command.text.data, command.text.position.x - textWidth / 2, command.text.position.y - textHeight / 2);
+                w4.text(command.text.data, command.text.position.x, command.text.position.y);
                 break;
         }
     }
