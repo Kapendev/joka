@@ -57,7 +57,7 @@ void update() {
                 break;
             case text:
                 *w4.drawColors = 4;
-                w4.text(command.text.data, command.text.position.x, command.text.position.y);
+                w4.text(command.text.ptr, command.text.position.x, command.text.position.y);
                 break;
         }
     }
