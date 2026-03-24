@@ -41,7 +41,8 @@ void update() {
     foreach (i, ref command; ui.commands) {
         *w4.drawColors = 2;
         with (UiCommandType) final switch (command.type) {
-            case none: break;
+            case none:
+                break;
             case rect:
                 if (command.rect.flags & UiCommandFlag.border) {
                     if (ui.commands.nextIsRectWith(i, UiCommandFlag.active | UiCommandFlag.hover)) {
@@ -57,7 +58,9 @@ void update() {
                 break;
             case text:
                 *w4.drawColors = 4;
-                w4.text(command.text.ptr, command.text.position.x, command.text.position.y);
+                w4.text(command.text.ptr, command.text.area.x, command.text.area.y);
+                break;
+            case icon:
                 break;
         }
     }
