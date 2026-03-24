@@ -12,7 +12,6 @@ auto ui = UiContext();
 extern(C)
 void update() {
     static isFirstFrame = true;
-
     if (isFirstFrame) {
         ui = UiContext(null, null);
         w4.palette[0] = 0x40332f;
@@ -22,41 +21,20 @@ void update() {
         isFirstFrame = false;
     }
 
-    { // Get the UI input.
-        static previousMouseButtonDown = false;
-        static previousKeyDown = false;
-        static previousKeyDown2 = false;
-
-        ui.input.mousePosition = IVec2(*w4.mouseX, *w4.mouseY);
-        bool mouseDown = (*w4.mouseButtons & w4.mouseLeft) != 0;
-        ui.input.mouseButtonDown     = mouseDown;
-        ui.input.mouseButtonPressed  = !previousMouseButtonDown && mouseDown;
-        ui.input.mouseButtonReleased = previousMouseButtonDown && !mouseDown;
-        ui.input.mouseActionOnRelease = false;
-        previousMouseButtonDown = mouseDown;
-
-        bool keyDown = (*w4.gamepad1 & w4.buttonLeft) != 0;
-        ui.input.keyPressed |= (!previousKeyDown && keyDown) ? UiKeyFlag.tab : UiKeyFlag.none;
-        previousKeyDown = keyDown;
-
-        bool keyDown2 = (*w4.gamepad1 & w4.button1) != 0;
-        ui.input.keyPressed |= (!previousKeyDown2 && keyDown2) ? UiKeyFlag.enter : UiKeyFlag.none;
-        previousKeyDown2 = keyDown2;
-    }
-
     auto screen = IRect(w4.screenSize, w4.screenSize);
     screen.subAll(6);
 
     // Create the UI.
+    updateUiInput();
     ui.begin();
     with (ui.scopedFocus) {
         auto menu = ui.row(screen.subTop(15), 3, 11);
-        if (menu.button("A")) w4.trace("1!");
-        if (menu.button("B")) w4.trace("2!");
-        if (menu.button("C")) w4.trace("3!");
+        if (ui.button(menu.pop(), "A")) w4.trace("A!");
+        if (ui.button(menu.pop(), "B B")) w4.trace("B!");
+        if (ui.button(menu.pop(), "CCC")) w4.trace("C!");
     }
-    if (ui.button(50, 50, 30, 30, "OwO")) w4.trace("one");
-    if (ui.button(89, 75, 30, 30, "UwU")) w4.trace("two");
+    if (ui.button(50, 50, 30, 30, "OwO")) w4.trace("One!");
+    if (ui.button(89, 75, 30, 30, "UwU")) w4.trace("Two!");
     ui.end();
 
     // Draw the UI.
@@ -83,4 +61,26 @@ void update() {
                 break;
         }
     }
+}
+
+void updateUiInput() {
+    static previousMouseButtonDown = false;
+    static previousKeyDown = false;
+    static previousKeyDown2 = false;
+
+    ui.input.mousePosition = IVec2(*w4.mouseX, *w4.mouseY);
+    bool mouseDown = (*w4.mouseButtons & w4.mouseLeft) != 0;
+    ui.input.mouseButtonDown     = mouseDown;
+    ui.input.mouseButtonPressed  = !previousMouseButtonDown && mouseDown;
+    ui.input.mouseButtonReleased = previousMouseButtonDown && !mouseDown;
+    ui.input.mouseActionOnRelease = false;
+    previousMouseButtonDown = mouseDown;
+
+    bool keyDown = (*w4.gamepad1 & w4.buttonLeft) != 0;
+    ui.input.keyPressed |= (!previousKeyDown && keyDown) ? UiKeyFlag.tab : UiKeyFlag.none;
+    previousKeyDown = keyDown;
+
+    bool keyDown2 = (*w4.gamepad1 & w4.button1) != 0;
+    ui.input.keyPressed |= (!previousKeyDown2 && keyDown2) ? UiKeyFlag.enter : UiKeyFlag.none;
+    previousKeyDown2 = keyDown2;
 }
