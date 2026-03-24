@@ -27,7 +27,7 @@ void update() {
     // Create the UI.
     updateUiInput();
     ui.begin();
-    with (ui.scopedFocus) {
+    with (ui.captureFocus()) {
         auto menu = ui.row(screen.subTop(15), 3, 11);
         if (ui.button(menu.pop(), "A")) w4.trace("A!");
         if (ui.button(menu.pop(), "B B")) w4.trace("B!");
