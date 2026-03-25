@@ -33,8 +33,8 @@ void update() {
         if (ui.button(menu.pop(), "B B")) w4.trace("B!");
         if (ui.button(menu.pop(), "CCC")) w4.trace("C!");
     }
-    if (ui.button(50, 50, 30, 30, "OwO")) w4.trace("One!");
-    if (ui.button(89, 75, 30, 30, "UwU")) w4.trace("Two!");
+    if (ui.button(IRect(50, 50, 30, 30), "OwO")) w4.trace("One!");
+    if (ui.button(IRect(89, 75, 30, 30), "UwU")) w4.trace("Two!");
     ui.end();
 
     // Draw the UI.
