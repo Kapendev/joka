@@ -16,7 +16,7 @@ import joka.math;
 import joka.types;
 
 version (JokaSmallFootprint) {
-    enum defaultUiCommandsCapacity = 128;
+    enum defaultUiCommandsCapacity = 64;
     enum defaultUiCharDataCapacity = 1 * kilobyte;
 } else {
     enum defaultUiCommandsCapacity = 512;
