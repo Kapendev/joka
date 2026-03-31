@@ -8,12 +8,14 @@ import joka.math;
 import joka.ui;
 
 UiContext ui;
+UiCommand[64] uiCommandsBuffer;
+char[256] uiCharDataBuffer;
 
 extern(C)
 void update() {
     static isFirstFrame = true;
     if (isFirstFrame) {
-        ui = UiContext(null, null);
+        ui = UiContext(null, uiCommandsBuffer, uiCharDataBuffer, null);
         w4.palette[0] = 0xc4f0c2;
         w4.palette[1] = 0x5ab9a8;
         w4.palette[2] = 0x1e606e;
