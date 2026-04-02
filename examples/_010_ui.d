@@ -16,6 +16,8 @@ void update() {
     static isFirstFrame = true;
     if (isFirstFrame) {
         ui = UiContext(null, uiCommandsBuffer, uiCharDataBuffer, null);
+        ui.manualBordersMode = true;
+        ui.style.border = 2;
         w4.palette[0] = 0xc4f0c2;
         w4.palette[1] = 0x5ab9a8;
         w4.palette[2] = 0x1e606e;
@@ -30,9 +32,9 @@ void update() {
     screen.subAll(4);
     with (ui.captureFocus()) {
         auto menu = ui.rowItems(screen.subTop(13), 3, 8);
-        if (ui.button(menu.pop(), "One"))   w4.trace("1!");
-        if (ui.button(menu.pop(), "Two"))   w4.trace("2!");
-        if (ui.button(menu.pop(), "Three")) w4.trace("3!");
+        if (ui.button(menu.pop(), "1")) w4.trace("1!");
+        if (ui.button(menu.pop(), "2")) w4.trace("2!");
+        if (ui.button(menu.pop(), "3")) w4.trace("3!");
     }
     if (ui.button(IRect(40, 55, 30, 30), "OwO")) w4.trace("OOO!");
     if (ui.button(IRect(90, 85, 30, 30), "UwU")) w4.trace("UUU!");
@@ -88,13 +90,15 @@ void drawUiState(ref UiContext ui) {
             case icon:
                 break;
             case rect:
-                if (command.rect.flags & UiCommandFlag.border) {
-                    auto hasDarkColor =
-                        ui.commands.nextIsRectWith(i, UiCommandFlag.hover) ||
-                        ui.commands.nextIsRectWith(i, UiCommandFlag.active) ||
-                        ui.commands.nextIsRectWith(i, UiCommandFlag.focus);
-                    *w4.drawColors = hasDarkColor ? 4 : 3;
-                }
+                auto borderRect = command.rect.data;
+                borderRect.addAll(ui.style.border);
+                *w4.drawColors = (command.rect.flags & UiCommandFlag.off) ? 4 : 3;
+                if (command.rect.flags & UiCommandFlag.hover)  *w4.drawColors = 4;
+                if (command.rect.flags & UiCommandFlag.active) *w4.drawColors = 3;
+                if (command.rect.flags & UiCommandFlag.focus)  *w4.drawColors = 3;
+                w4.rect(borderRect.x, borderRect.y, borderRect.w, borderRect.h);
+
+                *w4.drawColors = 2;
                 if (command.rect.flags & UiCommandFlag.hover)  *w4.drawColors = 2;
                 if (command.rect.flags & UiCommandFlag.active) *w4.drawColors = 3;
                 if (command.rect.flags & UiCommandFlag.focus)  *w4.drawColors = 3;
