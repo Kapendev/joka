@@ -37,11 +37,11 @@ void main() {
         with (ScopedArena(arena)) {
             make!short(2);
             make!char('D');
-            trace(arena.offset == 5);
+            assert(arena.offset == 5);
         }
-        trace(arena.offset == 1);
+        assert(arena.offset == 1);
     }
-    trace(arena.offset == 0);
+    assert(arena.offset == 0);
 
     // Use an arena as the current memory context for types like `List`.
     arena = Arena(buffer);
@@ -58,7 +58,7 @@ void main() {
         trace(list[i++] == 9);
         // Don't need to free the list because it's using the arena.
     }
-    trace(arena.offset != 0);
+    assert(arena.offset != 0);
 
     // Sometimes it makes sense to mix a custom memory context with the default one.
     // For example, a function `foo()` needs to allocate things in a specific way.

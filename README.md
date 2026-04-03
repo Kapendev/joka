@@ -71,7 +71,7 @@ sys 0.08
 ```
 
 > [!NOTE]
-> The project is still early in development.
+> The project is still early in development; expect breaking changes.
 > If something is missing, it will probably be added when someone (usually the main developer) needs it.
 > [NuMem](https://github.com/Inochi2D/numem) or [NuLib](https://github.com/Inochi2D/nulib) are good alternatives.
 
