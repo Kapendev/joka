@@ -94,7 +94,7 @@ Start with the [examples](./examples/) folder for a quick overview.
 [DDOX](https://github.com/dlang/ddox) can also be used to create an overview with:
 
 ```sh
-git clone https://github.com/Kapendev/joka joka_package
+git clone --depth=1 https://github.com/Kapendev/joka joka_package
 cd joka_package
 dub run -b ddox
 ```
@@ -108,7 +108,7 @@ dub run -b ddox
 - [`joka.ranges`](./source/joka/ranges.d): Range utilities
 - [`joka.stdc`](./source/joka/stdc.d): C standard library functions
 - [`joka.types`](./source/joka/types.d): Common type definitions and ASCII strings
-- [`joka.ui`](./source/joka/ui.d): Immediate mode UI library
+- [`joka.ui`](./source/joka/ui.d): UI library
 - [`joka.wasip1`](./source/joka/wasip1.d): WebAssembly System Interface Preview 1 helpers
 - [`joka.wasm4`](./source/joka/wasm4.d): WASM-4 fantasy console interface
 - [`joka.wit`](./source/joka/wit.d): Wasm Interface Type helpers
