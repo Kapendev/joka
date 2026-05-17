@@ -131,6 +131,7 @@ dub run -b ddox
 #### Basics
 
 - `IndexedValue`: Index + value
+- `KeyValuePair`: Key + value
 - `GenIndex`: Generational index
 - `ForeignSlice`: Non-D slice
 - `BitSet`: Static bit set
@@ -146,7 +147,7 @@ dub run -b ddox
 
 - `List`: Dynamic array
 - `BufferList`: Fixed-buffer array
-- `FixedList`: Stack-based array
+- `FixedList`: fixed-size array
 - `SparseList`: Sparse array
 - `GenList`: Generational array
 - `BitList`: Dynamic bit array
