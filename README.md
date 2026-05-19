@@ -118,7 +118,6 @@ dub run -b ddox
 - `JokaCustomMemory`: Allows the declaration of custom allocation functions.
 - `JokaGcMemory`: Like `JokaCustomMemory`, but preconfigured to use the D garbage collector.
 - `JokaSmallFootprint`: Uses less memory for some static buffers in Joka.
-- `JokaNoTypes`: Removes the dependency on `types.d` from some modules and uses internal stubs instead.
 - `JokaTypesStubs`: Removes the `string.h` dependency from the `types.d` module and uses internal stubs instead. Useful when working with WebAssembly.
 - `JokaMemoryStubs`: Removes the `stdlib.h` dependency from the `memory.d` module and uses internal stubs instead. Useful when working with WebAssembly.
 - `JokaMathStubs`: Removes the `math.h` dependency from the `math.d` module and uses internal stubs instead. Useful when working with WebAssembly.
@@ -300,11 +299,7 @@ To do this, copy `memory.d` and `types.d` into a project.
 ### Standalone `math.d`
 
 It's also possible to just use the math module without a full dependency on Joka.
-Copy `math.d` and `types.d` (optional for this module with `JokaNoTypes`) into a project.
-
-> [!NOTE]
-> Using `JokaNoTypes` will change how some functions work.
-> For example, the `toStr` functions for vectors will return empty strings.
+Copy `math.d` and `types.d` into a project.
 
 ## Frequently Asked Questions
 
