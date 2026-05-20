@@ -101,6 +101,7 @@ dub run -b ddox
 
 ### Modules
 
+- [`joka.game`](./source/joka/game.d): Game development helpers
 - [`joka.io`](./source/joka/io.d): Input and output procedures
 - [`joka.math`](./source/joka/math.d): Mathematics
 - [`joka.memory`](./source/joka/memory.d): Memory utilities and containers
