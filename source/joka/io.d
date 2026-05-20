@@ -12,8 +12,6 @@ import joka.memory;
 import joka.types;
 
 // TODO: Should be changed with something better?
-//   I added this import to get the print functions working with WASI P1.
-//   Can be removed later. It's not like I care that much about this module.
 version (WASI) {
     import wasi = joka.wasip1;
 } else {
