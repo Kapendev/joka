@@ -14,6 +14,8 @@ import joka.types;
 
 version (WASI) {
     version = JokaMemoryStubs;
+} else version (WASM4) {
+    version = JokaMemoryStubs;
 }
 
 // --- Core

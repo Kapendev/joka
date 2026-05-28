@@ -1,6 +1,5 @@
+import joka;
 import w4 = joka.wasm4;
-import joka.types;
-import joka.math;
 
 immutable(ubyte)[] smiley = [
     0b11000011,
@@ -36,6 +35,7 @@ extern(C) void update() {
     const gamepad = *w4.gamepad1;
     if (gamepad & w4.button1) {
         *w4.drawColors = 4;
+        printf("Color: {}", *w4.drawColors);
     }
     w4.blit(smiley.ptr, 76, 76, 8, 8, w4.blit1Bpp);
     w4.text("Press X to blink", 17, 90);
