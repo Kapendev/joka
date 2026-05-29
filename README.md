@@ -189,7 +189,7 @@ dub run -b ddox
 - `ChunksRange`: Chunks result
 - `ArgTokenRange`: Command-line arguments
 
-#### Type Aliases
+#### Aliases
 
 - `Sz`: `size_t`
 - `Pd`: `ptrdiff_t`
@@ -197,6 +197,18 @@ dub run -b ddox
 - `IStr`: `const(char)[]`
 - `Strz`: `char*`
 - `IStrz`: `const(char)*`
+
+#### Game Utilities
+
+- `Flip`: Flipping orientations
+- `Tile`: Game map tile
+- `TileMap`: Game map
+- `SpriteAnimation`: Animation data
+- `Sprite`: Animated sprite
+- `GTimer`: Generic immediate-mode timer
+- `Story`: Dialogue system
+- `Box`: Physics object
+- `BoxWorld`: Arcady physics engine
 
 ### WebAssembly
 
