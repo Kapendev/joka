@@ -110,7 +110,7 @@ dub run -b ddox
 - [`joka.stdc`](./source/joka/stdc.d): C standard library functions
 - [`joka.types`](./source/joka/types.d): Common type definitions and ASCII strings
 - [`joka.ui`](./source/joka/ui.d): UI library
-- [`joka.wasip1`](./source/joka/wasip1.d): WebAssembly System Interface Preview 1 helpers
+- [`joka.wasip1`](./source/joka/wasip1.d): WebAssembly System Interface Preview 1
 - [`joka.wasm4`](./source/joka/wasm4.d): WASM-4 fantasy console interface
 - [`joka.wit`](./source/joka/wit.d): Wasm Interface Type helpers
 
@@ -123,6 +123,7 @@ dub run -b ddox
 - `JokaMemoryStubs`: Removes the `stdlib.h` dependency from the `memory.d` module and uses internal stubs instead. Useful when working with WebAssembly.
 - `JokaMathStubs`: Removes the `math.h` dependency from the `math.d` module and uses internal stubs instead. Useful when working with WebAssembly.
 - `JokaRuntimeSymbols`: Allows defining some required runtime symbols when they are missing. Currently only useful when working with Windows + `-betterC`. Might get removed in new Joka releases.
+- `WASM4`: Like `WASI`, but for the WASM-4 fantasy console.
 
 ### Types
 
@@ -198,22 +199,22 @@ dub run -b ddox
 - `Strz`: `char*`
 - `IStrz`: `const(char)*`
 
-#### Game Utilities
+#### Games
 
 - `Flip`: Flipping orientations
-- `Tile`: Game map tile
+- `Tile`: Game tile
 - `TileMap`: Game map
 - `SpriteAnimation`: Animation data
 - `Sprite`: Animated sprite
-- `GTimer`: Generic immediate-mode timer
+- `GTimer`: Generic timer
 - `Story`: Dialogue system
-- `Box`: Physics object
+- `Box`: Small rectangle
 - `BoxWorld`: Arcady physics engine
 
 ### WebAssembly
 
-Joka supports WebAssembly via the `-betterC -i` flags and integrates seamlessly with [Emscripten](https://emscripten.org/) and [Wasmtime](https://wasmtime.dev/).
-For environments without those runtimes, you can still use some of Joka's modules by enabling "stubs."
+Joka supports WebAssembly via the `-betterC -i` flags and integrates with [Emscripten](https://emscripten.org/) and [Wasmtime](https://wasmtime.dev/).
+You can still use some of Joka's modules in other environments by enabling "stubs."
 Check the [versions](#versions) section for more information about them.
 
 Below is a [WASI](https://wasi.dev/) hello-world example:
