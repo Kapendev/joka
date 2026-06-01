@@ -188,6 +188,7 @@ dub run -b ddox
 - `StrideRange`: Stride result
 - `AccumulateRange`: Accumulate result
 - `ChunksRange`: Chunks result
+- `SplitterRange` Splitter result
 - `ArgTokenRange`: Command-line arguments
 
 #### Aliases
