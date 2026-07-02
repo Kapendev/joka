@@ -9,12 +9,12 @@ void main() {
     // Allocate a single number.
     auto x = jokaMake!int(999);
     scope (exit) jokaFree(x);
-    trace(*x);
+    debugPrint(*x);
 
     // Allocate an array of 16 numbers.
     auto slice = jokaMakeSlice!int(16);
     scope (exit) jokaFree(slice.ptr);
-    trace(slice.length);
+    debugPrint(slice.length);
 
     // Group allocations to make memory tracking clearer and more organized.
     with (ScopedAllocationGroup("Part 3")) {
@@ -27,7 +27,7 @@ void main() {
     auto arena = Arena(buffer);
     auto a = arena.make!char('C');
     auto b = arena.make!long(99);
-    trace(*a, *b);
+    debugPrint(*a, *b);
     arena.clear();
 
     // A scoped version of an arena clears its memory automatically at the end of the block.
@@ -51,11 +51,11 @@ void main() {
         list.push(9);
 
         auto i = 0;
-        trace(list[i++] == 4);
-        trace(list[i++] == 2);
-        trace(list[i++] == 0);
-        trace(list[i++] == 6);
-        trace(list[i++] == 9);
+        debugPrint(list[i++] == 4);
+        debugPrint(list[i++] == 2);
+        debugPrint(list[i++] == 0);
+        debugPrint(list[i++] == 6);
+        debugPrint(list[i++] == 9);
         // Don't need to free the list because it's using the arena.
     }
     assert(arena.offset != 0);
