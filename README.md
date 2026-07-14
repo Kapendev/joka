@@ -1,7 +1,6 @@
 # Joka
 
 A nogc utility library for the [D programming language](https://dlang.org/).
-Joka provides data structures and functions that can work without garbage collection, offering precise memory control.
 It is designed for C-style memory management and as a lightweight complement to the D standard library.
 
 ```d
@@ -20,10 +19,10 @@ void main() {
 ## Why Joka
 
 - **Minimalistic**: Avoids many abstractions
-- **Modular**: Has minimal cross-module dependencies
-- **Fast**: Very blazingly fast
+- **Modular**: Minimal cross-module dependencies
+- **Fast**: Blazingly fast compile times
 - **BetterC**: Fully compatible via `-betterC -i`
-- **WebAssembly**: Lightweight enough to run on a single 64KB page
+- **WebAssembly**: Works well with [Wasmtime](https://docs.wasmtime.dev/) & [Emscripten](https://emscripten.org/)
 
 ### Performance Benchmark
 
@@ -377,8 +376,6 @@ One cited reason for such a system is the ability to "intercept third-party code
 Don't.
 A context system is essentially a global variable that you have to account for.
 It's like the PICO-8 API with its pen color, but for memory management and with scope magic.
-That's fine for a fantasy console.
-It's not fine for memory management.
 
 ### Why aren't some functions `@nogc`?
 
