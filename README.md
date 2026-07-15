@@ -123,7 +123,7 @@ dub run -b ddox
 - `JokaTypesStubs`: Removes the `string.h` dependency from the `types.d` module and uses internal stubs instead. Useful when working with WebAssembly.
 - `JokaMemoryStubs`: Removes the `stdlib.h` dependency from the `memory.d` module and uses internal stubs instead. Useful when working with WebAssembly.
 - `JokaMathStubs`: Removes the `math.h` dependency from the `math.d` module and uses internal stubs instead. Useful when working with WebAssembly.
-- `JokaRuntimeSymbols`: Allows defining some required runtime symbols when they are missing. Currently only useful when working with Windows + `-betterC`. Might get removed in new Joka releases.
+- `JokaMallocOnly`: Will not allow the use of single-allocation functions like `jokaMake*`.
 - `WASM4`: Like `WASI`, but for the WASM-4 fantasy console.
 
 ### Types
