@@ -1,6 +1,7 @@
 /// This example shows how to use Joka's command-line parsing utilities.
 
 import joka;
+import joka.ranges;
 
 void main(string[] args) {
     println("Arguments:");

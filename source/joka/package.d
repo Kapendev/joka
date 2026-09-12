@@ -7,9 +7,7 @@
 
 module joka;
 
-public import joka.configs;
 public import joka.io;
 public import joka.math;
 public import joka.memory;
-public import joka.ranges;
 public import joka.types;

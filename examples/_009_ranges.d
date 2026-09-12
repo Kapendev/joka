@@ -1,6 +1,7 @@
 /// This example shows how to use Joka's range utilities.
 
 import joka;
+import joka.ranges;
 
 void main(string[] args) {
     // NumericRange
