@@ -12,10 +12,6 @@ module joka.math;
 
 import joka.types;
 
-version (WASM4) {
-    version = JokaMathStubs;
-}
-
 @safe nothrow @nogc:
 
 enum epsilon = 0.0001;                                /// The value of epsilon.

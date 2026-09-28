@@ -8,10 +8,6 @@
 /// The `types` module provides basic type definitions, compile-time functions and ASCII string helpers.
 module joka.types;
 
-version (WebAssembly) {
-    version = JokaTypesStubs;
-}
-
 alias Sz = size_t;    /// The result of sizeof.
 alias Pd = ptrdiff_t; /// The result of pointer math.
 
