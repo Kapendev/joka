@@ -13,7 +13,8 @@ import joka.types;
 
 // TODO: Should be changed with something better?
 //   There could be a backend file like in Parin that has an IO interface.
-version (WASI) {
+version (Emscripten) {
+} else version (WASI) {
     version = ReadWriteFileIsEmpty;
     import wasi = joka.wasip1;
 } else version (WASM4) {
