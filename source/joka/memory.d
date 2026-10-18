@@ -916,10 +916,10 @@ struct List(T) {
 
     @nogc
     IStr toStr() {
-        static if (is(T == char)) { // isCharType
+        static if (is(T == char)) {
             return items;
         } else {
-            assert(0, "Cannot call `toStr` on `List!T` when `T` is not a `char`.");
+            return typeof(items).stringof;
         }
     }
 
@@ -945,7 +945,7 @@ struct List(T) {
         }
 
         void opIndexAssign(const(T) rhs) {
-            items[] = cast(T) rhs;
+            foreach(ref item; items) item = cast(T) rhs;
         }
 
         void opIndexAssign(const(T) rhs, Sz i) {
@@ -1100,10 +1100,10 @@ struct BufferList(T) {
     }
 
     IStr toStr() {
-        static if (is(T == char)) { // isCharType
+        static if (is(T == char)) {
             return items;
         } else {
-            assert(0, "Cannot call `toStr` on `List!T` when `T` is not a `char`.");
+            return typeof(data).stringof;
         }
     }
 
@@ -1134,7 +1134,7 @@ struct BufferList(T) {
         }
 
         void opIndexAssign(const(T) rhs) {
-            items[] = cast(T) rhs;
+            foreach (ref item; items) item = cast(T) rhs;
         }
 
         void opIndexAssign(const(T) rhs, Sz i) {
@@ -1258,10 +1258,10 @@ struct FixedList(T, Sz N) {
     }
 
     IStr toStr() {
-        static if (is(T == char)) { // isCharType
+        static if (is(T == char)) {
             return items;
         } else {
-            assert(0, "Cannot call `toStr` on `List!T` when `T` is not a `char`.");
+            return typeof(items()).stringof;
         }
     }
 
@@ -1292,7 +1292,7 @@ struct FixedList(T, Sz N) {
         }
 
         void opIndexAssign(const(T) rhs) {
-            items[] = cast(T) rhs;
+            foreach (ref item; items) item = cast(T) rhs;
         }
 
         void opIndexAssign(const(T) rhs, Sz i) {
@@ -1927,7 +1927,7 @@ struct Grid(T, D = List!T) if (isBasicContainerType!D) {
         }
 
         void opIndexAssign(T rhs) {
-            tiles[] = rhs;
+            foreach (ref tile; tiles) tile = rhs;
         }
 
         void opIndexAssign(const(T) rhs, Sz row, Sz col) {
@@ -2421,7 +2421,6 @@ IStr fmtIntoListWithStrs(S = LStr)(ref S list, bool canAppend, IStr fmtStr, IStr
             fmtStrIndex += 1;
         }
     }
-    if (argIndex != args.length) assert(0, "An argument doesn't have a placeholder.");
     return list.items;
 }
 
